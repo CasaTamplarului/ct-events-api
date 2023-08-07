@@ -28,24 +28,29 @@ gem 'dotenv-rails'
 gem 'apipie-rails', '~> 1.2', '>= 1.2.2'
 
 group :development, :test do
-  # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
-  gem "debug", platforms: %i[ mri mingw x64_mingw ]
+  gem "byebug"
+  gem 'database_cleaner', '~> 2.0', '>= 2.0.2'
+  gem 'rspec-rails', '~> 6.0', '>= 6.0.3'
+  gem 'factory_bot_rails', '~> 6.2'
+  gem 'faker', '~> 3.2'
+  gem 'shoulda-matchers', '~> 4.5', '>= 4.5.1'
+  gem 'webmock', '~> 3.18', '>= 3.18.1'
 end
 
 group :development do
-  # Use console on exceptions pages [https://github.com/rails/web-console]
+  gem 'rubocop', '~> 1.55', '>= 1.55.1', require: false
+  gem 'rubocop-rails', '~> 2.20', '>= 2.20.2', require: false
+  gem 'rubocop-rspec', '~> 2.23', require: false
+  gem 'rubocop-performance', '~> 1.18', require: false
   gem "web-console"
 
-  # Add speed badges [https://github.com/MiniProfiler/rack-mini-profiler]
   # gem "rack-mini-profiler"
 
-  # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
 end
 
 group :test do
-  # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
-  gem "capybara"
   gem "selenium-webdriver"
   gem "webdrivers"
+  gem 'shoulda', '~> 4.0'
 end

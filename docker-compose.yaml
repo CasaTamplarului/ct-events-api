@@ -19,6 +19,29 @@ services:
   #     - "6379:6379"
   #   volumes:
   #     - ct-events-redis:/var/lib/redis/data
+  directus:
+    image: directus/directus:10.5.2
+    ports:
+      - "8091:8055"
+    environment:
+      DB_CLIENT: "pg"
+      KEY: "some random secret"
+      SECRET: "another random secret"
+      DB_HOST: "postgres"
+      DB_PORT: "5432"
+      DB_DATABASE: "ct_events_api_development"
+      DB_USER: "postgres"
+      DB_PASSWORD: "postgres"
+      STORAGE_LOCATIONS: "LOCAL"
+      STORAGE_LOCAL_DRIVER: "local"
+      STORAGE_LOCAL_ROOT: "./local/"
+      ADMIN_EMAIL: "admin@synthbit.io"
+      ADMIN_PASSWORD: "Tw1l1ght932008"
+    volumes:
+      - ./data/config:/var/directus/config
+      - ./data/uploads:/var/directus/public/uploads
+    depends_on:
+      - postgres
 
 volumes:
   ct-events-redis:

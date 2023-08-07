@@ -1,0 +1,110 @@
+require:
+  - rubocop-rails
+  - rubocop-rspec
+  - rubocop-performance
+AllCops:
+  DisplayCopNames: true
+  DisplayStyleGuide: true
+  TargetRubyVersion: 3.2.2
+  NewCops: enable
+  Exclude:
+    - "bin/*"
+    - config/boot.rb
+    - config/environment.rb
+    - config/initializers/version.rb
+    - db/schema.rb
+    - "tmp/**/*"
+    - Gemfile
+    - Rakefile
+Style/Documentation:
+  Enabled: false
+RSpec/MessageChain:
+  Enabled: false
+Style/OptionalBooleanParameter:
+  Exclude:
+    # Sidekiq does not support keyword arguments for its workers https://github.com/mperham/sidekiq/issues/2372
+    - "app/workers/**/*"
+Layout/IndentationConsistency:
+  EnforcedStyle: indented_internal_methods
+Metrics/AbcSize:
+  Max: 40
+  Exclude:
+    - "config/**/*"
+    - "spec/**/*"
+    - "db/**/*"
+Metrics/BlockLength:
+  Max: 100
+  Exclude:
+    - "config/**/*"
+    - "spec/**/*"
+    - "lib/tasks/**/*"
+Metrics/ClassLength:
+  Max: 300
+  Exclude:
+    - "config/**/*"
+    - "spec/**/*"
+Metrics/MethodLength:
+  Max: 40
+  Exclude:
+    - "config/**/*"
+    - "spec/**/*"
+    - "db/**/*"
+Naming/VariableNumber:
+  Enabled: false
+Layout/LineLength:
+  Max: 120
+  Exclude:
+    - "config/**/*"
+    - "spec/**/*"
+    - "lib/**/*"
+    - "db/**/*"
+Style/FrozenStringLiteralComment:
+  Exclude:
+    - "Gemfile"
+    - "db/**/*"
+Layout/EndAlignment:
+  Exclude:
+    - "config/initializers/sidekiq.rb"
+Layout/LineContinuationLeadingSpace:
+  Enabled: false
+Lint/NonAtomicFileOperation:
+  Enabled: false
+Rails:
+  Enabled: true
+Rails/ApplicationRecord:
+  Exclude:
+    - "db/migrate/**"
+Rails/UnknownEnv:
+  Environments:
+    - test
+    - dev
+    - develop
+    - development
+    - staging
+    - load
+    - uat
+    - training
+    - production
+Rails/SkipsModelValidations:
+  Exclude:
+    - "spec/**/*"
+    - "lib/tasks/load_testing/load_testing.rake"
+Style/FetchEnvVar:
+  Enabled: false
+Style/GuardClause:
+  Enabled: false
+Style/HashSyntax:
+  EnforcedShorthandSyntax: either
+Metrics/ParameterLists:
+  Max: 8
+Metrics/PerceivedComplexity:
+  Max: 12
+Naming/PredicateName:
+  Enabled: false
+# RSpec
+RSpec/MultipleExpectations:
+  Max: 4
+RSpec/MultipleMemoizedHelpers:
+  Max: 10
+RSpec/NestedGroups:
+  Max: 4
