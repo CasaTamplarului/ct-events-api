@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_08_07_144727) do
+ActiveRecord::Schema[7.0].define(version: 2023_08_07_182933) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -23,6 +23,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_07_144727) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "payment_status", default: 0
+    t.integer "dietary_preference", default: 0, null: false
     t.index ["event_id"], name: "index_attendees_on_event_id"
   end
 
@@ -335,6 +336,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_07_144727) do
     t.datetime "end_date", precision: nil, default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.integer "status", default: 0
     t.integer "max_number_of_people"
+    t.integer "min_age"
+    t.integer "max_age"
+    t.boolean "override_max_people", default: false, null: false
   end
 
   add_foreign_key "attendees", "events"
