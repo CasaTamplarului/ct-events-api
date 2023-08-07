@@ -1,0 +1,25 @@
+# Do not use in production!!!
+
+version: "3.9"
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      PGDATA: "/data/postgres"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ct-events-postgres:/var/lib/postgresql/data
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - ct-events-redis:/var/lib/redis/data
+
+volumes:
+  ct-events-redis:
+  ct-events-postgres:
