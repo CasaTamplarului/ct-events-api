@@ -7,6 +7,6 @@ FactoryBot.define do
     email_address { Faker::Internet.email }
     phone_number { Faker::PhoneNumber.cell_phone }
 
-    association :event
+    event
   end
 end
