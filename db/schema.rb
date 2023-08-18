@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_08_18_141020) do
+ActiveRecord::Schema[7.0].define(version: 2023_08_18_190125) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -328,8 +328,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_18_141020) do
   end
 
   create_table "events", force: :cascade do |t|
-    t.string "name", null: false
-    t.text "description", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "start_date", precision: nil, default: -> { "CURRENT_TIMESTAMP" }, null: false
@@ -344,8 +342,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_18_141020) do
   create_table "events_translations", force: :cascade do |t|
     t.integer "events_id"
     t.string "languages_code"
-    t.string "name"
-    t.string "description"
+    t.string "name", null: false
+    t.string "tag_line", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
