@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_08_07_182933) do
+ActiveRecord::Schema[7.0].define(version: 2023_08_18_141020) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -23,7 +23,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_07_182933) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "payment_status", default: 0
-    t.integer "dietary_preference", default: 0, null: false
+    t.integer "dietary_preference", default: 0
     t.index ["event_id"], name: "index_attendees_on_event_id"
   end
 
@@ -338,7 +338,22 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_07_182933) do
     t.integer "max_number_of_people"
     t.integer "min_age"
     t.integer "max_age"
-    t.boolean "override_max_people", default: false, null: false
+    t.boolean "override_max_people", default: false
+  end
+
+  create_table "events_translations", force: :cascade do |t|
+    t.integer "events_id"
+    t.string "languages_code"
+    t.string "name"
+    t.string "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "languages", primary_key: "code", id: :string, force: :cascade do |t|
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   add_foreign_key "attendees", "events"
@@ -372,4 +387,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_07_182933) do
   add_foreign_key "directus_shares", "directus_roles", column: "role", name: "directus_shares_role_foreign", on_delete: :cascade
   add_foreign_key "directus_shares", "directus_users", column: "user_created", name: "directus_shares_user_created_foreign", on_delete: :nullify
   add_foreign_key "directus_users", "directus_roles", column: "role", name: "directus_users_role_foreign", on_delete: :nullify
+  add_foreign_key "events_translations", "events", column: "events_id", on_delete: :nullify
+  add_foreign_key "events_translations", "languages", column: "languages_code", primary_key: "code", on_delete: :nullify
 end
