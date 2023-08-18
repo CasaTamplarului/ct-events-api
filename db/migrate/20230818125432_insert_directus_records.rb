@@ -11,8 +11,6 @@ class InsertDirectusRecords < ActiveRecord::Migration[7.0]
     execute <<-SQL
       INSERT INTO "public"."directus_fields" ("collection", "field", "special", "interface", "options", "display", "display_options", "readonly", "hidden", "sort", "width", "translations", "note", "conditions", "required", "group", "validation", "validation_message")
       VALUES ('events', 'id', NULL, 'input', NULL, 'raw', NULL, 't', 'f', 1, 'full', NULL, NULL, NULL, 't', NULL, NULL, NULL),
-              ('events', 'name', NULL, 'input', '{"placeholder":"Tabara Impact 2024"}', 'raw', NULL, 'f', 'f', 3, 'half', NULL, 'Name of event', NULL, 't', NULL, NULL, NULL),
-              ('events', 'description', NULL, 'input', NULL, 'raw', NULL, 'f', 'f', 4, 'full', NULL, NULL, NULL, 'f', NULL, NULL, NULL),
               ('events', 'created_at', 'date-created', 'datetime', NULL, 'datetime', '{"relative":true}', 't', 'f', 11, 'full', NULL, NULL, NULL, 'f', NULL, NULL, NULL),
               ('events', 'updated_at', 'date-updated,date-created', 'datetime', NULL, 'datetime', '{"relative":true}', 't', 'f', 12, 'full', NULL, NULL, NULL, 'f', NULL, NULL, NULL),
               ('events', 'start_date', NULL, 'datetime', NULL, 'datetime', '{}', 'f', 'f', 5, 'half', NULL, NULL, NULL, 't', NULL, NULL, NULL),
@@ -48,7 +46,7 @@ class InsertDirectusRecords < ActiveRecord::Migration[7.0]
 
   def down
     execute <<-SQL
-      DELETE FROM "public"."directus_fields" WHERE "collection" = 'events' AND "field" IN ('id', 'name', 'description', 'created_at', 'updated_at', 'start_date', 'end_date', 'status', 'max_number_of_people', 'min_age', 'max_age', 'override_max_people', 'translations');
+      DELETE FROM "public"."directus_fields" WHERE "collection" = 'events' AND "field" IN ('id', 'created_at', 'updated_at', 'start_date', 'end_date', 'status', 'max_number_of_people', 'min_age', 'max_age', 'override_max_people', 'translations');
       DELETE FROM "public"."directus_fields" WHERE "collection" = 'attendees' AND "field" IN ('id', 'first_name', 'last_name', 'email_address', 'phone_number', 'event_id', 'created_at', 'updated_at', 'dietary_preference', 'payment_status');
       DELETE FROM "public"."directus_fields" WHERE "collection" = 'languages' AND "field" IN ('code', 'name', 'created_at', 'updated_at');
       DELETE FROM "public"."directus_relations" WHERE "many_collection" = 'events_translations' AND "many_field" IN ('languages_code', 'events_id');

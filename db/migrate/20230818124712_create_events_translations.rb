@@ -3,8 +3,8 @@ class CreateEventsTranslations < ActiveRecord::Migration[7.0]
     create_table :events_translations do |t|
       t.integer :events_id
       t.string :languages_code
-      t.string :name
-      t.string :description
+      t.string :name, null: false
+      t.string :description, null: false
 
       t.timestamps
     end
