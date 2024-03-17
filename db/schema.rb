@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_08_18_190125) do
+ActiveRecord::Schema[7.0].define(version: 2024_03_14_120544) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -23,7 +23,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_18_190125) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "payment_status", default: 0
-    t.integer "dietary_preference", default: 0
+    t.integer "dietary_preference", default: 0, null: false
     t.index ["event_id"], name: "index_attendees_on_event_id"
   end
 
@@ -58,6 +58,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_18_190125) do
     t.string "group", limit: 64
     t.string "collapse", limit: 255, default: "open", null: false
     t.string "preview_url", limit: 255
+    t.boolean "versioning", default: false, null: false
   end
 
   create_table "directus_dashboards", id: :uuid, default: nil, force: :cascade do |t|
@@ -67,6 +68,13 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_18_190125) do
     t.timestamptz "date_created", default: -> { "CURRENT_TIMESTAMP" }
     t.uuid "user_created"
     t.string "color", limit: 255
+  end
+
+  create_table "directus_extensions", id: :uuid, default: nil, force: :cascade do |t|
+    t.boolean "enabled", default: true, null: false
+    t.string "folder", limit: 255, null: false
+    t.string "source", limit: 255, null: false
+    t.uuid "bundle"
   end
 
   create_table "directus_fields", id: :serial, force: :cascade do |t|
@@ -111,6 +119,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_18_190125) do
     t.text "location"
     t.text "tags"
     t.json "metadata"
+    t.integer "focal_point_x"
+    t.integer "focal_point_y"
   end
 
   create_table "directus_flows", id: :uuid, default: nil, force: :cascade do |t|
@@ -226,6 +236,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_18_190125) do
     t.json "data"
     t.json "delta"
     t.integer "parent"
+    t.uuid "version"
   end
 
   create_table "directus_roles", id: :uuid, default: nil, force: :cascade do |t|
@@ -250,7 +261,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_18_190125) do
   create_table "directus_settings", id: :serial, force: :cascade do |t|
     t.string "project_name", limit: 100, default: "Directus", null: false
     t.string "project_url", limit: 255
-    t.string "project_color", limit: 50
+    t.string "project_color", limit: 255, default: "#6644FF", null: false
     t.uuid "project_logo"
     t.uuid "public_foreground"
     t.uuid "public_background"
@@ -267,6 +278,12 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_18_190125) do
     t.string "project_descriptor", limit: 100
     t.string "default_language", limit: 255, default: "en-US", null: false
     t.json "custom_aspect_ratios"
+    t.uuid "public_favicon"
+    t.string "default_appearance", limit: 255, default: "auto", null: false
+    t.string "default_theme_light", limit: 255
+    t.json "theme_light_overrides"
+    t.string "default_theme_dark", limit: 255
+    t.json "theme_dark_overrides"
   end
 
   create_table "directus_shares", id: :uuid, default: nil, force: :cascade do |t|
@@ -300,7 +317,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_18_190125) do
     t.json "tags"
     t.uuid "avatar"
     t.string "language", limit: 255
-    t.string "theme", limit: 20, default: "auto"
     t.string "tfa_secret", limit: 255
     t.string "status", limit: 16, default: "active", null: false
     t.uuid "role"
@@ -311,9 +327,26 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_18_190125) do
     t.string "external_identifier", limit: 255
     t.json "auth_data"
     t.boolean "email_notifications", default: true
+    t.string "appearance", limit: 255
+    t.string "theme_dark", limit: 255
+    t.string "theme_light", limit: 255
+    t.json "theme_light_overrides"
+    t.json "theme_dark_overrides"
     t.index ["email"], name: "directus_users_email_unique", unique: true
     t.index ["external_identifier"], name: "directus_users_external_identifier_unique", unique: true
     t.index ["token"], name: "directus_users_token_unique", unique: true
+  end
+
+  create_table "directus_versions", id: :uuid, default: nil, force: :cascade do |t|
+    t.string "key", limit: 64, null: false
+    t.string "name", limit: 255
+    t.string "collection", limit: 64, null: false
+    t.string "item", limit: 255, null: false
+    t.string "hash", limit: 255
+    t.timestamptz "date_created", default: -> { "CURRENT_TIMESTAMP" }
+    t.timestamptz "date_updated", default: -> { "CURRENT_TIMESTAMP" }
+    t.uuid "user_created"
+    t.uuid "user_updated"
   end
 
   create_table "directus_webhooks", id: :serial, force: :cascade do |t|
@@ -336,7 +369,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_18_190125) do
     t.integer "max_number_of_people"
     t.integer "min_age"
     t.integer "max_age"
-    t.boolean "override_max_people", default: false
+    t.boolean "override_max_people", default: false, null: false
   end
 
   create_table "events_translations", force: :cascade do |t|
@@ -375,16 +408,21 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_18_190125) do
   add_foreign_key "directus_presets", "directus_users", column: "user", name: "directus_presets_user_foreign", on_delete: :cascade
   add_foreign_key "directus_revisions", "directus_activity", column: "activity", name: "directus_revisions_activity_foreign", on_delete: :cascade
   add_foreign_key "directus_revisions", "directus_revisions", column: "parent", name: "directus_revisions_parent_foreign"
+  add_foreign_key "directus_revisions", "directus_versions", column: "version", name: "directus_revisions_version_foreign", on_delete: :cascade
   add_foreign_key "directus_sessions", "directus_shares", column: "share", name: "directus_sessions_share_foreign", on_delete: :cascade
   add_foreign_key "directus_sessions", "directus_users", column: "user", name: "directus_sessions_user_foreign", on_delete: :cascade
   add_foreign_key "directus_settings", "directus_files", column: "project_logo", name: "directus_settings_project_logo_foreign"
   add_foreign_key "directus_settings", "directus_files", column: "public_background", name: "directus_settings_public_background_foreign"
+  add_foreign_key "directus_settings", "directus_files", column: "public_favicon", name: "directus_settings_public_favicon_foreign"
   add_foreign_key "directus_settings", "directus_files", column: "public_foreground", name: "directus_settings_public_foreground_foreign"
   add_foreign_key "directus_settings", "directus_folders", column: "storage_default_folder", name: "directus_settings_storage_default_folder_foreign", on_delete: :nullify
   add_foreign_key "directus_shares", "directus_collections", column: "collection", primary_key: "collection", name: "directus_shares_collection_foreign", on_delete: :cascade
   add_foreign_key "directus_shares", "directus_roles", column: "role", name: "directus_shares_role_foreign", on_delete: :cascade
   add_foreign_key "directus_shares", "directus_users", column: "user_created", name: "directus_shares_user_created_foreign", on_delete: :nullify
   add_foreign_key "directus_users", "directus_roles", column: "role", name: "directus_users_role_foreign", on_delete: :nullify
+  add_foreign_key "directus_versions", "directus_collections", column: "collection", primary_key: "collection", name: "directus_versions_collection_foreign", on_delete: :cascade
+  add_foreign_key "directus_versions", "directus_users", column: "user_created", name: "directus_versions_user_created_foreign", on_delete: :nullify
+  add_foreign_key "directus_versions", "directus_users", column: "user_updated", name: "directus_versions_user_updated_foreign"
   add_foreign_key "events_translations", "events", column: "events_id", on_delete: :nullify
   add_foreign_key "events_translations", "languages", column: "languages_code", primary_key: "code", on_delete: :nullify
 end

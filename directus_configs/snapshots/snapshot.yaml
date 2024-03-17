@@ -1,0 +1,1599 @@
+version: 1
+directus: 10.10.4
+vendor: postgres
+collections:
+  - collection: ar_internal_metadata
+    meta: null
+    schema:
+      name: ar_internal_metadata
+  - collection: attendees
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: attendees
+      color: null
+      display_template: null
+      group: null
+      hidden: false
+      icon: person_add
+      item_duplication_fields: null
+      note: null
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: attendees
+  - collection: events
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: events
+      color: null
+      display_template: null
+      group: null
+      hidden: false
+      icon: event
+      item_duplication_fields: null
+      note: null
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: events
+  - collection: events_translations
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: events_translations
+      color: null
+      display_template: null
+      group: null
+      hidden: true
+      icon: null
+      item_duplication_fields: null
+      note: null
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: events_translations
+  - collection: languages
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: languages
+      color: null
+      display_template: null
+      group: null
+      hidden: false
+      icon: translate
+      item_duplication_fields: null
+      note: null
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: languages
+  - collection: schema_migrations
+    meta: null
+    schema:
+      name: schema_migrations
+fields:
+  - collection: ar_internal_metadata
+    field: key
+    type: string
+    meta: null
+    schema:
+      name: key
+      table: ar_internal_metadata
+      data_type: character varying
+      default_value: null
+      max_length: -5
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: ar_internal_metadata
+    field: value
+    type: string
+    meta: null
+    schema:
+      name: value
+      table: ar_internal_metadata
+      data_type: character varying
+      default_value: null
+      max_length: -5
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: ar_internal_metadata
+    field: created_at
+    type: dateTime
+    meta: null
+    schema:
+      name: created_at
+      table: ar_internal_metadata
+      data_type: timestamp without time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: ar_internal_metadata
+    field: updated_at
+    type: dateTime
+    meta: null
+    schema:
+      name: updated_at
+      table: ar_internal_metadata
+      data_type: timestamp without time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: attendees
+    field: id
+    type: bigInteger
+    meta:
+      collection: attendees
+      conditions: null
+      display: raw
+      display_options: null
+      field: id
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: true
+      sort: 1
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: attendees
+      data_type: bigint
+      default_value: nextval('attendees_id_seq'::regclass)
+      max_length: null
+      numeric_precision: 64
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: true
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: true
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: attendees
+    field: first_name
+    type: string
+    meta:
+      collection: attendees
+      conditions: null
+      display: raw
+      display_options: null
+      field: first_name
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options:
+        placeholder: John
+      readonly: false
+      required: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: first_name
+      table: attendees
+      data_type: character varying
+      default_value: null
+      max_length: -5
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: attendees
+    field: last_name
+    type: string
+    meta:
+      collection: attendees
+      conditions: null
+      display: raw
+      display_options: null
+      field: last_name
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options:
+        placeholder: Doe
+      readonly: false
+      required: false
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: last_name
+      table: attendees
+      data_type: character varying
+      default_value: null
+      max_length: -5
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: attendees
+    field: email_address
+    type: string
+    meta:
+      collection: attendees
+      conditions: []
+      display: raw
+      display_options: null
+      field: email_address
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options:
+        iconLeft: alternate_email
+        placeholder: example@email.com
+        trim: true
+      readonly: false
+      required: true
+      sort: 5
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: email_address
+      table: attendees
+      data_type: character varying
+      default_value: null
+      max_length: -5
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: attendees
+    field: phone_number
+    type: string
+    meta:
+      collection: attendees
+      conditions: null
+      display: raw
+      display_options: null
+      field: phone_number
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options:
+        iconLeft: phone_enabled
+      readonly: false
+      required: false
+      sort: 6
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: phone_number
+      table: attendees
+      data_type: character varying
+      default_value: null
+      max_length: -5
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: attendees
+    field: event_id
+    type: bigInteger
+    meta:
+      collection: attendees
+      conditions: null
+      display: related-values
+      display_options:
+        template: '{{name}}'
+      field: event_id
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        enableCreate: false
+        template: '{{name}}'
+      readonly: false
+      required: true
+      sort: 7
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: event_id
+      table: attendees
+      data_type: bigint
+      default_value: null
+      max_length: null
+      numeric_precision: 64
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: events
+      foreign_key_column: id
+  - collection: attendees
+    field: created_at
+    type: dateTime
+    meta:
+      collection: attendees
+      conditions: null
+      display: datetime
+      display_options:
+        relative: true
+      field: created_at
+      group: null
+      hidden: false
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 9
+      special:
+        - date-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: created_at
+      table: attendees
+      data_type: timestamp without time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: attendees
+    field: updated_at
+    type: dateTime
+    meta:
+      collection: attendees
+      conditions: null
+      display: datetime
+      display_options:
+        relative: true
+      field: updated_at
+      group: null
+      hidden: false
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 10
+      special:
+        - date-created
+        - date-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: updated_at
+      table: attendees
+      data_type: timestamp without time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: attendees
+    field: payment_status
+    type: integer
+    meta:
+      collection: attendees
+      conditions: []
+      display: formatted-value
+      display_options:
+        conditionalFormatting:
+          - operator: eq
+            value: 0
+            text: Payment Pending
+          - operator: eq
+            value: 1
+            text: Paid
+          - operator: eq
+            value: 2
+            text: Refunded
+      field: payment_status
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: Payment Pending
+            value: 0
+          - text: Paid
+            value: 1
+          - text: Refunded
+            value: 2
+        icon: payments
+      readonly: false
+      required: true
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: payment_status
+      table: attendees
+      data_type: integer
+      default_value: 0
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: attendees
+    field: dietary_preference
+    type: integer
+    meta:
+      collection: attendees
+      conditions: null
+      display: formatted-value
+      display_options:
+        conditionalFormatting:
+          - operator: eq
+            value: 0
+            text: No preference
+          - operator: eq
+            value: 1
+            text: Vegetarian
+          - operator: eq
+            value: 2
+            text: Vegan
+      field: dietary_preference
+      group: null
+      hidden: false
+      interface: select-radio
+      note: null
+      options:
+        choices:
+          - text: No preference
+            value: 0
+          - text: Vegetarian
+            value: 1
+          - text: Vegan
+            value: 2
+      readonly: false
+      required: true
+      sort: 8
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: dietary_preference
+      table: attendees
+      data_type: integer
+      default_value: 0
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: events
+    field: id
+    type: bigInteger
+    meta:
+      collection: events
+      conditions: null
+      display: raw
+      display_options: null
+      field: id
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: true
+      sort: 1
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: events
+      data_type: bigint
+      default_value: nextval('events_id_seq'::regclass)
+      max_length: null
+      numeric_precision: 64
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: true
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: true
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: events
+    field: created_at
+    type: dateTime
+    meta:
+      collection: events
+      conditions: null
+      display: datetime
+      display_options:
+        relative: true
+      field: created_at
+      group: null
+      hidden: false
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 11
+      special:
+        - date-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: created_at
+      table: events
+      data_type: timestamp without time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: events
+    field: updated_at
+    type: dateTime
+    meta:
+      collection: events
+      conditions: null
+      display: datetime
+      display_options:
+        relative: true
+      field: updated_at
+      group: null
+      hidden: false
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 12
+      special:
+        - date-created
+        - date-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: updated_at
+      table: events
+      data_type: timestamp without time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: events
+    field: start_date
+    type: dateTime
+    meta:
+      collection: events
+      conditions: null
+      display: datetime
+      display_options: {}
+      field: start_date
+      group: null
+      hidden: false
+      interface: datetime
+      note: null
+      options: null
+      readonly: false
+      required: true
+      sort: 5
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: start_date
+      table: events
+      data_type: timestamp without time zone
+      default_value: CURRENT_TIMESTAMP
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: events
+    field: end_date
+    type: dateTime
+    meta:
+      collection: events
+      conditions: null
+      display: datetime
+      display_options: null
+      field: end_date
+      group: null
+      hidden: false
+      interface: datetime
+      note: null
+      options: null
+      readonly: false
+      required: true
+      sort: 6
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: end_date
+      table: events
+      data_type: timestamp without time zone
+      default_value: CURRENT_TIMESTAMP
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: events
+    field: status
+    type: integer
+    meta:
+      collection: events
+      conditions: null
+      display: formatted-value
+      display_options:
+        conditionalFormatting:
+          - operator: eq
+            value: 0
+            color: '#FFA439'
+            icon: circle
+            text: ' '
+          - operator: eq
+            value: 1
+            color: '#2ECDA7'
+            icon: circle
+            text: ' '
+          - operator: eq
+            value: 2
+            color: '#FFFFFF'
+            icon: circle
+            text: ' '
+          - operator: eq
+            value: 3
+            color: '#E35169'
+            icon: circle
+            text: ' '
+      field: status
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: Draft
+            value: 0
+          - text: Live
+            value: 1
+          - text: Cancelled
+            value: 2
+          - text: Deleted
+            value: 3
+      readonly: false
+      required: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: status
+      table: events
+      data_type: integer
+      default_value: 0
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: events
+    field: max_number_of_people
+    type: integer
+    meta:
+      collection: events
+      conditions: null
+      display: raw
+      display_options: null
+      field: max_number_of_people
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options:
+        iconLeft: emoji_people
+        min: 0
+      readonly: false
+      required: false
+      sort: 7
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: max_number_of_people
+      table: events
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: events
+    field: min_age
+    type: integer
+    meta:
+      collection: events
+      conditions: null
+      display: raw
+      display_options: null
+      field: min_age
+      group: null
+      hidden: false
+      interface: input
+      note: Leave empty if no age limit applies
+      options:
+        max: 99
+        min: 1
+      readonly: false
+      required: false
+      sort: 10
+      special: null
+      translations: null
+      validation:
+        _and:
+          - min_age:
+              _gte: '1'
+          - min_age:
+              _lte: '99'
+      validation_message: Age needs to be between 1 to 99, if no age limit please leave empty
+      width: half
+    schema:
+      name: min_age
+      table: events
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: events
+    field: max_age
+    type: integer
+    meta:
+      collection: events
+      conditions: null
+      display: raw
+      display_options: null
+      field: max_age
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options:
+        max: 99
+        min: 1
+      readonly: false
+      required: false
+      sort: 9
+      special: null
+      translations: null
+      validation:
+        _and:
+          - max_age:
+              _lte: '99'
+          - max_age:
+              _gte: '1'
+      validation_message: Age needs to be between 1 to 99, if no age limit please leave empty
+      width: half
+    schema:
+      name: max_age
+      table: events
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: events
+    field: override_max_people
+    type: boolean
+    meta:
+      collection: events
+      conditions:
+        - name: Disable if no max people
+          rule:
+            _and:
+              - max_number_of_people:
+                  _lt: '1'
+          readonly: true
+          options:
+            iconOn: check_box
+            iconOff: check_box_outline_blank
+            label: Enabled
+        - name: Disable if max people null
+          rule:
+            _and:
+              - max_number_of_people:
+                  _null: true
+          readonly: true
+          options:
+            iconOn: check_box
+            iconOff: check_box_outline_blank
+            label: Enabled
+      display: boolean
+      display_options:
+        labelOff: 'No'
+        labelOn: 'Yes'
+      field: override_max_people
+      group: null
+      hidden: false
+      interface: boolean
+      note: Should more bookings be made if it reaches the max amount of people?
+      options: null
+      readonly: false
+      required: false
+      sort: 8
+      special:
+        - cast-boolean
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: override_max_people
+      table: events
+      data_type: boolean
+      default_value: false
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: events
+    field: translations
+    type: alias
+    meta:
+      collection: events
+      conditions: null
+      display: null
+      display_options: null
+      field: translations
+      group: null
+      hidden: false
+      interface: translations
+      note: null
+      options:
+        defaultLanguage: ro-RO
+        languageField: name
+      readonly: false
+      required: false
+      sort: 2
+      special:
+        - translations
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+  - collection: events_translations
+    field: id
+    type: bigInteger
+    meta:
+      collection: events_translations
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 1
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: events_translations
+      data_type: bigint
+      default_value: nextval('events_translations_id_seq'::regclass)
+      max_length: null
+      numeric_precision: 64
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: true
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: true
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: events_translations
+    field: events_id
+    type: integer
+    meta:
+      collection: events_translations
+      conditions: null
+      display: null
+      display_options: null
+      field: events_id
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: events_id
+      table: events_translations
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: events
+      foreign_key_column: id
+  - collection: events_translations
+    field: languages_code
+    type: string
+    meta:
+      collection: events_translations
+      conditions: null
+      display: null
+      display_options: null
+      field: languages_code
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: languages_code
+      table: events_translations
+      data_type: character varying
+      default_value: null
+      max_length: -5
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: languages
+      foreign_key_column: code
+  - collection: events_translations
+    field: name
+    type: string
+    meta:
+      collection: events_translations
+      conditions: null
+      display: null
+      display_options: null
+      field: name
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options:
+        placeholder: Tabara Impact 2024
+      readonly: false
+      required: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: name
+      table: events_translations
+      data_type: character varying
+      default_value: null
+      max_length: -5
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: events_translations
+    field: tag_line
+    type: string
+    meta:
+      collection: events_translations
+      conditions: null
+      display: null
+      display_options: null
+      field: tag_line
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      sort: 5
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: tag_line
+      table: events_translations
+      data_type: character varying
+      default_value: null
+      max_length: -5
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: events_translations
+    field: created_at
+    type: dateTime
+    meta:
+      collection: events_translations
+      conditions: null
+      display: null
+      display_options: null
+      field: created_at
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: null
+      special:
+        - date-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: created_at
+      table: events_translations
+      data_type: timestamp without time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: events_translations
+    field: updated_at
+    type: dateTime
+    meta:
+      collection: events_translations
+      conditions: null
+      display: null
+      display_options: null
+      field: updated_at
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: null
+      special:
+        - date-created
+        - date-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: updated_at
+      table: events_translations
+      data_type: timestamp without time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: languages
+    field: code
+    type: string
+    meta:
+      collection: languages
+      conditions: null
+      display: null
+      display_options: null
+      field: code
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: null
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: code
+      table: languages
+      data_type: character varying
+      default_value: null
+      max_length: -5
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: languages
+    field: name
+    type: string
+    meta:
+      collection: languages
+      conditions: null
+      display: null
+      display_options: null
+      field: name
+      group: null
+      hidden: false
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: null
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: name
+      table: languages
+      data_type: character varying
+      default_value: null
+      max_length: -5
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: languages
+    field: created_at
+    type: dateTime
+    meta:
+      collection: languages
+      conditions: null
+      display: datetime
+      display_options:
+        relative: true
+      field: created_at
+      group: null
+      hidden: false
+      interface: datetime
+      note: null
+      options: {}
+      readonly: true
+      required: false
+      sort: null
+      special:
+        - date-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: created_at
+      table: languages
+      data_type: timestamp without time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: languages
+    field: updated_at
+    type: dateTime
+    meta:
+      collection: languages
+      conditions: null
+      display: datetime
+      display_options:
+        relative: true
+      field: updated_at
+      group: null
+      hidden: false
+      interface: datetime
+      note: null
+      options: {}
+      readonly: true
+      required: false
+      sort: null
+      special:
+        - date-created
+        - date-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: updated_at
+      table: languages
+      data_type: timestamp without time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: schema_migrations
+    field: version
+    type: string
+    meta: null
+    schema:
+      name: version
+      table: schema_migrations
+      data_type: character varying
+      default_value: null
+      max_length: -5
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+relations:
+  - collection: attendees
+    field: event_id
+    related_collection: events
+    meta: null
+    schema:
+      table: attendees
+      column: event_id
+      foreign_key_table: events
+      foreign_key_column: id
+      constraint_name: fk_rails_4037bda9d5
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: events_translations
+    field: languages_code
+    related_collection: languages
+    meta:
+      junction_field: events_id
+      many_collection: events_translations
+      many_field: languages_code
+      one_allowed_collections: null
+      one_collection: languages
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: events_translations
+      column: languages_code
+      foreign_key_table: languages
+      foreign_key_column: code
+      constraint_name: fk_rails_72c9599298
+      on_update: NO ACTION
+      on_delete: SET NULL
+  - collection: events_translations
+    field: events_id
+    related_collection: events
+    meta:
+      junction_field: languages_code
+      many_collection: events_translations
+      many_field: events_id
+      one_allowed_collections: null
+      one_collection: events
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: translations
+      sort_field: null
+    schema:
+      table: events_translations
+      column: events_id
+      foreign_key_table: events
+      foreign_key_column: id
+      constraint_name: fk_rails_a6866df611
+      on_update: NO ACTION
+      on_delete: SET NULL

@@ -20,7 +20,7 @@ services:
   #   volumes:
   #     - ct-events-redis:/var/lib/redis/data
   directus:
-    image: directus/directus:10.5.2
+    image: directus/directus:10.10.4
     ports:
       - "8091:8055"
     environment:
