@@ -9,6 +9,7 @@ gem "rails", "~> 7.1.3.2"
 gem "sprockets-rails"
 gem "pg", "~> 1.1"
 gem "puma", ">= 6.4.2"
+gem "rack-cors", "2.0.2"
 gem "importmap-rails"
 gem "turbo-rails"
 gem "stimulus-rails"
@@ -17,6 +18,10 @@ gem "jbuilder"
 # Error notifier
 gem "sentry-ruby"
 gem "sentry-rails"
+
+# Serialization
+gem 'alba', '~> 3.1', '>= 3.1.0'
+gem 'oj'
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]

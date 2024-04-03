@@ -4,4 +4,16 @@ Rails.application.routes.draw do
   apipie
 
   get '_healthcheck', to: 'healthcheck#index'
+
+  namespace :api do
+    namespace :v1 do
+      scope '/:languages_code', constraints: { languages_code: /[a-zA-Z]{2}-[a-zA-Z]{2}/ } do
+        # Events
+        namespace :events do
+          resources :upcoming, only: :index
+          resources :past, only: :index
+        end
+      end
+    end
+  end
 end

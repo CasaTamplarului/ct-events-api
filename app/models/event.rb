@@ -2,10 +2,15 @@
 
 class Event < ApplicationRecord
   has_many :attendees, dependent: :destroy
-  has_many :events_translations, foreign_key: 'events_id'
+  has_many :events_translations, foreign_key: 'events_id', dependent: :destroy, inverse_of: :event
 
   # Enums
   enum status: { draft: 0, live: 1, cancelled: 2, deleted: 3 }
+
+  # Scopes
+
+  scope :upcoming, -> { where('start_date >= ?', Time.zone.now).where(status: 'live') }
+  scope :past, -> { where('start_date < ?', Time.zone.now).where(status: 'live') }
 
   def translations(language_code)
     events_translations.find_by(languages_code: language_code)
