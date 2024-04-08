@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class ThumbnailEventSerializer < ApplicationSerializer
+class HeroEventSerializer < ApplicationSerializer
   attributes :start_date, :end_date
 
   attribute :name do |object|

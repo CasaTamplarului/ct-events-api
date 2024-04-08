@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class ThumbnailEventSerializer < ApplicationSerializer
+class EventSerializer < ApplicationSerializer
   attributes :start_date, :end_date
 
   attribute :name do |object|
@@ -18,9 +18,5 @@ class ThumbnailEventSerializer < ApplicationSerializer
     return nil unless object.tickets
 
     TicketSerializer.new(object.tickets, params: { languages_code: params[:languages_code] })
-  end
-
-  attribute :slug do |object|
-    object.translations(params[:languages_code]).name.parameterize
   end
 end

@@ -12,7 +12,10 @@ Rails.application.routes.draw do
         namespace :events do
           resources :upcoming, only: :index
           resources :past, only: :index
+          resources :hero, only: :index
         end
+
+        resources :event, only: :show, param: :slug
       end
     end
   end
