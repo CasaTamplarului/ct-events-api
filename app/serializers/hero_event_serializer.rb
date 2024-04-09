@@ -21,6 +21,6 @@ class HeroEventSerializer < ApplicationSerializer
   end
 
   attribute :slug do |object|
-    object.translations(params[:languages_code]).name.parameterize
+    object.translations(params[:languages_code]).slug
   end
 end

@@ -2,7 +2,7 @@
 
 class Event < ApplicationRecord
   has_many :attendees, dependent: :destroy
-  has_many :events_translations, foreign_key: 'events_id', dependent: :destroy, inverse_of: :event
+  has_many :events_translations, dependent: :destroy, inverse_of: :event
   has_many :tickets, dependent: :destroy
 
   # Enums
@@ -12,11 +12,11 @@ class Event < ApplicationRecord
 
   scope :upcoming, -> { where('start_date >= ?', Time.zone.now).where(status: 'live') }
   scope :past, -> { where('start_date < ?', Time.zone.now).where(status: 'live') }
-  scope :hero, -> { 
+  scope :hero, lambda {
     where(hero: true)
-    .where('start_date > ?', Time.zone.now)
-    .order(start_date: :asc)
-    .limit(1)
+      .where('start_date > ?', Time.zone.now)
+      .order(start_date: :asc)
+      .limit(1)
   }
 
   def translations(language_code)

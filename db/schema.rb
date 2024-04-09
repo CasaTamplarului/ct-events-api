@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_04_08_181253) do
+ActiveRecord::Schema[7.1].define(version: 2024_04_09_125721) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -377,13 +377,16 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_08_181253) do
   end
 
   create_table "events_translations", force: :cascade do |t|
-    t.integer "events_id"
+    t.integer "event_id"
     t.string "languages_code"
-    t.string "name", null: false
+    t.string "name", limit: 255
     t.string "tag_line", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "slug", limit: 255
     t.index ["name"], name: "index_events_translations_on_name", unique: true
+    t.index ["slug"], name: "index_events_translations_on_slug", unique: true
+    t.unique_constraint ["name"], name: "events_translations_name_unique"
   end
 
   create_table "languages", primary_key: "code", id: :string, force: :cascade do |t|
@@ -444,9 +447,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_08_181253) do
   add_foreign_key "directus_versions", "directus_collections", column: "collection", primary_key: "collection", name: "directus_versions_collection_foreign", on_delete: :cascade
   add_foreign_key "directus_versions", "directus_users", column: "user_created", name: "directus_versions_user_created_foreign", on_delete: :nullify
   add_foreign_key "directus_versions", "directus_users", column: "user_updated", name: "directus_versions_user_updated_foreign"
-  add_foreign_key "events_translations", "events", column: "events_id", on_delete: :nullify
-  add_foreign_key "events_translations", "languages", column: "languages_code", primary_key: "code", on_delete: :nullify
-  add_foreign_key "tickets", "events", on_delete: :nullify
-  add_foreign_key "tickets_translations", "languages", column: "languages_code", primary_key: "code", on_delete: :nullify
-  add_foreign_key "tickets_translations", "tickets", column: "tickets_id", on_delete: :nullify
+  add_foreign_key "events_translations", "languages", column: "languages_code", primary_key: "code"
+  add_foreign_key "tickets", "events", on_delete: :cascade
+  add_foreign_key "tickets_translations", "languages", column: "languages_code", primary_key: "code"
+  add_foreign_key "tickets_translations", "tickets", column: "tickets_id", on_delete: :cascade
 end
