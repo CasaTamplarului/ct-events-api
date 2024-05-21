@@ -106,6 +106,54 @@ collections:
     meta: null
     schema:
       name: schema_migrations
+  - collection: tickets
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: tickets
+      color: null
+      display_template: null
+      group: null
+      hidden: true
+      icon: confirmation_number
+      item_duplication_fields: null
+      note: null
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: tickets
+  - collection: tickets_translations
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: tickets_translations
+      color: null
+      display_template: null
+      group: null
+      hidden: true
+      icon: null
+      item_duplication_fields: null
+      note: null
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: tickets_translations
 fields:
   - collection: ar_internal_metadata
     field: key
@@ -608,7 +656,7 @@ fields:
       max_length: null
       numeric_precision: 32
       numeric_scale: 0
-      is_nullable: false
+      is_nullable: true
       is_unique: false
       is_primary_key: false
       is_generated: false
@@ -671,13 +719,13 @@ fields:
       options: null
       readonly: true
       required: false
-      sort: 11
+      sort: 2
       special:
         - date-created
       translations: null
       validation: null
       validation_message: null
-      width: full
+      width: half
     schema:
       name: created_at
       table: events
@@ -711,14 +759,14 @@ fields:
       options: null
       readonly: true
       required: false
-      sort: 12
+      sort: 3
       special:
         - date-created
         - date-updated
       translations: null
       validation: null
       validation_message: null
-      width: full
+      width: half
     schema:
       name: updated_at
       table: events
@@ -751,7 +799,7 @@ fields:
       options: null
       readonly: false
       required: true
-      sort: 5
+      sort: 7
       special: null
       translations: null
       validation: null
@@ -789,7 +837,7 @@ fields:
       options: null
       readonly: false
       required: true
-      sort: 6
+      sort: 8
       special: null
       translations: null
       validation: null
@@ -857,7 +905,7 @@ fields:
             value: 3
       readonly: false
       required: true
-      sort: 4
+      sort: 6
       special: null
       translations: null
       validation: null
@@ -897,7 +945,7 @@ fields:
         min: 0
       readonly: false
       required: false
-      sort: 7
+      sort: 9
       special: null
       translations: null
       validation: null
@@ -937,7 +985,7 @@ fields:
         min: 1
       readonly: false
       required: false
-      sort: 10
+      sort: 12
       special: null
       translations: null
       validation:
@@ -982,7 +1030,7 @@ fields:
         min: 1
       readonly: false
       required: false
-      sort: 9
+      sort: 11
       special: null
       translations: null
       validation:
@@ -1047,7 +1095,7 @@ fields:
       options: null
       readonly: false
       required: false
-      sort: 8
+      sort: 10
       special:
         - cast-boolean
       translations: null
@@ -1062,7 +1110,7 @@ fields:
       max_length: null
       numeric_precision: null
       numeric_scale: null
-      is_nullable: false
+      is_nullable: true
       is_unique: false
       is_primary_key: false
       is_generated: false
@@ -1085,16 +1133,89 @@ fields:
       note: null
       options:
         defaultLanguage: ro-RO
+        defaultOpenSplitView: true
         languageField: name
       readonly: false
       required: false
-      sort: 2
+      sort: 5
       special:
         - translations
       translations: null
       validation: null
       validation_message: null
       width: full
+  - collection: events
+    field: tickets
+    type: alias
+    meta:
+      collection: events
+      conditions: null
+      display: null
+      display_options: null
+      field: tickets
+      group: null
+      hidden: false
+      interface: list-o2m
+      note: null
+      options:
+        displayTemplate: "{{translations}}{{translations.name}}\_-- "
+        enableSelect: false
+        template: "{{translations.name}}\_-- {{price}}"
+      readonly: false
+      required: true
+      sort: 13
+      special:
+        - o2m
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+  - collection: events
+    field: hero
+    type: boolean
+    meta:
+      collection: events
+      conditions: null
+      display: boolean
+      display_options:
+        colorOff: '#E35169'
+        colorOn: '#2ECDA7'
+        labelOff: 'No'
+        labelOn: 'Yes'
+      field: hero
+      group: null
+      hidden: false
+      interface: boolean
+      note: Show this event on the homepage as the main event
+      options:
+        colorOff: '#E35169'
+        colorOn: '#2ECDA7'
+        iconOff: toggle_off
+        iconOn: toggle_on
+      readonly: false
+      required: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: hero
+      table: events
+      data_type: boolean
+      default_value: false
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
   - collection: events_translations
     field: id
     type: bigInteger
@@ -1116,7 +1237,7 @@ fields:
       translations: null
       validation: null
       validation_message: null
-      width: full
+      width: half
     schema:
       name: id
       table: events_translations
@@ -1134,44 +1255,6 @@ fields:
       foreign_key_table: null
       foreign_key_column: null
   - collection: events_translations
-    field: events_id
-    type: integer
-    meta:
-      collection: events_translations
-      conditions: null
-      display: null
-      display_options: null
-      field: events_id
-      group: null
-      hidden: true
-      interface: null
-      note: null
-      options: null
-      readonly: false
-      required: false
-      sort: 2
-      special: null
-      translations: null
-      validation: null
-      validation_message: null
-      width: full
-    schema:
-      name: events_id
-      table: events_translations
-      data_type: integer
-      default_value: null
-      max_length: null
-      numeric_precision: 32
-      numeric_scale: 0
-      is_nullable: true
-      is_unique: false
-      is_primary_key: false
-      is_generated: false
-      generation_expression: null
-      has_auto_increment: false
-      foreign_key_table: events
-      foreign_key_column: id
-  - collection: events_translations
     field: languages_code
     type: string
     meta:
@@ -1187,7 +1270,7 @@ fields:
       options: null
       readonly: false
       required: false
-      sort: 3
+      sort: 6
       special: null
       translations: null
       validation: null
@@ -1226,7 +1309,7 @@ fields:
         placeholder: Tabara Impact 2024
       readonly: false
       required: true
-      sort: 4
+      sort: 7
       special: null
       translations: null
       validation: null
@@ -1237,11 +1320,11 @@ fields:
       table: events_translations
       data_type: character varying
       default_value: null
-      max_length: -5
+      max_length: 255
       numeric_precision: null
       numeric_scale: null
-      is_nullable: false
-      is_unique: false
+      is_nullable: true
+      is_unique: true
       is_primary_key: false
       is_generated: false
       generation_expression: null
@@ -1264,7 +1347,7 @@ fields:
       options: null
       readonly: false
       required: true
-      sort: 5
+      sort: 8
       special: null
       translations: null
       validation: null
@@ -1302,13 +1385,13 @@ fields:
       options: null
       readonly: false
       required: false
-      sort: null
+      sort: 3
       special:
         - date-created
       translations: null
       validation: null
       validation_message: null
-      width: full
+      width: half
     schema:
       name: created_at
       table: events_translations
@@ -1341,14 +1424,14 @@ fields:
       options: null
       readonly: false
       required: false
-      sort: null
+      sort: 4
       special:
         - date-created
         - date-updated
       translations: null
       validation: null
       validation_message: null
-      width: full
+      width: half
     schema:
       name: updated_at
       table: events_translations
@@ -1358,6 +1441,65 @@ fields:
       numeric_precision: null
       numeric_scale: null
       is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: events_translations
+    field: slug
+    type: string
+    meta:
+      collection: events_translations
+      conditions: null
+      display: raw
+      display_options: null
+      field: slug
+      group: null
+      hidden: false
+      interface: input
+      note: This will be generated automatically
+      options:
+        slug: true
+      readonly: false
+      required: false
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: slug
+      table: events_translations
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: events_translations
+    field: event_id
+    type: integer
+    meta: null
+    schema:
+      name: event_id
+      table: events_translations
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
       is_unique: false
       is_primary_key: false
       is_generated: false
@@ -1381,7 +1523,7 @@ fields:
       options: null
       readonly: false
       required: false
-      sort: null
+      sort: 3
       special: null
       translations: null
       validation: null
@@ -1419,7 +1561,7 @@ fields:
       options: null
       readonly: false
       required: false
-      sort: null
+      sort: 4
       special: null
       translations: null
       validation: null
@@ -1458,13 +1600,13 @@ fields:
       options: {}
       readonly: true
       required: false
-      sort: null
+      sort: 1
       special:
         - date-created
       translations: null
       validation: null
       validation_message: null
-      width: full
+      width: half
     schema:
       name: created_at
       table: languages
@@ -1498,14 +1640,14 @@ fields:
       options: {}
       readonly: true
       required: false
-      sort: null
+      sort: 2
       special:
         - date-created
         - date-updated
       translations: null
       validation: null
       validation_message: null
-      width: full
+      width: half
     schema:
       name: updated_at
       table: languages
@@ -1542,6 +1684,469 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
+  - collection: tickets
+    field: id
+    type: bigInteger
+    meta:
+      collection: tickets
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 1
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: tickets
+      data_type: bigint
+      default_value: nextval('tickets_id_seq'::regclass)
+      max_length: null
+      numeric_precision: 64
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: true
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: true
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets
+    field: price
+    type: integer
+    meta:
+      collection: tickets
+      conditions: null
+      display: formatted-value
+      display_options:
+        format: true
+        prefix: RON
+      field: price
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options:
+        iconLeft: attach_money
+        min: 0
+        placeholder: '50'
+      readonly: false
+      required: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: price
+      table: tickets
+      data_type: numeric
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets
+    field: event_id
+    type: bigInteger
+    meta:
+      collection: tickets
+      conditions: null
+      display: related-values
+      display_options:
+        template: '{{translations.name}}'
+      field: event_id
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        enableSelect: false
+        template: '{{translations.name}}'
+      readonly: false
+      required: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: event_id
+      table: tickets
+      data_type: bigint
+      default_value: null
+      max_length: null
+      numeric_precision: 64
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: events
+      foreign_key_column: id
+  - collection: tickets
+    field: created_at
+    type: dateTime
+    meta:
+      collection: tickets
+      conditions: null
+      display: datetime
+      display_options:
+        relative: true
+      field: created_at
+      group: null
+      hidden: false
+      interface: datetime
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 5
+      special:
+        - date-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: created_at
+      table: tickets
+      data_type: timestamp without time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets
+    field: updated_at
+    type: dateTime
+    meta:
+      collection: tickets
+      conditions: null
+      display: datetime
+      display_options:
+        relative: true
+      field: updated_at
+      group: null
+      hidden: false
+      interface: datetime
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 6
+      special:
+        - date-created
+        - date-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: updated_at
+      table: tickets
+      data_type: timestamp without time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets
+    field: translations
+    type: alias
+    meta:
+      collection: tickets
+      conditions: null
+      display: related-values
+      display_options:
+        template: '{{name}}'
+      field: translations
+      group: null
+      hidden: false
+      interface: translations
+      note: null
+      options:
+        defaultLanguage: ro-RO
+        defaultOpenSplitView: true
+        languageField: name
+      readonly: false
+      required: false
+      sort: 2
+      special:
+        - translations
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+  - collection: tickets_translations
+    field: id
+    type: bigInteger
+    meta:
+      collection: tickets_translations
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 1
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: tickets_translations
+      data_type: bigint
+      default_value: nextval('tickets_translations_id_seq'::regclass)
+      max_length: null
+      numeric_precision: 64
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: true
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: true
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets_translations
+    field: tickets_id
+    type: integer
+    meta:
+      collection: tickets_translations
+      conditions: null
+      display: null
+      display_options: null
+      field: tickets_id
+      group: null
+      hidden: true
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: '{{id}}'
+      readonly: false
+      required: false
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: tickets_id
+      table: tickets_translations
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: tickets
+      foreign_key_column: id
+  - collection: tickets_translations
+    field: languages_code
+    type: string
+    meta:
+      collection: tickets_translations
+      conditions: null
+      display: null
+      display_options: null
+      field: languages_code
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: languages_code
+      table: tickets_translations
+      data_type: character varying
+      default_value: null
+      max_length: -5
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: languages
+      foreign_key_column: code
+  - collection: tickets_translations
+    field: created_at
+    type: dateTime
+    meta:
+      collection: tickets_translations
+      conditions: null
+      display: null
+      display_options: null
+      field: created_at
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 5
+      special:
+        - date-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: created_at
+      table: tickets_translations
+      data_type: timestamp without time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets_translations
+    field: name
+    type: string
+    meta:
+      collection: tickets_translations
+      conditions: null
+      display: raw
+      display_options: null
+      field: name
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options:
+        placeholder: Standard
+      readonly: false
+      required: true
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: name
+      table: tickets_translations
+      data_type: character varying
+      default_value: null
+      max_length: -5
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets_translations
+    field: updated_at
+    type: dateTime
+    meta:
+      collection: tickets_translations
+      conditions: null
+      display: null
+      display_options: null
+      field: updated_at
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 6
+      special:
+        - date-created
+        - date-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: updated_at
+      table: tickets_translations
+      data_type: timestamp without time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
 relations:
   - collection: attendees
     field: event_id
@@ -1555,6 +2160,19 @@ relations:
       constraint_name: fk_rails_4037bda9d5
       on_update: NO ACTION
       on_delete: NO ACTION
+  - collection: events_translations
+    field: events_id
+    related_collection: events
+    meta:
+      junction_field: languages_code
+      many_collection: events_translations
+      many_field: events_id
+      one_allowed_collections: null
+      one_collection: events
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: translations
+      sort_field: null
   - collection: events_translations
     field: languages_code
     related_collection: languages
@@ -1575,25 +2193,67 @@ relations:
       foreign_key_column: code
       constraint_name: fk_rails_72c9599298
       on_update: NO ACTION
-      on_delete: SET NULL
-  - collection: events_translations
-    field: events_id
+      on_delete: SET DEFAULT
+  - collection: tickets
+    field: event_id
     related_collection: events
     meta:
-      junction_field: languages_code
-      many_collection: events_translations
-      many_field: events_id
+      junction_field: null
+      many_collection: tickets
+      many_field: event_id
       one_allowed_collections: null
       one_collection: events
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: tickets
+      sort_field: null
+    schema:
+      table: tickets
+      column: event_id
+      foreign_key_table: events
+      foreign_key_column: id
+      constraint_name: fk_rails_4def87ea62
+      on_update: NO ACTION
+      on_delete: CASCADE
+  - collection: tickets_translations
+    field: languages_code
+    related_collection: languages
+    meta:
+      junction_field: tickets_id
+      many_collection: tickets_translations
+      many_field: languages_code
+      one_allowed_collections: null
+      one_collection: languages
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: tickets_translations
+      column: languages_code
+      foreign_key_table: languages
+      foreign_key_column: code
+      constraint_name: fk_rails_f08fc7cf9c
+      on_update: NO ACTION
+      on_delete: SET DEFAULT
+  - collection: tickets_translations
+    field: tickets_id
+    related_collection: tickets
+    meta:
+      junction_field: languages_code
+      many_collection: tickets_translations
+      many_field: tickets_id
+      one_allowed_collections: null
+      one_collection: tickets
       one_collection_field: null
       one_deselect_action: nullify
       one_field: translations
       sort_field: null
     schema:
-      table: events_translations
-      column: events_id
-      foreign_key_table: events
+      table: tickets_translations
+      column: tickets_id
+      foreign_key_table: tickets
       foreign_key_column: id
-      constraint_name: fk_rails_a6866df611
+      constraint_name: fk_rails_c99f107008
       on_update: NO ACTION
-      on_delete: SET NULL
+      on_delete: CASCADE
