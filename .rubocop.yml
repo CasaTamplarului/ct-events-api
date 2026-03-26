@@ -1,12 +1,13 @@
-require:
+plugins:
   - rubocop-rails
   - rubocop-rspec
   - rubocop-performance
 AllCops:
   DisplayCopNames: true
   DisplayStyleGuide: true
-  TargetRubyVersion: 3.2.2
+  TargetRubyVersion: 3.4
   NewCops: enable
+  SuggestExtensions: false
   Exclude:
     - "bin/*"
     - config/boot.rb
@@ -18,6 +19,9 @@ AllCops:
     - Rakefile
 Style/Documentation:
   Enabled: false
+Style/OneClassPerFile:
+  Exclude:
+    - "spec/support/apipie_helper.rb"
 RSpec/MessageChain:
   Enabled: false
 Style/OptionalBooleanParameter:
@@ -74,6 +78,9 @@ Rails:
 Rails/ApplicationRecord:
   Exclude:
     - "db/migrate/**"
+Rails/BulkChangeTable:
+  Exclude:
+    - "db/migrate/**"
 Rails/UnknownEnv:
   Environments:
     - test
@@ -99,7 +106,7 @@ Metrics/ParameterLists:
   Max: 8
 Metrics/PerceivedComplexity:
   Max: 12
-Naming/PredicateName:
+Naming/PredicatePrefix:
   Enabled: false
 # RSpec
 RSpec/MultipleExpectations:
