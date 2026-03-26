@@ -19,6 +19,11 @@ test:
   database: ct_events_api_test
 
 production:
+  adapter: postgresql
+  encoding: unicode
+  pool: 50
+  port: <%= ENV.fetch('DATABASE_PORT', 5432) %>
+  host: <%= ENV['DATABASE_HOST'] %>
   database: ct_events_api_production
   username: ct_events_api
   password: <%= ENV["CT_EVENTS_API_DATABASE_PASSWORD"] %>

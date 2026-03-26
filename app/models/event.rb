@@ -6,12 +6,12 @@ class Event < ApplicationRecord
   has_many :tickets, dependent: :destroy
 
   # Enums
-  enum status: { draft: 0, live: 1, cancelled: 2, deleted: 3 }
+  enum :status, { draft: 0, live: 1, cancelled: 2, deleted: 3 }
 
   # Scopes
 
-  scope :upcoming, -> { where('start_date >= ?', Time.zone.now).where(status: 'live') }
-  scope :past, -> { where('start_date < ?', Time.zone.now).where(status: 'live') }
+  scope :upcoming, -> { where(start_date: Time.zone.now..).where(status: 'live') }
+  scope :past, -> { where(start_date: ...Time.zone.now).where(status: 'live') }
   scope :hero, lambda {
     where(hero: true)
       .where('start_date > ?', Time.zone.now)

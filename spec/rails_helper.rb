@@ -12,8 +12,7 @@ Dir['./spec/support/**/*.rb'].each { |f| require f }
 
 begin
   ActiveRecord::Migration.maintain_test_schema!
-rescue ActiveRecord::PendingMigrationError => e
-  puts e.to_s.strip
+rescue ActiveRecord::PendingMigrationError
   exit 1
 end
 
@@ -23,7 +22,7 @@ RSpec.configure do |config|
   config.filter_rails_from_backtrace!
   config.include FactoryBot::Syntax::Methods
   config.include RequestSpecHelper, type: :request
-  config.after(:each) do
+  config.after do
     Faker::UniqueGenerator.clear
     DatabaseCleaner.clean
   end
@@ -32,9 +31,9 @@ RSpec.configure do |config|
     DatabaseCleaner.clean_with(:truncation)
   end
 
-  config.before(:each) do
+  config.before do
     WebMock.globally_stub_request do |request|
-      { status: 200, body: '{}', headers: {} } if request.uri.to_s =~ /fonts.googleapis.com|fcm.googleapis.com/
+      { status: 200, body: '{}', headers: {} } if /fonts.googleapis.com|fcm.googleapis.com/.match?(request.uri.to_s)
     end
     DatabaseCleaner.start
   end
