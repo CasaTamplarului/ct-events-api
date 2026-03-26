@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2024_04_09_125721) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_26_142224) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "unaccent"
 
   create_table "attendees", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -492,6 +493,7 @@ ActiveRecord::Schema[8.1].define(version: 2024_04_09_125721) do
   add_foreign_key "directus_versions", "directus_users", column: "user_created", name: "directus_versions_user_created_foreign", on_delete: :nullify
   add_foreign_key "directus_versions", "directus_users", column: "user_updated", name: "directus_versions_user_updated_foreign"
   add_foreign_key "directus_webhooks", "directus_flows", column: "migrated_flow", name: "directus_webhooks_migrated_flow_foreign", on_delete: :nullify
+  add_foreign_key "events_translations", "events", name: "events_translations_event_id_foreign"
   add_foreign_key "events_translations", "languages", column: "languages_code", primary_key: "code"
   add_foreign_key "tickets", "events", on_delete: :cascade
   add_foreign_key "tickets_translations", "languages", column: "languages_code", primary_key: "code"

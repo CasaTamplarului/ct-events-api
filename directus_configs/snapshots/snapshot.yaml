@@ -1413,10 +1413,10 @@ fields:
     group: null
     hidden: false
     interface: input
-    note: This will be generated automatically
+    note: Auto-generated from name via database trigger. Clear to regenerate.
     options:
       slug: true
-    readonly: false
+    readonly: true
     required: false
     sort: 2
     special: null
