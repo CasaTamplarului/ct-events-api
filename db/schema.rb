@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_28_182948) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_28_191207) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -499,6 +499,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_182948) do
   create_table "tickets", force: :cascade do |t|
     t.datetime "created_at", default: -> { "now()" }, null: false
     t.bigint "event_id", null: false
+    t.boolean "food_included", default: false, null: false
     t.decimal "price"
     t.datetime "updated_at", default: -> { "now()" }, null: false
     t.index ["event_id"], name: "index_tickets_on_event_id"

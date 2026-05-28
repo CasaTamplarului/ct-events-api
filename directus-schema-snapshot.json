@@ -4356,6 +4356,55 @@
 			}
 		},
 		{
+			"collection": "tickets",
+			"field": "food_included",
+			"type": "boolean",
+			"meta": {
+				"collection": "tickets",
+				"conditions": null,
+				"display": "boolean",
+				"display_options": null,
+				"field": "food_included",
+				"group": null,
+				"hidden": false,
+				"interface": "boolean",
+				"note": null,
+				"options": {
+					"colorOff": "#E35169",
+					"colorOn": "#2ECDA7",
+					"iconOff": "no_meals",
+					"iconOn": "restaurant",
+					"label": "Food Included"
+				},
+				"readonly": false,
+				"required": false,
+				"sort": null,
+				"special": null,
+				"translations": null,
+				"validation": null,
+				"validation_message": null,
+				"width": "full"
+			},
+			"schema": {
+				"name": "food_included",
+				"table": "tickets",
+				"data_type": "boolean",
+				"default_value": false,
+				"max_length": null,
+				"numeric_precision": null,
+				"numeric_scale": null,
+				"is_nullable": false,
+				"is_unique": false,
+				"is_indexed": false,
+				"is_primary_key": false,
+				"is_generated": false,
+				"generation_expression": null,
+				"has_auto_increment": false,
+				"foreign_key_table": null,
+				"foreign_key_column": null
+			}
+		},
+		{
 			"collection": "tickets_translations",
 			"field": "id",
 			"type": "bigInteger",
@@ -5039,21 +5088,6 @@
 		},
 		{
 			"collection": "attendees",
-			"field": "ticket_id",
-			"related_collection": "tickets",
-			"meta": null,
-			"schema": {
-				"table": "attendees",
-				"column": "ticket_id",
-				"foreign_key_table": "tickets",
-				"foreign_key_column": "id",
-				"constraint_name": "fk_rails_9157c8a1d9",
-				"on_update": "NO ACTION",
-				"on_delete": "NO ACTION"
-			}
-		},
-		{
-			"collection": "attendees",
 			"field": "event_id",
 			"related_collection": "events",
 			"meta": null,
@@ -5065,6 +5099,21 @@
 				"constraint_name": "fk_rails_4037bda9d5",
 				"on_update": "NO ACTION",
 				"on_delete": "CASCADE"
+			}
+		},
+		{
+			"collection": "attendees",
+			"field": "ticket_id",
+			"related_collection": "tickets",
+			"meta": null,
+			"schema": {
+				"table": "attendees",
+				"column": "ticket_id",
+				"foreign_key_table": "tickets",
+				"foreign_key_column": "id",
+				"constraint_name": "fk_rails_9157c8a1d9",
+				"on_update": "NO ACTION",
+				"on_delete": "NO ACTION"
 			}
 		},
 		{
