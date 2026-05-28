@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 class User < ApplicationRecord
-  has_secure_password
+  has_secure_password(validations: false)
 
   has_many :attendees, dependent: :nullify
-  has_many :user_identities, dependent: :delete_all
+  has_many :user_identities, dependent: :destroy
 
   normalizes :email, with: ->(e) { e.strip.downcase }
 
