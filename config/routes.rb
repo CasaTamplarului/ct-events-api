@@ -9,7 +9,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       namespace :auth do
         resource :google, only: :create
-        resource :me, only: :show
+        resource :me, only: :show, controller: 'me'
       end
 
       scope '/:languages_code', constraints: { languages_code: /[a-zA-Z]{2}-[a-zA-Z]{2}/ } do
