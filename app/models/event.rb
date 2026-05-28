@@ -3,7 +3,7 @@
 class Event < ApplicationRecord
   has_many :attendees, dependent: :destroy
   has_many :events_translations, dependent: :destroy, inverse_of: :event
-  has_many :tickets, dependent: :destroy
+  has_many :tickets, -> { order(:sort) }, dependent: :destroy
   has_many :event_attendee_fields, -> { order(:sort) }, dependent: :destroy, inverse_of: :event
   has_many :event_gallery_items, -> { order(:sort) }, class_name: "EventGallery", dependent: :destroy, inverse_of: :event
   has_many :event_speakers, -> { order(:sort) }, dependent: :destroy, inverse_of: :event

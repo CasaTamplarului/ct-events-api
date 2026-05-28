@@ -267,7 +267,7 @@
 				"preview_url": null,
 				"singleton": false,
 				"sort": null,
-				"sort_field": null,
+				"sort_field": "sort",
 				"translations": null,
 				"unarchive_value": null,
 				"versioning": false
@@ -4405,6 +4405,49 @@
 			}
 		},
 		{
+			"collection": "tickets",
+			"field": "sort",
+			"type": "integer",
+			"meta": {
+				"collection": "tickets",
+				"conditions": null,
+				"display": null,
+				"display_options": null,
+				"field": "sort",
+				"group": null,
+				"hidden": true,
+				"interface": "input",
+				"note": null,
+				"options": null,
+				"readonly": false,
+				"required": false,
+				"sort": null,
+				"special": null,
+				"translations": null,
+				"validation": null,
+				"validation_message": null,
+				"width": "full"
+			},
+			"schema": {
+				"name": "sort",
+				"table": "tickets",
+				"data_type": "integer",
+				"default_value": null,
+				"max_length": null,
+				"numeric_precision": 32,
+				"numeric_scale": 0,
+				"is_nullable": true,
+				"is_unique": false,
+				"is_indexed": false,
+				"is_primary_key": false,
+				"is_generated": false,
+				"generation_expression": null,
+				"has_auto_increment": false,
+				"foreign_key_table": null,
+				"foreign_key_column": null
+			}
+		},
+		{
 			"collection": "tickets_translations",
 			"field": "id",
 			"type": "bigInteger",
@@ -5088,21 +5131,6 @@
 		},
 		{
 			"collection": "attendees",
-			"field": "event_id",
-			"related_collection": "events",
-			"meta": null,
-			"schema": {
-				"table": "attendees",
-				"column": "event_id",
-				"foreign_key_table": "events",
-				"foreign_key_column": "id",
-				"constraint_name": "fk_rails_4037bda9d5",
-				"on_update": "NO ACTION",
-				"on_delete": "CASCADE"
-			}
-		},
-		{
-			"collection": "attendees",
 			"field": "ticket_id",
 			"related_collection": "tickets",
 			"meta": null,
@@ -5114,6 +5142,21 @@
 				"constraint_name": "fk_rails_9157c8a1d9",
 				"on_update": "NO ACTION",
 				"on_delete": "NO ACTION"
+			}
+		},
+		{
+			"collection": "attendees",
+			"field": "event_id",
+			"related_collection": "events",
+			"meta": null,
+			"schema": {
+				"table": "attendees",
+				"column": "event_id",
+				"foreign_key_table": "events",
+				"foreign_key_column": "id",
+				"constraint_name": "fk_rails_4037bda9d5",
+				"on_update": "NO ACTION",
+				"on_delete": "CASCADE"
 			}
 		},
 		{
