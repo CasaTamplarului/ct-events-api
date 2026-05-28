@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_28_140545) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_28_182948) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -18,7 +18,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_140545) do
   create_table "attendees", force: :cascade do |t|
     t.string "church_name"
     t.string "city"
-    t.datetime "created_at", null: false
+    t.datetime "created_at", default: -> { "now()" }, null: false
     t.integer "dietary_preference", default: 0
     t.string "email_address"
     t.bigint "event_id", null: false
@@ -28,7 +28,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_140545) do
     t.integer "payment_status", default: 0
     t.string "phone_number"
     t.bigint "ticket_id"
-    t.datetime "updated_at", null: false
+    t.datetime "updated_at", default: -> { "now()" }, null: false
     t.bigint "user_id"
     t.index ["event_id"], name: "index_attendees_on_event_id"
     t.index ["order_id"], name: "index_attendees_on_order_id"
@@ -410,12 +410,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_140545) do
   end
 
   create_table "event_attendee_fields", force: :cascade do |t|
-    t.datetime "created_at", null: false
+    t.datetime "created_at", default: -> { "now()" }, null: false
     t.bigint "event_id", null: false
     t.string "field_name", null: false
     t.boolean "required", default: true, null: false
     t.integer "sort", default: 0, null: false
-    t.datetime "updated_at", null: false
+    t.datetime "updated_at", default: -> { "now()" }, null: false
     t.index ["event_id", "field_name"], name: "index_event_attendee_fields_on_event_id_and_field_name"
     t.index ["event_id", "sort"], name: "index_event_attendee_fields_on_event_id_and_sort"
     t.index ["event_id"], name: "index_event_attendee_fields_on_event_id"
@@ -445,22 +445,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_140545) do
   end
 
   create_table "event_speakers_translations", force: :cascade do |t|
-    t.string "action_label"
+    t.string "action_label", limit: 255
     t.datetime "created_at", null: false
     t.text "description"
-    t.bigint "event_speaker_id", null: false
+    t.bigint "event_speaker_id"
     t.string "languages_code", null: false
     t.datetime "updated_at", null: false
-    t.index ["event_speaker_id"], name: "index_event_speakers_translations_on_event_speaker_id"
   end
 
   create_table "events", force: :cascade do |t|
     t.string "address"
-    t.datetime "created_at", null: false
+    t.datetime "created_at", default: -> { "now()" }, null: false
     t.string "embed_url"
     t.datetime "end_date", precision: nil, default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.boolean "hero", default: false, null: false
     t.uuid "hero_image"
+    t.uuid "hero_portrait"
     t.string "location_name"
     t.integer "max_age"
     t.integer "max_number_of_people"
@@ -469,58 +469,58 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_140545) do
     t.string "slug", limit: 255
     t.datetime "start_date", precision: nil, default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.integer "status", default: 0
-    t.datetime "updated_at", null: false
+    t.datetime "updated_at", default: -> { "now()" }, null: false
     t.index ["slug"], name: "index_events_on_slug", unique: true
   end
 
   create_table "events_translations", force: :cascade do |t|
-    t.datetime "created_at", null: false
+    t.datetime "created_at", default: -> { "now()" }, null: false
     t.text "description"
     t.integer "event_id"
     t.string "languages_code"
     t.string "name", limit: 255
     t.string "tag_line", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "updated_at", default: -> { "now()" }, null: false
   end
 
   create_table "languages", primary_key: "code", id: :string, force: :cascade do |t|
-    t.datetime "created_at", null: false
+    t.datetime "created_at", default: -> { "now()" }, null: false
     t.string "name", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "updated_at", default: -> { "now()" }, null: false
   end
 
   create_table "orders", force: :cascade do |t|
-    t.datetime "created_at", null: false
+    t.datetime "created_at", default: -> { "now()" }, null: false
     t.string "order_reference"
-    t.datetime "updated_at", null: false
+    t.datetime "updated_at", default: -> { "now()" }, null: false
     t.index ["order_reference"], name: "index_orders_on_order_reference", unique: true
   end
 
   create_table "tickets", force: :cascade do |t|
-    t.datetime "created_at", null: false
+    t.datetime "created_at", default: -> { "now()" }, null: false
     t.bigint "event_id", null: false
     t.decimal "price"
-    t.datetime "updated_at", null: false
+    t.datetime "updated_at", default: -> { "now()" }, null: false
     t.index ["event_id"], name: "index_tickets_on_event_id"
   end
 
   create_table "tickets_translations", force: :cascade do |t|
-    t.datetime "created_at", null: false
+    t.datetime "created_at", default: -> { "now()" }, null: false
     t.text "description"
     t.string "languages_code"
     t.string "name", null: false
     t.integer "tickets_id"
-    t.datetime "updated_at", null: false
+    t.datetime "updated_at", default: -> { "now()" }, null: false
   end
 
   create_table "users", force: :cascade do |t|
-    t.datetime "created_at", null: false
+    t.datetime "created_at", default: -> { "now()" }, null: false
     t.string "email", null: false
     t.string "first_name", null: false
     t.string "last_name", null: false
     t.string "password_digest", null: false
     t.string "phone_number"
-    t.datetime "updated_at", null: false
+    t.datetime "updated_at", default: -> { "now()" }, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
@@ -574,11 +574,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_140545) do
   add_foreign_key "event_attendee_fields", "events", on_delete: :cascade
   add_foreign_key "event_gallery", "directus_files", column: "directus_files_id", name: "event_gallery_directus_files_id_foreign"
   add_foreign_key "event_gallery", "events", on_delete: :cascade
-  add_foreign_key "event_speakers", "directus_files", column: "image", name: "event_speakers_image_foreign", on_delete: :nullify
-  add_foreign_key "event_speakers", "events", on_delete: :cascade
-  add_foreign_key "event_speakers_translations", "event_speakers", on_delete: :cascade
-  add_foreign_key "event_speakers_translations", "languages", column: "languages_code", primary_key: "code", on_update: :cascade, on_delete: :restrict
+  add_foreign_key "event_speakers_translations", "event_speakers", name: "fk_rails_event_speakers_translations_speaker", on_delete: :cascade
+  add_foreign_key "event_speakers_translations", "languages", column: "languages_code", primary_key: "code", name: "fk_rails_event_speakers_translations_language", on_update: :cascade, on_delete: :restrict
   add_foreign_key "events", "directus_files", column: "hero_image", name: "events_hero_image_foreign"
+  add_foreign_key "events", "directus_files", column: "hero_portrait", name: "events_hero_portrait_foreign", on_delete: :nullify
   add_foreign_key "events_translations", "events", on_delete: :cascade
   add_foreign_key "events_translations", "languages", column: "languages_code", primary_key: "code", on_update: :cascade, on_delete: :restrict
   add_foreign_key "tickets", "events", on_delete: :cascade

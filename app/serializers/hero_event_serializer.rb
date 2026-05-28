@@ -34,4 +34,12 @@ class HeroEventSerializer < ApplicationSerializer
   attribute :hero_image_type do |object|
     ApplicationSerializer.asset_type(object.hero_image)
   end
+
+  attribute :hero_portrait do |object|
+    ApplicationSerializer.asset_url(object.hero_portrait)
+  end
+
+  attribute :hero_portrait_type do |object|
+    ApplicationSerializer.asset_type(object.hero_portrait)
+  end
 end

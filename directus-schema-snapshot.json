@@ -3349,6 +3349,49 @@
 			}
 		},
 		{
+			"collection": "events",
+			"field": "hero_portrait",
+			"type": "uuid",
+			"meta": {
+				"collection": "events",
+				"conditions": null,
+				"display": "image",
+				"display_options": null,
+				"field": "hero_portrait",
+				"group": null,
+				"hidden": false,
+				"interface": "file-image",
+				"note": "Portrait/mobile crop (optional)",
+				"options": null,
+				"readonly": false,
+				"required": false,
+				"sort": null,
+				"special": null,
+				"translations": null,
+				"validation": null,
+				"validation_message": null,
+				"width": "full"
+			},
+			"schema": {
+				"name": "hero_portrait",
+				"table": "events",
+				"data_type": "uuid",
+				"default_value": null,
+				"max_length": null,
+				"numeric_precision": null,
+				"numeric_scale": null,
+				"is_nullable": true,
+				"is_unique": false,
+				"is_indexed": false,
+				"is_primary_key": false,
+				"is_generated": false,
+				"generation_expression": null,
+				"has_auto_increment": false,
+				"foreign_key_table": "directus_files",
+				"foreign_key_column": "id"
+			}
+		},
+		{
 			"collection": "events_translations",
 			"field": "id",
 			"type": "bigInteger",
@@ -4981,21 +5024,6 @@
 		},
 		{
 			"collection": "attendees",
-			"field": "event_id",
-			"related_collection": "events",
-			"meta": null,
-			"schema": {
-				"table": "attendees",
-				"column": "event_id",
-				"foreign_key_table": "events",
-				"foreign_key_column": "id",
-				"constraint_name": "fk_rails_4037bda9d5",
-				"on_update": "NO ACTION",
-				"on_delete": "CASCADE"
-			}
-		},
-		{
-			"collection": "attendees",
 			"field": "order_id",
 			"related_collection": "orders",
 			"meta": null,
@@ -5022,6 +5050,21 @@
 				"constraint_name": "fk_rails_9157c8a1d9",
 				"on_update": "NO ACTION",
 				"on_delete": "NO ACTION"
+			}
+		},
+		{
+			"collection": "attendees",
+			"field": "event_id",
+			"related_collection": "events",
+			"meta": null,
+			"schema": {
+				"table": "attendees",
+				"column": "event_id",
+				"foreign_key_table": "events",
+				"foreign_key_column": "id",
+				"constraint_name": "fk_rails_4037bda9d5",
+				"on_update": "NO ACTION",
+				"on_delete": "CASCADE"
 			}
 		},
 		{
@@ -5204,6 +5247,21 @@
 				"constraint_name": "events_hero_image_foreign",
 				"on_update": "NO ACTION",
 				"on_delete": "NO ACTION"
+			}
+		},
+		{
+			"collection": "events",
+			"field": "hero_portrait",
+			"related_collection": "directus_files",
+			"meta": null,
+			"schema": {
+				"table": "events",
+				"column": "hero_portrait",
+				"foreign_key_table": "directus_files",
+				"foreign_key_column": "id",
+				"constraint_name": "events_hero_portrait_foreign",
+				"on_update": "NO ACTION",
+				"on_delete": "SET NULL"
 			}
 		},
 		{

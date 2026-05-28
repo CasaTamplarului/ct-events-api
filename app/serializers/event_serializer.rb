@@ -34,6 +34,10 @@ class EventSerializer < ApplicationSerializer
     ApplicationSerializer.asset_url(object.hero_image)
   end
 
+  attribute :hero_portrait do |object|
+    ApplicationSerializer.asset_url(object.hero_portrait)
+  end
+
   attribute :gallery do |object|
     object.event_gallery_items.map do |item|
       ApplicationSerializer.asset_url(item.directus_files_id)
