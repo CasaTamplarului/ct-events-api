@@ -5,6 +5,7 @@ ruby "3.4.2"
 
 # Core
 gem "bootsnap", require: false
+gem "bcrypt", "~> 3.1"
 gem "rails", "~> 8.0"
 gem "pg", "~> 1.1"
 gem "puma", ">= 6.4.2"

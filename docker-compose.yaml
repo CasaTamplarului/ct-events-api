@@ -13,12 +13,44 @@ services:
     volumes:
       - ct-events-postgres:/var/lib/postgresql/data
       - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: "minio_admin"
+      MINIO_ROOT_PASSWORD: "minio_password"
+    volumes:
+      - ct-events-minio:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  createbuckets:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 minio_admin minio_password &&
+      mc mb local/ct-events --ignore-existing &&
+      mc anonymous set download local/ct-events &&
+      exit 0
+      "
+
   # redis:
   #   image: redis:7-alpine
   #   ports:
   #     - "6379:6379"
   #   volumes:
   #     - ct-events-redis:/var/lib/redis/data
+
   directus:
     image: directus/directus:11.5.0
     ports:
@@ -32,17 +64,23 @@ services:
       DB_DATABASE: "ct_events_api_development"
       DB_USER: "postgres"
       DB_PASSWORD: "postgres"
-      STORAGE_LOCATIONS: "LOCAL"
-      STORAGE_LOCAL_DRIVER: "local"
-      STORAGE_LOCAL_ROOT: "./local/"
+      STORAGE_LOCATIONS: "s3"
+      STORAGE_S3_DRIVER: "s3"
+      STORAGE_S3_KEY: "minio_admin"
+      STORAGE_S3_SECRET: "minio_password"
+      STORAGE_S3_BUCKET: "ct-events"
+      STORAGE_S3_REGION: "us-east-1"
+      STORAGE_S3_ENDPOINT: "http://minio:9000"
+      STORAGE_S3_FORCE_PATH_STYLE: "true"
       ADMIN_EMAIL: "admin@synthbit.io"
       ADMIN_PASSWORD: "Tw1l1ght932008"
-    volumes:
-      - ./data/config:/var/directus/config
-      - ./data/uploads:/var/directus/public/uploads
     depends_on:
-      - postgres
+      minio:
+        condition: service_healthy
+      postgres:
+        condition: service_started
 
 volumes:
   ct-events-redis:
   ct-events-postgres:
+  ct-events-minio:

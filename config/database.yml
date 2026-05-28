@@ -25,5 +25,5 @@ production:
   port: <%= ENV.fetch('DATABASE_PORT', 5432) %>
   host: <%= ENV['DATABASE_HOST'] %>
   database: ct_events_api_production
-  username: ct_events_api
+  username: <%= ENV.fetch('DATABASE_USERNAME', 'ct_events_api') %>
   password: <%= ENV["CT_EVENTS_API_DATABASE_PASSWORD"] %>
