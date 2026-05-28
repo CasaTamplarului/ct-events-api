@@ -19,6 +19,10 @@ gem "sentry-rails", "~> 5.22"
 gem 'alba', '~> 3.1'
 gem 'oj'
 
+# Google Sign-In
+gem 'google-id-token', '~> 1.4'
+gem 'jwt', '~> 2.8'
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
 
