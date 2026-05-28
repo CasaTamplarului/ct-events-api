@@ -4,6 +4,7 @@ class User < ApplicationRecord
   has_secure_password
 
   has_many :attendees, dependent: :nullify
+  has_many :user_identities, dependent: :delete_all
 
   normalizes :email, with: ->(e) { e.strip.downcase }
 
