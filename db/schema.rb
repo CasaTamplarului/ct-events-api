@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_28_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_28_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -442,6 +442,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_000001) do
     t.index ["event_id"], name: "index_event_speakers_on_event_id"
   end
 
+  create_table "event_speakers_translations", force: :cascade do |t|
+    t.string "action_label"
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.bigint "event_speaker_id", null: false
+    t.string "languages_code", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_speaker_id"], name: "index_event_speakers_translations_on_event_speaker_id"
+  end
+
   create_table "events", force: :cascade do |t|
     t.string "address"
     t.datetime "created_at", null: false
@@ -564,6 +574,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_000001) do
   add_foreign_key "event_gallery", "events", on_delete: :cascade
   add_foreign_key "event_speakers", "directus_files", column: "image", name: "event_speakers_image_foreign", on_delete: :nullify
   add_foreign_key "event_speakers", "events", on_delete: :cascade
+  add_foreign_key "event_speakers_translations", "event_speakers", on_delete: :cascade
+  add_foreign_key "event_speakers_translations", "languages", column: "languages_code", primary_key: "code", on_update: :cascade, on_delete: :restrict
   add_foreign_key "events", "directus_files", column: "hero_image", name: "events_hero_image_foreign"
   add_foreign_key "events_translations", "events", on_delete: :cascade
   add_foreign_key "events_translations", "languages", column: "languages_code", primary_key: "code", on_update: :cascade, on_delete: :restrict
