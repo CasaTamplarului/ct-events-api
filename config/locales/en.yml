@@ -30,4 +30,11 @@
 # available at https://guides.rubyonrails.org/i18n.html.
 
 en:
-  hello: "Hello world"
+  orders:
+    errors:
+      items_blank: "items is required and must not be empty"
+      unknown_event: "Unknown event: %{slug}"
+      unknown_ticket: "Unknown ticket: %{name}"
+      fully_booked: "This event is fully booked"
+      already_registered: "%{email} is already registered for this event"
+      internal_error: "Internal server error"

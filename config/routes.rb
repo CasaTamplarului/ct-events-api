@@ -16,6 +16,7 @@ Rails.application.routes.draw do
         end
 
         resources :event, only: :show, param: :slug
+        resources :orders, only: :create
       end
     end
   end
