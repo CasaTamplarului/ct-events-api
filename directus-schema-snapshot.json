@@ -4220,8 +4220,8 @@
 				"is_generated": false,
 				"generation_expression": null,
 				"has_auto_increment": false,
-				"foreign_key_table": "events",
-				"foreign_key_column": "id"
+				"foreign_key_table": null,
+				"foreign_key_column": null
 			}
 		},
 		{
@@ -5419,16 +5419,7 @@
 				"one_collection_field": null,
 				"one_deselect_action": "nullify",
 				"one_field": "tickets",
-				"sort_field": null
-			},
-			"schema": {
-				"table": "tickets",
-				"column": "event_id",
-				"foreign_key_table": "events",
-				"foreign_key_column": "id",
-				"constraint_name": "fk_rails_4def87ea62",
-				"on_update": "NO ACTION",
-				"on_delete": "CASCADE"
+				"sort_field": "sort"
 			}
 		},
 		{
