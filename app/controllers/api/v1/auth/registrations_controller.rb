@@ -36,7 +36,8 @@ module Api
                 password: params[:password],
                 phone_number: params[:phone_number].presence,
                 church_name: params[:church_name].presence,
-                city: params[:city].presence
+                city: params[:city].presence,
+                language: params[:language].presence
               )
               user.user_identities.create!(provider: 'email', uid: user.email)
               # rubocop:disable Rails/SkipsModelValidations

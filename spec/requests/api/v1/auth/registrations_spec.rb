@@ -62,6 +62,12 @@ RSpec.describe 'POST /api/v1/auth/registration' do
       expect(response).to have_http_status(:created)
       expect(json['user']['last_name']).to be_nil
     end
+
+    it 'stores the language from params' do
+      post_registration(valid_params.merge(language: 'ro-RO'))
+
+      expect(User.find_by(email: 'ion@example.com').language).to eq('ro-RO')
+    end
   end
 
   context 'with an existing attendee matching the registration email' do
