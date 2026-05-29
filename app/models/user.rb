@@ -6,7 +6,7 @@ class User < ApplicationRecord
   has_many :attendees, dependent: :nullify
   has_many :user_identities, dependent: :destroy
 
-  normalizes :email, with: ->(e) { e.strip.downcase }
+  normalizes :email, with: ->(e) { e&.strip&.downcase }
 
   validates :first_name, presence: true
   validates :email, uniqueness: { allow_nil: true },

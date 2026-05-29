@@ -45,5 +45,11 @@ RSpec.describe User do
       user = build(:user, email: nil, password: nil, password_digest: nil)
       expect(user).to be_valid
     end
+
+    it 'allows multiple users with nil email (Facebook phone-only accounts)' do
+      create(:user, email: nil, password: nil, password_digest: nil)
+      user2 = build(:user, email: nil, password: nil, password_digest: nil)
+      expect(user2).to be_valid
+    end
   end
 end

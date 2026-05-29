@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_29_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_29_122818) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -531,7 +531,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_29_100000) do
     t.string "church_name"
     t.string "city"
     t.datetime "created_at", default: -> { "now()" }, null: false
-    t.string "email", null: false
+    t.string "email"
     t.string "first_name", null: false
     t.string "language"
     t.string "last_name"
