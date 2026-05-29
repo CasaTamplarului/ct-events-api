@@ -7,6 +7,11 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
+      namespace :auth do
+        resource :google, only: :create
+        resource :me, only: :show, controller: 'me'
+      end
+
       scope '/:languages_code', constraints: { languages_code: /[a-zA-Z]{2}-[a-zA-Z]{2}/ } do
         # Events
         namespace :events do
@@ -16,6 +21,7 @@ Rails.application.routes.draw do
         end
 
         resources :event, only: :show, param: :slug
+        resources :orders, only: :create
       end
     end
   end

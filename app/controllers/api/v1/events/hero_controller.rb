@@ -7,6 +7,8 @@ module Api
         def index
           event = Event.hero.first
 
+          return head :no_content if event.nil?
+
           render json:
             HeroEventSerializer.new(event, params: { languages_code: params[:languages_code] }).serialize,
                  status: :ok

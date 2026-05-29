@@ -1,9 +1,13 @@
 # frozen_string_literal: true
 
 class TicketSerializer < ApplicationSerializer
-  attributes :price
+  attributes :id, :price, :food_included
 
   attribute :name do |object|
     object.translations(params[:languages_code])&.name
+  end
+
+  attribute :description do |object|
+    object.translations(params[:languages_code])&.description
   end
 end

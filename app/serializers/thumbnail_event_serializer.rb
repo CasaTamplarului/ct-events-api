@@ -11,6 +11,10 @@ class ThumbnailEventSerializer < ApplicationSerializer
     object.translations(params[:languages_code]).tag_line
   end
 
+  attribute :description do |object|
+    object.translations(params[:languages_code]).description
+  end
+
   attribute :fully_booked, &:fully_booked?
   attribute :starts_from, &:starts_from
 
@@ -20,7 +24,18 @@ class ThumbnailEventSerializer < ApplicationSerializer
     TicketSerializer.new(object.tickets, params: { languages_code: params[:languages_code] })
   end
 
-  attribute :slug do |object|
-    object.translations(params[:languages_code]).slug
+  attribute :slug, &:slug
+  attributes :address, :location_name, :embed_url
+
+  attribute :hero_image do |object|
+    ApplicationSerializer.asset_url(object.hero_image)
+  end
+
+  attribute :hero_portrait do |object|
+    ApplicationSerializer.asset_url(object.hero_portrait)
+  end
+
+  attribute :gallery_preview do |object|
+    ApplicationSerializer.asset_url(object.event_gallery_items.first&.directus_files_id)
   end
 end

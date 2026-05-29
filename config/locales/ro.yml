@@ -1,0 +1,9 @@
+ro:
+  orders:
+    errors:
+      items_blank: "lista de articole este necesară și nu poate fi goală"
+      unknown_event: "Eveniment necunoscut: %{slug}"
+      unknown_ticket: "Bilet necunoscut: %{name}"
+      fully_booked: "Acest eveniment este complet rezervat"
+      already_registered: "%{email} este deja înregistrat la acest eveniment"
+      internal_error: "Eroare internă de server"

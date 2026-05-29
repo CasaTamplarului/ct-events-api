@@ -1,0 +1,11 @@
+.git
+.gitignore
+log/
+tmp/
+spec/
+storage/
+.env*
+config/master.key
+node_modules/
+coverage/
+.rubocop-*.yml
