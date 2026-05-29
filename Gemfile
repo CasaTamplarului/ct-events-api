@@ -23,6 +23,9 @@ gem 'oj'
 gem 'google-id-token', '~> 1.4'
 gem 'jwt', '~> 2.8'
 
+# Rate limiting
+gem 'rack-attack', '~> 6.7'
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
 

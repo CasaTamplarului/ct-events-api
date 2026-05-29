@@ -3,7 +3,15 @@
 require 'rails_helper'
 
 RSpec.describe 'GET /api/v1/auth/me' do
-  let(:user) { create(:user, first_name: 'Ion', last_name: 'Popescu', email: 'ion@example.com') }
+  let(:user) do
+    create(:user,
+           first_name: 'Ion',
+           last_name: 'Popescu',
+           email: 'ion@example.com',
+           phone_number: '+40721000001',
+           church_name: 'Betania',
+           city: 'Cluj-Napoca')
+  end
   let(:token) { JwtService.encode(user.id) }
 
   def get_me(headers: {})
@@ -19,11 +27,10 @@ RSpec.describe 'GET /api/v1/auth/me' do
     it 'includes all user profile fields in response' do
       get_me(headers: { 'Authorization' => "Bearer #{token}" })
 
-      expect(json['id']).to eq(user.id)
-      expect(json['email']).to eq('ion@example.com')
-      expect(json['first_name']).to eq('Ion')
-      expect(json['last_name']).to eq('Popescu')
-      expect(json.key?('avatar_url')).to be true
+      expected = { 'id' => user.id, 'email' => 'ion@example.com', 'first_name' => 'Ion',
+                   'last_name' => 'Popescu', 'avatar_url' => nil, 'phone_number' => '+40721000001',
+                   'church_name' => 'Betania', 'city' => 'Cluj-Napoca' }
+      expect(json).to include(expected)
     end
   end
 

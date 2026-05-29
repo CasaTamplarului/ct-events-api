@@ -21,9 +21,7 @@ RSpec.describe 'POST /api/v1/auth/google' do
 
   context 'with a valid Google token' do
     before do
-      allow_any_instance_of(GoogleIDToken::Validator)
-        .to receive(:check)
-        .and_return(google_payload)
+      allow(GoogleAuthService::VALIDATOR).to receive(:check).and_return(google_payload)
     end
 
     it 'returns 200 with a JWT and user data' do
@@ -33,7 +31,13 @@ RSpec.describe 'POST /api/v1/auth/google' do
       expect(json['jwt']).to be_present
       expect(json['user']['email']).to eq('ion@example.com')
       expect(json['user']['first_name']).to eq('Ion')
+    end
+
+    it 'includes name and extended profile fields in the user response' do
+      post_google
+
       expect(json['user']['last_name']).to eq('Popescu')
+      expect(json['user']).to include('phone_number' => nil, 'city' => nil, 'church_name' => nil)
     end
 
     it 'creates a new user on first sign-in' do
@@ -100,9 +104,7 @@ RSpec.describe 'POST /api/v1/auth/google' do
 
   context 'with an invalid Google token' do
     before do
-      allow_any_instance_of(GoogleIDToken::Validator)
-        .to receive(:check)
-        .and_raise(GoogleIDToken::ValidationError, 'invalid token')
+      allow(GoogleAuthService::VALIDATOR).to receive(:check).and_raise(GoogleIDToken::ValidationError, 'invalid token')
     end
 
     it 'returns 401' do

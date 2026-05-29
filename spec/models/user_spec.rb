@@ -19,6 +19,20 @@ RSpec.describe User do
     it { is_expected.to have_many(:attendees).dependent(:nullify) }
   end
 
+  describe 'profile fields' do
+    it 'accepts church_name and city' do
+      user = build(:user, church_name: 'Betel', city: 'Cluj')
+      expect(user).to be_valid
+      expect(user.church_name).to eq('Betel')
+      expect(user.city).to eq('Cluj')
+    end
+
+    it 'is valid without last_name' do
+      user = build(:user, last_name: nil)
+      expect(user).to be_valid
+    end
+  end
+
   describe 'email normalization' do
     it 'strips and downcases email on save' do
       user = create(:user, email: '  Test@EXAMPLE.COM  ')

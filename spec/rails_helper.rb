@@ -36,6 +36,7 @@ RSpec.configure do |config|
       { status: 200, body: '{}', headers: {} } if /fonts.googleapis.com|fcm.googleapis.com/.match?(request.uri.to_s)
     end
     DatabaseCleaner.start
+    Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
   end
 end
 
