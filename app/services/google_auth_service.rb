@@ -3,12 +3,13 @@
 require 'google-id-token'
 
 class GoogleAuthService
-  InvalidTokenError = Class.new(StandardError)
+  class InvalidTokenError < StandardError
+  end
+  VALIDATOR = GoogleIDToken::Validator.new
 
   def self.call(id_token)
     client_id = Rails.application.credentials.dig(:auth, :google_client_id)
-    validator = GoogleIDToken::Validator.new
-    payload = validator.check(id_token, client_id)
+    payload = VALIDATOR.check(id_token, client_id)
 
     {
       uid: payload['sub'],

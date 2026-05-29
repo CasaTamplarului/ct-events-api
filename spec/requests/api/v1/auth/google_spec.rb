@@ -59,6 +59,16 @@ RSpec.describe 'POST /api/v1/auth/google' do
       expect(UserIdentity.find_by(provider: 'google', uid: 'google-uid-123').user).to eq(existing_user)
     end
 
+    it 'backfills attendees when linking an existing user account by email' do
+      existing_user = create(:user, email: 'ion@example.com')
+      event = create(:event)
+      attendee = create(:attendee, event: event, email_address: 'ion@example.com')
+
+      post_google
+
+      expect(attendee.reload.user).to eq(existing_user)
+    end
+
     it 'backfills user_id on attendees matching the email' do
       event = create(:event)
       attendee = create(:attendee, event: event, email_address: 'ion@example.com')

@@ -11,14 +11,19 @@ RSpec.describe 'GET /api/v1/auth/me' do
   end
 
   context 'with a valid JWT' do
-    it 'returns 200 with the user profile' do
+    it 'returns 200 with correct user data' do
+      get_me(headers: { 'Authorization' => "Bearer #{token}" })
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'includes all user profile fields in response' do
       get_me(headers: { 'Authorization' => "Bearer #{token}" })
 
-      expect(response).to have_http_status(:ok)
       expect(json['id']).to eq(user.id)
       expect(json['email']).to eq('ion@example.com')
       expect(json['first_name']).to eq('Ion')
       expect(json['last_name']).to eq('Popescu')
+      expect(json.key?('avatar_url')).to be true
     end
   end
 

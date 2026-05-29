@@ -17,6 +17,13 @@ module Api
           render json: { jwt: jwt, user: user_json(user) }, status: :ok
         rescue GoogleAuthService::InvalidTokenError
           render json: { error: 'Invalid Google token' }, status: :unauthorized
+        rescue ActiveRecord::RecordNotUnique
+          identity = UserIdentity.find_by(provider: 'google', uid: google_data&.dig(:uid))
+          user = identity&.user || User.find_by(email: google_data&.dig(:email))
+          return render json: { error: 'Unauthorized' }, status: :unauthorized unless user
+
+          jwt = JwtService.encode(user.id)
+          render json: { jwt: jwt, user: user_json(user) }, status: :ok
         end
 
         private
@@ -27,8 +34,13 @@ module Api
 
             user = User.find_by(email: google_data[:email])
             if user
-              user.user_identities.create!(provider: 'google', uid: google_data[:uid])
-              user.update(avatar_url: google_data[:avatar_url])
+              ActiveRecord::Base.transaction do
+                user.user_identities.create!(provider: 'google', uid: google_data[:uid])
+                user.update!(avatar_url: google_data[:avatar_url])
+                # rubocop:disable Rails/SkipsModelValidations
+                Attendee.where(email_address: google_data[:email]).update_all(user_id: user.id)
+                # rubocop:enable Rails/SkipsModelValidations
+              end
               return user
             end
 
