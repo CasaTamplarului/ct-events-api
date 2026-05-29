@@ -11,6 +11,7 @@ Rails.application.routes.draw do
         resource :facebook,  only: :create
         resource :google,    only: :create
         resource :microsoft, only: :create
+        resource :apple,     only: :create
         resource :me, only: %i[show update], controller: 'me' do
           patch :password, on: :member
         end

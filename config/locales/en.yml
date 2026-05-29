@@ -42,6 +42,7 @@ en:
       invalid_google_token: "Invalid Google token"
       invalid_facebook_token: "Invalid Facebook token"
       invalid_microsoft_token: "Invalid Microsoft token"
+      invalid_apple_token: "Invalid Apple token"
       access_token_required: "access_token is required"
       email_required: "email is required"
       token_password_required: "token and password are required"

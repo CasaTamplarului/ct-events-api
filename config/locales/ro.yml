@@ -11,6 +11,7 @@ ro:
       invalid_google_token: "Token Google invalid"
       invalid_facebook_token: "Token Facebook invalid"
       invalid_microsoft_token: "Token Microsoft invalid"
+      invalid_apple_token: "Token Apple invalid"
       access_token_required: "access_token este necesar"
       email_required: "email este necesar"
       token_password_required: "token și parola sunt necesare"
