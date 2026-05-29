@@ -126,10 +126,9 @@ module Api
 
           def external_id_taken_error?(error)
             return true if error.is_a?(ActiveRecord::RecordNotUnique)
-            return false unless error.respond_to?(:record)
+            return false unless error.is_a?(ActiveRecord::RecordInvalid)
 
-            record = error.record
-            record&.errors&.where(:external_id, :taken)&.any? # rubocop:disable Style/SafeNavigationChainLength
+            error.record.errors.where(:external_id, :taken).any?
           end
 
           def decode_challenge!(purpose)
