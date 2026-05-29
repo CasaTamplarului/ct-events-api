@@ -11,7 +11,7 @@ class FacebookAuthService
   def self.call(access_token)
     app_id     = Rails.application.credentials.dig(:auth, :facebook_app_id)
     app_secret = Rails.application.credentials.dig(:auth, :facebook_app_secret)
-    raise ArgumentError, 'Facebook credentials not configured' if app_id.blank? || app_secret.blank?
+    raise InvalidTokenError, 'Facebook credentials not configured' if app_id.blank? || app_secret.blank?
 
     validate_token!(access_token, app_id, app_secret)
     fetch_user_data(access_token)
@@ -55,6 +55,8 @@ class FacebookAuthService
         JSON.parse(response.body)
       rescue JSON::ParserError => e
         raise InvalidTokenError, "Invalid JSON from Graph API: #{e.message}"
+      rescue SocketError, Errno::ECONNREFUSED, Errno::ECONNRESET, Errno::ETIMEDOUT => e
+        raise InvalidTokenError, "Network error reaching Graph API: #{e.message}"
       end
   end
 end
