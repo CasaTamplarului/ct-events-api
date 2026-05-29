@@ -57,6 +57,13 @@ RSpec.describe MicrosoftAuthService do
       end
     end
 
+    context 'with a token missing the email claim' do
+      it 'raises InvalidTokenError' do
+        expect { described_class.call(encode_token(email: nil)) }
+          .to raise_error(MicrosoftAuthService::InvalidTokenError)
+      end
+    end
+
     context 'with an expired token' do
       it 'raises InvalidTokenError' do
         expect { described_class.call(encode_token(exp: 1.hour.ago.to_i)) }

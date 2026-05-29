@@ -18,9 +18,12 @@ class MicrosoftAuthService
     raise InvalidTokenError, 'Microsoft credentials not configured' if client_id.blank?
 
     payload = decode_token(id_token, client_id)
+    email = payload['email']
+    raise InvalidTokenError, 'Email claim missing from Microsoft token' if email.blank?
+
     {
       uid: payload['sub'],
-      email: payload['email'],
+      email: email,
       first_name: payload['given_name'].to_s,
       last_name: payload['family_name'].to_s,
       avatar_url: nil
@@ -65,10 +68,10 @@ class MicrosoftAuthService
         @jwks_cache = JWT::JWK::Set.new(JSON.parse(response.body))
         @jwks_fetched_at = Time.current
         @jwks_cache
-      rescue JSON::ParserError => e
+      rescue JSON::ParserError, ArgumentError => e
         raise InvalidTokenError, "Invalid JWKS response: #{e.message}"
       rescue SocketError, Errno::ECONNREFUSED, Errno::ECONNRESET, Errno::ETIMEDOUT,
-             Net::OpenTimeout, Net::ReadTimeout => e
+             Net::OpenTimeout, Net::ReadTimeout, OpenSSL::SSL::SSLError => e
         raise InvalidTokenError, "Network error fetching JWKS: #{e.message}"
       end
   end
