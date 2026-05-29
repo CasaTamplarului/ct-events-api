@@ -22,6 +22,7 @@ gem 'oj'
 # Google Sign-In
 gem 'google-id-token', '~> 1.4'
 gem 'jwt', '~> 2.8'
+gem 'webauthn', '~> 3.0'
 
 # Email
 gem 'sendgrid-ruby'
