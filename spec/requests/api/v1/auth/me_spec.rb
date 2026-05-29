@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'GET /api/v1/auth/me' do
+RSpec.describe 'Auth::Me endpoints' do
   let(:user) do
     create(:user,
            first_name: 'Ion',
@@ -18,49 +18,179 @@ RSpec.describe 'GET /api/v1/auth/me' do
     get '/api/v1/auth/me', headers: { 'Content-Type' => 'application/json' }.merge(headers)
   end
 
-  context 'with a valid JWT' do
-    it 'returns 200 with correct user data' do
-      get_me(headers: { 'Authorization' => "Bearer #{token}" })
-      expect(response).to have_http_status(:ok)
+  def patch_me(params, headers: {})
+    patch '/api/v1/auth/me',
+          params: params.to_json,
+          headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{token}" }.merge(headers)
+  end
+
+  def patch_password(params)
+    patch '/api/v1/auth/me/password',
+          params: params.to_json,
+          headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{token}" }
+  end
+
+  # ── GET /api/v1/auth/me ──────────────────────────────────────────────────────
+
+  describe 'GET /api/v1/auth/me' do
+    context 'with a valid JWT' do
+      it 'returns 200 with correct user data' do
+        get_me(headers: { 'Authorization' => "Bearer #{token}" })
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'includes all user profile fields in response' do
+        get_me(headers: { 'Authorization' => "Bearer #{token}" })
+
+        expected = { 'id' => user.id, 'email' => 'ion@example.com', 'first_name' => 'Ion',
+                     'last_name' => 'Popescu', 'avatar_url' => nil, 'phone_number' => '+40721000001',
+                     'church_name' => 'Betania', 'city' => 'Cluj-Napoca' }
+        expect(json).to include(expected)
+      end
     end
 
-    it 'includes all user profile fields in response' do
-      get_me(headers: { 'Authorization' => "Bearer #{token}" })
+    context 'with no Authorization header' do
+      it 'returns 401' do
+        get_me
 
-      expected = { 'id' => user.id, 'email' => 'ion@example.com', 'first_name' => 'Ion',
-                   'last_name' => 'Popescu', 'avatar_url' => nil, 'phone_number' => '+40721000001',
-                   'church_name' => 'Betania', 'city' => 'Cluj-Napoca' }
-      expect(json).to include(expected)
+        expect(response).to have_http_status(:unauthorized)
+        expect(json['error']).to eq('Unauthorized')
+      end
+    end
+
+    context 'with a malformed token' do
+      it 'returns 401' do
+        get_me(headers: { 'Authorization' => 'Bearer not.a.real.token' })
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(json['error']).to eq('Unauthorized')
+      end
+    end
+
+    context 'with an expired token' do
+      it 'returns 401' do
+        secret = Rails.application.credentials.dig(:auth, :jwt_secret)
+        expired_token = JWT.encode({ user_id: user.id, exp: 1.second.ago.to_i }, secret, 'HS256')
+
+        get_me(headers: { 'Authorization' => "Bearer #{expired_token}" })
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(json['error']).to eq('Unauthorized')
+      end
     end
   end
 
-  context 'with no Authorization header' do
-    it 'returns 401' do
-      get_me
+  # ── PATCH /api/v1/auth/me ────────────────────────────────────────────────────
 
-      expect(response).to have_http_status(:unauthorized)
-      expect(json['error']).to eq('Unauthorized')
+  describe 'PATCH /api/v1/auth/me' do
+    context 'with valid profile fields' do
+      it 'returns 200 with updated fields' do
+        patch_me({ first_name: 'Vasile', city: 'Oradea', language: 'ro-RO' })
+
+        expect(response).to have_http_status(:ok)
+        expect(json).to include('first_name' => 'Vasile', 'city' => 'Oradea', 'language' => 'ro-RO')
+      end
+
+      it 'persists all updatable fields' do
+        patch_me({ phone_number: '+40700000000', church_name: 'Betel', last_name: 'Ionescu' })
+
+        expect(json).to include('phone_number' => '+40700000000',
+                                'church_name' => 'Betel', 'last_name' => 'Ionescu')
+      end
+    end
+
+    context 'when updating email as an email/password user' do
+      before { user.user_identities.create!(provider: 'email', uid: user.email) }
+
+      it 'updates the email' do
+        patch_me({ email: 'new@example.com' })
+
+        expect(response).to have_http_status(:ok)
+        expect(json['email']).to eq('new@example.com')
+      end
+    end
+
+    context 'when updating email as a Google-only user' do
+      before { user.user_identities.create!(provider: 'google', uid: 'google-uid') }
+
+      it 'returns 422' do
+        patch_me({ email: 'new@example.com' })
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(json['error']).to eq('Email cannot be changed on Google accounts')
+      end
+    end
+
+    context 'with a blank first_name' do
+      it 'returns 422' do
+        patch_me({ first_name: '' })
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(json['error']).to be_present
+      end
+    end
+
+    context 'without a JWT' do
+      it 'returns 401' do
+        patch '/api/v1/auth/me',
+              params: { first_name: 'x' }.to_json,
+              headers: { 'Content-Type' => 'application/json' }
+
+        expect(response).to have_http_status(:unauthorized)
+      end
     end
   end
 
-  context 'with a malformed token' do
-    it 'returns 401' do
-      get_me(headers: { 'Authorization' => 'Bearer not.a.real.token' })
+  # ── PATCH /api/v1/auth/me/password ───────────────────────────────────────────
 
-      expect(response).to have_http_status(:unauthorized)
-      expect(json['error']).to eq('Unauthorized')
+  describe 'PATCH /api/v1/auth/me/password' do
+    context 'with an email/password account' do
+      before { user.user_identities.create!(provider: 'email', uid: user.email) }
+
+      it 'returns 200 with JWT and user on success' do
+        patch_password(current_password: 'Password1!', password: 'NewPassword1!')
+
+        expect(response).to have_http_status(:ok)
+        expect(json['jwt']).to be_present
+        expect(json['user']['email']).to eq(user.email)
+      end
+
+      it 'updates the password' do
+        patch_password(current_password: 'Password1!', password: 'NewPassword1!')
+
+        expect(user.reload.authenticate('NewPassword1!')).to be_truthy
+      end
+
+      it 'returns 401 when current_password is wrong' do
+        patch_password(current_password: 'wrongpassword', password: 'NewPassword1!')
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(json['error']).to eq('Current password is incorrect')
+      end
+
+      it 'returns 422 when new password is too short' do
+        patch_password(current_password: 'Password1!', password: 'short')
+
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'returns 422 when params are missing' do
+        patch_password({})
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(json['error']).to eq('current_password and password are required')
+      end
     end
-  end
 
-  context 'with an expired token' do
-    it 'returns 401' do
-      secret = Rails.application.credentials.dig(:auth, :jwt_secret)
-      expired_token = JWT.encode({ user_id: user.id, exp: 1.second.ago.to_i }, secret, 'HS256')
+    context 'with a Google-only account' do
+      before { user.user_identities.create!(provider: 'google', uid: 'google-uid') }
 
-      get_me(headers: { 'Authorization' => "Bearer #{expired_token}" })
+      it 'returns 422' do
+        patch_password(current_password: 'Password1!', password: 'NewPassword1!')
 
-      expect(response).to have_http_status(:unauthorized)
-      expect(json['error']).to eq('Unauthorized')
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(json['error']).to eq('Password cannot be changed on Google accounts')
+      end
     end
   end
 end

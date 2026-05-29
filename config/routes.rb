@@ -9,7 +9,9 @@ Rails.application.routes.draw do
     namespace :v1 do
       namespace :auth do
         resource :google, only: :create
-        resource :me, only: :show, controller: 'me'
+        resource :me, only: %i[show update], controller: 'me' do
+          patch :password, on: :member
+        end
         resource :registration, only: :create
         resource :session, only: :create
         scope '/password' do
