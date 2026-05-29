@@ -110,13 +110,26 @@ RSpec.describe 'POST /api/v1/auth/registration' do
     end
   end
 
-  context 'with a duplicate email' do
+  context 'with a duplicate email (email/password account)' do
     before { create(:user, email: 'ion@example.com') }
 
-    it 'returns 409' do
+    it 'returns 409 with generic message' do
       post_registration(valid_params)
       expect(response).to have_http_status(:conflict)
       expect(json['error']).to eq('Email is already registered')
+    end
+  end
+
+  context 'with a duplicate email (Google-only account)' do
+    before do
+      user = create(:user, email: 'ion@example.com', password: nil, password_digest: nil)
+      user.user_identities.create!(provider: 'google', uid: 'google-uid-123')
+    end
+
+    it 'returns 409 with Google-specific message' do
+      post_registration(valid_params)
+      expect(response).to have_http_status(:conflict)
+      expect(json['error']).to eq('This email is linked to a Google account. Please sign in with Google.')
     end
   end
 end
