@@ -26,11 +26,9 @@ class PasskeyChallengeService
     raise InvalidTokenError, e.message
   end
 
-  class << self
-    private
-
-      def secret
-        Rails.application.credentials.dig(:auth, :jwt_secret)
-      end
+  def self.secret
+    Rails.application.credentials.dig(:auth, :jwt_secret) ||
+      raise(ArgumentError, 'auth.jwt_secret credential is not set')
   end
+  private_class_method :secret
 end

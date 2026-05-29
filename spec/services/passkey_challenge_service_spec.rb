@@ -67,5 +67,11 @@ RSpec.describe PasskeyChallengeService do
         described_class.decode(tampered, expected_purpose: described_class::PURPOSE_REGISTER)
       end.to raise_error(described_class::InvalidTokenError)
     end
+
+    it 'raises InvalidTokenError for a nil token' do
+      expect do
+        described_class.decode(nil, expected_purpose: described_class::PURPOSE_REGISTER)
+      end.to raise_error(described_class::InvalidTokenError)
+    end
   end
 end

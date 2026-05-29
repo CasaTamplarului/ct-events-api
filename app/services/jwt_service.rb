@@ -5,13 +5,15 @@ class JwtService
   EXPIRY = 30.days
 
   def self.encode(user_id)
-    payload = { user_id: user_id, exp: EXPIRY.from_now.to_i }
+    payload = { user_id: user_id, typ: 'session', exp: EXPIRY.from_now.to_i }
     JWT.encode(payload, secret, ALGORITHM)
   end
 
   def self.decode(token)
-    decoded = JWT.decode(token, secret, true, { algorithm: ALGORITHM })
-    decoded.first['user_id']
+    decoded = JWT.decode(token, secret, true, { algorithm: ALGORITHM }).first
+    raise JWT::DecodeError, 'Invalid token type' unless decoded['typ'] == 'session'
+
+    decoded['user_id']
   end
 
   def self.secret
