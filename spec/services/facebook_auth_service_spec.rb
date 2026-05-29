@@ -45,14 +45,24 @@ RSpec.describe FacebookAuthService do
           )
       end
 
-      it 'returns user data hash' do
-        result = described_class.call(access_token)
+      it 'returns the correct uid' do
+        expect(described_class.call(access_token)[:uid]).to eq('fb-uid-123')
+      end
 
-        expect(result[:uid]).to eq('fb-uid-123')
-        expect(result[:email]).to eq('ion@example.com')
-        expect(result[:first_name]).to eq('Ion')
-        expect(result[:last_name]).to eq('Popescu')
-        expect(result[:avatar_url]).to eq('https://fb.com/photo.jpg')
+      it 'returns the correct email' do
+        expect(described_class.call(access_token)[:email]).to eq('ion@example.com')
+      end
+
+      it 'returns the correct first_name' do
+        expect(described_class.call(access_token)[:first_name]).to eq('Ion')
+      end
+
+      it 'returns the correct last_name' do
+        expect(described_class.call(access_token)[:last_name]).to eq('Popescu')
+      end
+
+      it 'returns the correct avatar_url' do
+        expect(described_class.call(access_token)[:avatar_url]).to eq('https://fb.com/photo.jpg')
       end
     end
 
@@ -121,6 +131,48 @@ RSpec.describe FacebookAuthService do
       it 'raises InvalidTokenError' do
         expect { described_class.call(access_token) }
           .to raise_error(FacebookAuthService::InvalidTokenError)
+      end
+    end
+
+    context 'when /me returns non-2xx (after valid debug_token)' do
+      before do
+        stub_request(:get, debug_token_url)
+          .to_return(
+            status: 200,
+            body: { data: { is_valid: true, app_id: app_id } }.to_json,
+            headers: { 'Content-Type' => 'application/json' }
+          )
+        stub_request(:get, me_url)
+          .to_return(status: 500, body: 'Internal Server Error',
+                     headers: { 'Content-Type' => 'text/plain' })
+      end
+
+      it 'raises InvalidTokenError' do
+        expect { described_class.call(access_token) }
+          .to raise_error(FacebookAuthService::InvalidTokenError)
+      end
+    end
+
+    context 'with no profile picture' do
+      before do
+        stub_request(:get, debug_token_url)
+          .to_return(
+            status: 200,
+            body: { data: { is_valid: true, app_id: app_id } }.to_json,
+            headers: { 'Content-Type' => 'application/json' }
+          )
+        stub_request(:get, me_url)
+          .to_return(
+            status: 200,
+            body: { id: 'fb-uid-999', first_name: 'Ion', last_name: 'Popescu',
+                    email: 'ion@example.com' }.to_json,
+            headers: { 'Content-Type' => 'application/json' }
+          )
+      end
+
+      it 'returns nil avatar_url' do
+        result = described_class.call(access_token)
+        expect(result[:avatar_url]).to be_nil
       end
     end
   end
