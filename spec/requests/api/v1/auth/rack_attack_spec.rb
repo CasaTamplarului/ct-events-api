@@ -41,4 +41,24 @@ RSpec.describe 'Auth endpoint rate limiting' do
       expect(json['error']).to eq('Too many requests. Please try again later.')
     end
   end
+
+  def post_forgot(email)
+    post '/api/v1/auth/password/forgot',
+         params: { email: email }.to_json,
+         headers: { 'Content-Type' => 'application/json' }
+  end
+
+  describe 'POST /api/v1/auth/password/forgot' do
+    before do
+      allow(SendgridService).to receive(:send_password_reset)
+    end
+
+    it 'allows the first 3 requests and blocks the 4th with 429' do
+      3.times { post_forgot('nobody@example.com') }
+      post_forgot('nobody@example.com')
+
+      expect(response).to have_http_status(:too_many_requests)
+      expect(json['error']).to eq('Too many requests. Please try again later.')
+    end
+  end
 end
