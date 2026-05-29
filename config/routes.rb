@@ -20,6 +20,14 @@ Rails.application.routes.draw do
           post '/forgot', to: 'passwords#forgot'
           post '/reset',  to: 'passwords#reset'
         end
+        scope '/passkeys' do
+          post 'register/options',     to: 'passkeys#register_options'
+          post 'register',             to: 'passkeys#register'
+          post 'authenticate/options', to: 'passkeys#authenticate_options'
+          post 'authenticate',         to: 'passkeys#authenticate'
+          get  '/',                    to: 'passkeys#index',   as: 'passkeys'
+          delete ':id',                to: 'passkeys#destroy', as: 'passkey'
+        end
       end
 
       scope '/:languages_code', constraints: { languages_code: /[a-zA-Z]{2}-[a-zA-Z]{2}/ } do
