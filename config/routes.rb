@@ -12,6 +12,10 @@ Rails.application.routes.draw do
         resource :me, only: :show, controller: 'me'
         resource :registration, only: :create
         resource :session, only: :create
+        scope '/password' do
+          post '/forgot', to: 'passwords#forgot'
+          post '/reset',  to: 'passwords#reset'
+        end
       end
 
       scope '/:languages_code', constraints: { languages_code: /[a-zA-Z]{2}-[a-zA-Z]{2}/ } do
