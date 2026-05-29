@@ -8,7 +8,7 @@ RSpec.describe Passkey, type: :model do
   end
 
   describe 'validations' do
-    subject { build(:passkey) }
+    subject { create(:passkey) }
 
     it { is_expected.to validate_presence_of(:external_id) }
     it { is_expected.to validate_presence_of(:public_key) }

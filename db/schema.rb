@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_29_193025) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_29_193530) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -500,8 +500,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_29_193025) do
     t.datetime "created_at", null: false
     t.string "external_id", null: false
     t.string "nickname"
-    t.string "public_key", null: false
-    t.integer "sign_count", default: 0, null: false
+    t.text "public_key", null: false
+    t.bigint "sign_count", default: 0, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["external_id"], name: "index_passkeys_on_external_id", unique: true
@@ -612,7 +612,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_29_193025) do
   add_foreign_key "events", "directus_files", column: "hero_portrait", name: "events_hero_portrait_foreign", on_delete: :nullify
   add_foreign_key "events_translations", "events", on_delete: :cascade
   add_foreign_key "events_translations", "languages", column: "languages_code", primary_key: "code", on_update: :cascade, on_delete: :restrict
-  add_foreign_key "passkeys", "users"
+  add_foreign_key "passkeys", "users", on_delete: :cascade
   add_foreign_key "tickets_translations", "languages", column: "languages_code", primary_key: "code", on_update: :cascade, on_delete: :restrict
   add_foreign_key "tickets_translations", "tickets", column: "tickets_id", on_delete: :cascade
   add_foreign_key "user_identities", "users", on_delete: :cascade
