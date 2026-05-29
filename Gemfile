@@ -23,6 +23,9 @@ gem 'oj'
 gem 'google-id-token', '~> 1.4'
 gem 'jwt', '~> 2.8'
 
+# Email
+gem 'sendgrid-ruby'
+
 # Rate limiting
 gem 'rack-attack', '~> 6.7'
 
