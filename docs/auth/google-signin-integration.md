@@ -2,7 +2,7 @@
 
 This guide explains how to implement Google Sign-In in your web or mobile app so it works with the CT Events API.
 
-**Base URL:** `https://api.casatamplarului.ro` (replace with your environment's URL)
+**Base URL:** `https://localhost:3000 || https://api.casatamplarului.ro` (replace with your environment's URL)
 
 ---
 
@@ -31,6 +31,7 @@ Content-Type: application/json
 ```
 
 **Success (200):**
+
 ```json
 {
   "jwt": "eyJhbGciOiJIUzI1NiJ9...",
@@ -99,7 +100,7 @@ npm install @react-oauth/google
 ### 2. Wrap your app
 
 ```tsx
-import { GoogleOAuthProvider } from '@react-oauth/google';
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 export default function App() {
   return (
@@ -113,36 +114,39 @@ export default function App() {
 ### 3. Add the sign-in button
 
 ```tsx
-import { GoogleLogin } from '@react-oauth/google';
+import { GoogleLogin } from "@react-oauth/google";
 
 export function SignInButton() {
   const handleSuccess = async (credentialResponse) => {
     const idToken = credentialResponse.credential; // this is the ID token
 
-    const res = await fetch('https://api.casatamplarului.ro/api/v1/auth/google', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id_token: idToken }),
-    });
+    const res = await fetch(
+      "https://api.casatamplarului.ro/api/v1/auth/google",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_token: idToken }),
+      },
+    );
 
     if (!res.ok) {
       const { error } = await res.json();
-      console.error('Sign-in failed:', error);
+      console.error("Sign-in failed:", error);
       return;
     }
 
     const { jwt, user } = await res.json();
 
     // Store the JWT — use httpOnly cookie or localStorage depending on your security model
-    localStorage.setItem('ct_jwt', jwt);
+    localStorage.setItem("ct_jwt", jwt);
 
-    console.log('Signed in as', user.first_name);
+    console.log("Signed in as", user.first_name);
   };
 
   return (
     <GoogleLogin
       onSuccess={handleSuccess}
-      onError={() => console.error('Google sign-in failed')}
+      onError={() => console.error("Google sign-in failed")}
     />
   );
 }
@@ -152,21 +156,21 @@ export function SignInButton() {
 
 ```ts
 function authHeaders() {
-  const jwt = localStorage.getItem('ct_jwt');
+  const jwt = localStorage.getItem("ct_jwt");
   return {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
   };
 }
 
 // Example: fetch current user on app load
-const res = await fetch('https://api.casatamplarului.ro/api/v1/auth/me', {
+const res = await fetch("https://api.casatamplarului.ro/api/v1/auth/me", {
   headers: authHeaders(),
 });
 
 if (res.status === 401) {
   // JWT is expired or invalid — send the user back to sign-in
-  localStorage.removeItem('ct_jwt');
+  localStorage.removeItem("ct_jwt");
 }
 ```
 
@@ -176,7 +180,7 @@ The JWT is stateless — sign out is purely client-side:
 
 ```ts
 function signOut() {
-  localStorage.removeItem('ct_jwt');
+  localStorage.removeItem("ct_jwt");
   // Optionally: google.accounts.id.disableAutoSelect()
 }
 ```
@@ -231,12 +235,12 @@ import GoogleSignIn
 func signInWithGoogle(presenting viewController: UIViewController) async {
     do {
         let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: viewController)
-        
+
         guard let idToken = result.user.idToken?.tokenString else {
             print("No ID token")
             return
         }
-        
+
         try await sendTokenToAPI(idToken: idToken)
     } catch {
         print("Google sign-in failed: \(error)")
@@ -249,20 +253,20 @@ func sendTokenToAPI(idToken: String) async throws {
     request.httpMethod = "POST"
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.httpBody = try JSONEncoder().encode(["id_token": idToken])
-    
+
     let (data, response) = try await URLSession.shared.data(for: request)
-    
+
     guard (response as? HTTPURLResponse)?.statusCode == 200 else {
         let error = try JSONDecoder().decode([String: String].self, from: data)
         print("API error:", error["error"] ?? "unknown")
         return
     }
-    
+
     let result = try JSONDecoder().decode(AuthResponse.self, from: data)
-    
+
     // Store JWT in Keychain (never UserDefaults for auth tokens)
     KeychainHelper.save(key: "ct_jwt", value: result.jwt)
-    
+
     print("Signed in as", result.user.firstName)
 }
 
@@ -277,7 +281,7 @@ struct UserProfile: Decodable {
     let lastName: String
     let email: String
     let avatarUrl: String?
-    
+
     enum CodingKeys: String, CodingKey {
         case id, email
         case firstName = "first_name"
@@ -294,19 +298,19 @@ func authenticatedRequest(url: URL) async throws -> Data {
     guard let jwt = KeychainHelper.get(key: "ct_jwt") else {
         throw AuthError.notSignedIn
     }
-    
+
     var request = URLRequest(url: url)
     request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    
+
     let (data, response) = try await URLSession.shared.data(for: request)
-    
+
     if (response as? HTTPURLResponse)?.statusCode == 401 {
         // JWT expired — clear and re-authenticate
         KeychainHelper.delete(key: "ct_jwt")
         throw AuthError.tokenExpired
     }
-    
+
     return data
 }
 ```
@@ -336,33 +340,33 @@ import com.google.android.libraries.identity.googleid.*
 
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val credentialManager = CredentialManager.create(application)
-    
+
     suspend fun signInWithGoogle(activity: Activity): Result<AuthResponse> {
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
             .setServerClientId("YOUR_ANDROID_CLIENT_ID")
             .build()
-        
+
         val request = GetCredentialRequest.Builder()
             .addCredentialOption(googleIdOption)
             .build()
-        
+
         return try {
             val result = credentialManager.getCredential(activity, request)
             val credential = result.credential as? CustomCredential
                 ?: return Result.failure(Exception("Unexpected credential type"))
-            
+
             if (credential.type != GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
                 return Result.failure(Exception("Not a Google ID token"))
             }
-            
+
             val googleIdToken = GoogleIdTokenCredential.createFrom(credential.data).idToken
             sendTokenToAPI(googleIdToken)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
-    
+
     private suspend fun sendTokenToAPI(idToken: String): Result<AuthResponse> {
         return withContext(Dispatchers.IO) {
             try {
@@ -371,20 +375,20 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 connection.requestMethod = "POST"
                 connection.setRequestProperty("Content-Type", "application/json")
                 connection.doOutput = true
-                
+
                 val body = """{"id_token":"$idToken"}"""
                 connection.outputStream.write(body.toByteArray())
-                
+
                 if (connection.responseCode != 200) {
                     return@withContext Result.failure(Exception("API error: ${connection.responseCode}"))
                 }
-                
+
                 val response = connection.inputStream.bufferedReader().readText()
                 val authResponse = Json.decodeFromString<AuthResponse>(response)
-                
+
                 // Store JWT securely in EncryptedSharedPreferences
                 securePrefs.edit().putString("ct_jwt", authResponse.jwt).apply()
-                
+
                 Result.success(authResponse)
             } catch (e: Exception) {
                 Result.failure(e)
@@ -433,12 +437,12 @@ Follow the platform setup guide at: https://react-native-google-signin.github.io
 ### 2. Configure
 
 ```ts
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
 GoogleSignin.configure({
   // Use your WEB client ID here (not iOS/Android) — this is what generates
   // an ID token that the server can verify
-  webClientId: 'YOUR_GOOGLE_WEB_CLIENT_ID',
+  webClientId: "YOUR_GOOGLE_WEB_CLIENT_ID",
   offlineAccess: false,
 });
 ```
@@ -446,39 +450,45 @@ GoogleSignin.configure({
 ### 3. Sign in and send to API
 
 ```ts
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  GoogleSignin,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 async function signInWithGoogle() {
   try {
     await GoogleSignin.hasPlayServices();
     const userInfo = await GoogleSignin.signIn();
-    
+
     const idToken = userInfo.data?.idToken;
-    if (!idToken) throw new Error('No ID token received');
-    
-    const res = await fetch('https://api.casatamplarului.ro/api/v1/auth/google', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id_token: idToken }),
-    });
-    
+    if (!idToken) throw new Error("No ID token received");
+
+    const res = await fetch(
+      "https://api.casatamplarului.ro/api/v1/auth/google",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_token: idToken }),
+      },
+    );
+
     if (!res.ok) {
       const { error } = await res.json();
       throw new Error(error);
     }
-    
+
     const { jwt, user } = await res.json();
-    
+
     // Use a secure storage library in production (e.g. react-native-keychain)
-    await AsyncStorage.setItem('ct_jwt', jwt);
-    
+    await AsyncStorage.setItem("ct_jwt", jwt);
+
     return user;
   } catch (error) {
     if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-      console.log('User cancelled');
+      console.log("User cancelled");
     } else {
-      console.error('Sign-in error:', error);
+      console.error("Sign-in error:", error);
     }
   }
 }
@@ -488,28 +498,28 @@ async function signInWithGoogle() {
 
 ```ts
 async function authFetch(path: string, options: RequestInit = {}) {
-  const jwt = await AsyncStorage.getItem('ct_jwt');
-  
+  const jwt = await AsyncStorage.getItem("ct_jwt");
+
   const res = await fetch(`https://api.casatamplarului.ro${path}`, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
       ...options.headers,
     },
   });
-  
+
   if (res.status === 401) {
     // Token expired — clear and redirect to sign-in
-    await AsyncStorage.removeItem('ct_jwt');
-    throw new Error('Session expired');
+    await AsyncStorage.removeItem("ct_jwt");
+    throw new Error("Session expired");
   }
-  
+
   return res;
 }
 
 // Usage
-const res = await authFetch('/api/v1/auth/me');
+const res = await authFetch("/api/v1/auth/me");
 const user = await res.json();
 ```
 
@@ -518,7 +528,7 @@ const user = await res.json();
 ```ts
 async function signOut() {
   await GoogleSignin.signOut();
-  await AsyncStorage.removeItem('ct_jwt');
+  await AsyncStorage.removeItem("ct_jwt");
 }
 ```
 
@@ -526,12 +536,12 @@ async function signOut() {
 
 ## JWT Lifecycle
 
-| Topic | Detail |
-|-------|--------|
-| Expiry | 30 days from sign-in |
-| Refresh | No refresh token — user must sign in with Google again after expiry |
-| Revocation | None server-side — discard the token client-side to "log out" |
-| On 401 from API | Clear stored JWT and send user to sign-in screen |
+| Topic           | Detail                                                              |
+| --------------- | ------------------------------------------------------------------- |
+| Expiry          | 30 days from sign-in                                                |
+| Refresh         | No refresh token — user must sign in with Google again after expiry |
+| Revocation      | None server-side — discard the token client-side to "log out"       |
+| On 401 from API | Clear stored JWT and send user to sign-in screen                    |
 
 ---
 
