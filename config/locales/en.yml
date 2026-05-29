@@ -50,6 +50,10 @@ en:
       current_password_required: "current_password and password are required"
       incorrect_current_password: "Current password is incorrect"
       password_not_changeable_google: "Password cannot be changed on Google accounts"
+      invalid_challenge_token: "Invalid or expired challenge"
+      passkey_verification_failed: "Passkey verification failed"
+      passkey_not_found: "Passkey not found"
+      passkey_already_registered: "Passkey already registered"
     messages:
       reset_link_sent: "If that email is registered, a reset link has been sent."
   activerecord:

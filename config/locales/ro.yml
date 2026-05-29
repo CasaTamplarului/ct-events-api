@@ -19,6 +19,10 @@ ro:
       current_password_required: "current_password și parola sunt necesare"
       incorrect_current_password: "Parola curentă este incorectă"
       password_not_changeable_google: "Parola nu poate fi schimbată pentru conturile Google"
+      invalid_challenge_token: "Provocare invalidă sau expirată"
+      passkey_verification_failed: "Verificarea passkey a eșuat"
+      passkey_not_found: "Passkey negăsit"
+      passkey_already_registered: "Passkey deja înregistrat"
     messages:
       reset_link_sent: "Dacă acel email este înregistrat, un link de resetare a fost trimis."
   activerecord:
