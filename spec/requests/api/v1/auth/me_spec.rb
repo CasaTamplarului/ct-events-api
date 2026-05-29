@@ -27,14 +27,10 @@ RSpec.describe 'GET /api/v1/auth/me' do
     it 'includes all user profile fields in response' do
       get_me(headers: { 'Authorization' => "Bearer #{token}" })
 
-      expect(json['id']).to eq(user.id)
-      expect(json['email']).to eq('ion@example.com')
-      expect(json['first_name']).to eq('Ion')
-      expect(json['last_name']).to eq('Popescu')
-      expect(json.key?('avatar_url')).to be true
-      expect(json['phone_number']).to eq('+40721000001')
-      expect(json['church_name']).to eq('Betania')
-      expect(json['city']).to eq('Cluj-Napoca')
+      expected = { 'id' => user.id, 'email' => 'ion@example.com', 'first_name' => 'Ion',
+                   'last_name' => 'Popescu', 'avatar_url' => nil, 'phone_number' => '+40721000001',
+                   'church_name' => 'Betania', 'city' => 'Cluj-Napoca' }
+      expect(json).to include(expected)
     end
   end
 

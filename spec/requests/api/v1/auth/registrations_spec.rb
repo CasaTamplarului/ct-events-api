@@ -64,7 +64,7 @@ RSpec.describe 'POST /api/v1/auth/registration' do
     end
   end
 
-  context 'attendee backfill' do
+  context 'with an existing attendee matching the registration email' do
     it 'links existing attendees with matching email to the new user' do
       event = create(:event)
       attendee = create(:attendee, event: event, email_address: 'ion@example.com')
