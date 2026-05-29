@@ -2,7 +2,12 @@
 
 module Rack
   class Attack
-    AUTH_ENDPOINTS = %w[/api/v1/auth/registration /api/v1/auth/session].freeze
+    AUTH_ENDPOINTS = %w[
+      /api/v1/auth/registration
+      /api/v1/auth/session
+      /api/v1/auth/passkeys/authenticate
+      /api/v1/auth/passkeys/authenticate/options
+    ].freeze
 
     throttle('auth/ip', limit: 5, period: 1.minute) do |req|
       req.ip if AUTH_ENDPOINTS.include?(req.path) && req.post?
