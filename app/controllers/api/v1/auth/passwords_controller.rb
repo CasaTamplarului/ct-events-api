@@ -67,7 +67,8 @@ module Api
               avatar_url: user.avatar_url,
               phone_number: user.phone_number,
               church_name: user.church_name,
-              city: user.city
+              city: user.city,
+              language: user.language
             }
           end
       end
