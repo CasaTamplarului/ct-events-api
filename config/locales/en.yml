@@ -30,6 +30,43 @@
 # available at https://guides.rubyonrails.org/i18n.html.
 
 en:
+  auth:
+    errors:
+      unauthorized: "Unauthorized"
+      email_password_required: "email and password are required"
+      invalid_credentials: "Invalid email or password"
+      registration_params_required: "first_name, email, and password are required"
+      email_taken: "Email is already registered"
+      email_google_only: "This email is linked to a Google account. Please sign in with Google."
+      id_token_required: "id_token is required"
+      invalid_google_token: "Invalid Google token"
+      email_required: "email is required"
+      token_password_required: "token and password are required"
+      invalid_reset_token: "Invalid or expired reset token"
+      email_not_changeable_google: "Email cannot be changed on Google accounts"
+      current_password_required: "current_password and password are required"
+      incorrect_current_password: "Current password is incorrect"
+      password_not_changeable_google: "Password cannot be changed on Google accounts"
+    messages:
+      reset_link_sent: "If that email is registered, a reset link has been sent."
+  activerecord:
+    attributes:
+      user:
+        first_name: "First name"
+        email: "Email"
+        password: "Password"
+    errors:
+      models:
+        user:
+          attributes:
+            first_name:
+              blank: "can't be blank"
+            email:
+              blank: "can't be blank"
+              taken: "has already been taken"
+              invalid: "is invalid"
+            password:
+              too_short: "is too short (minimum is %{count} characters)"
   orders:
     errors:
       items_blank: "items is required and must not be empty"

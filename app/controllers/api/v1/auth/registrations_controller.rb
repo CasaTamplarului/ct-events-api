@@ -4,6 +4,10 @@ module Api
   module V1
     module Auth
       class RegistrationsController < ActionController::API
+        include LocaleSetter
+
+        before_action :set_locale
+
         def create
           return missing_params_error unless required_params_present?
           return duplicate_email_error if User.exists?(email: normalized_email)
@@ -48,19 +52,15 @@ module Api
           end
 
           def missing_params_error
-            render json: { error: 'first_name, email, and password are required' }, status: :unprocessable_content
+            render json: { error: I18n.t('auth.errors.registration_params_required') }, status: :unprocessable_content
           end
 
           def duplicate_email_error
             existing_user = User.find_by(email: normalized_email)
             google_only = existing_user&.user_identities&.exists?(provider: 'google') &&
                           !existing_user.user_identities.exists?(provider: 'email')
-            message = if google_only
-                        'This email is linked to a Google account. Please sign in with Google.'
-                      else
-                        'Email is already registered'
-                      end
-            render json: { error: message }, status: :conflict
+            key = google_only ? 'email_google_only' : 'email_taken'
+            render json: { error: I18n.t("auth.errors.#{key}") }, status: :conflict
           end
 
           def user_json(user)

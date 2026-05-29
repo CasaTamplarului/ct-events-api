@@ -4,11 +4,14 @@ module Api
   module V1
     module Auth
       class PasswordsController < ActionController::API
+        include LocaleSetter
+
         wrap_parameters false
+        before_action :set_locale
 
         def forgot
           if params[:email].blank?
-            render json: { error: 'email is required' }, status: :unprocessable_content
+            render json: { error: I18n.t('auth.errors.email_required') }, status: :unprocessable_content
             return
           end
 
@@ -25,12 +28,12 @@ module Api
             SendgridService.send_password_reset(user: user, reset_url: reset_url)
           end
 
-          render json: { message: 'If that email is registered, a reset link has been sent.' }, status: :ok
+          render json: { message: I18n.t('auth.messages.reset_link_sent') }, status: :ok
         end
 
         def reset
           if params[:token].blank? || params[:password].blank?
-            render json: { error: 'token and password are required' }, status: :unprocessable_content
+            render json: { error: I18n.t('auth.errors.token_password_required') }, status: :unprocessable_content
             return
           end
 
@@ -38,7 +41,7 @@ module Api
 
           if user.nil? || user.password_reset_token_expires_at.nil? ||
              user.password_reset_token_expires_at < Time.current
-            render json: { error: 'Invalid or expired reset token' }, status: :unprocessable_content
+            render json: { error: I18n.t('auth.errors.invalid_reset_token') }, status: :unprocessable_content
             return
           end
 

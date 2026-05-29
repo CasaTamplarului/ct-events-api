@@ -5,8 +5,10 @@ module Api
     module Auth
       class MeController < ActionController::API
         include Authenticatable
+        include LocaleSetter
 
         before_action :authenticate_user!
+        before_action :set_locale
 
         def show
           render json: user_json(current_user)
@@ -14,7 +16,7 @@ module Api
 
         def update
           if params[:email].present? && !email_identity?
-            render json: { error: 'Email cannot be changed on Google accounts' }, status: :unprocessable_content
+            render json: { error: I18n.t('auth.errors.email_not_changeable_google') }, status: :unprocessable_content
             return
           end
 
@@ -29,17 +31,17 @@ module Api
 
         def password
           unless email_identity?
-            render json: { error: 'Password cannot be changed on Google accounts' }, status: :unprocessable_content
+            render json: { error: I18n.t('auth.errors.password_not_changeable_google') }, status: :unprocessable_content
             return
           end
 
           if params[:current_password].blank? || params[:password].blank?
-            render json: { error: 'current_password and password are required' }, status: :unprocessable_content
+            render json: { error: I18n.t('auth.errors.current_password_required') }, status: :unprocessable_content
             return
           end
 
           unless current_user.authenticate(params[:current_password])
-            render json: { error: 'Current password is incorrect' }, status: :unauthorized
+            render json: { error: I18n.t('auth.errors.incorrect_current_password') }, status: :unauthorized
             return
           end
 

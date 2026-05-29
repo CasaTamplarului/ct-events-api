@@ -4,9 +4,13 @@ module Api
   module V1
     module Auth
       class SessionsController < ActionController::API
+        include LocaleSetter
+
+        before_action :set_locale
+
         def create
           if params[:email].blank? || params[:password].blank?
-            render json: { error: 'email and password are required' }, status: :unprocessable_content
+            render json: { error: I18n.t('auth.errors.email_password_required') }, status: :unprocessable_content
             return
           end
 
@@ -14,7 +18,7 @@ module Api
           authenticated = user&.authenticate(params[:password])
 
           unless authenticated
-            render json: { error: 'Invalid email or password' }, status: :unauthorized
+            render json: { error: I18n.t('auth.errors.invalid_credentials') }, status: :unauthorized
             return
           end
 

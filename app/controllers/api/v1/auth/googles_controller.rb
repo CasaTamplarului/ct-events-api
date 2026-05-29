@@ -4,9 +4,13 @@ module Api
   module V1
     module Auth
       class GooglesController < ActionController::API
+        include LocaleSetter
+
+        before_action :set_locale
+
         def create
           if params[:id_token].blank?
-            render json: { error: 'id_token is required' }, status: :unprocessable_content
+            render json: { error: I18n.t('auth.errors.id_token_required') }, status: :unprocessable_content
             return
           end
 
@@ -16,11 +20,11 @@ module Api
 
           render json: { jwt: jwt, user: user_json(user) }, status: :ok
         rescue GoogleAuthService::InvalidTokenError
-          render json: { error: 'Invalid Google token' }, status: :unauthorized
+          render json: { error: I18n.t('auth.errors.invalid_google_token') }, status: :unauthorized
         rescue ActiveRecord::RecordNotUnique
           identity = UserIdentity.find_by(provider: 'google', uid: google_data&.dig(:uid))
           user = identity&.user || User.find_by(email: google_data&.dig(:email))
-          return render json: { error: 'Unauthorized' }, status: :unauthorized unless user
+          return render json: { error: I18n.t('auth.errors.unauthorized') }, status: :unauthorized unless user
 
           jwt = JwtService.encode(user.id)
           render json: { jwt: jwt, user: user_json(user) }, status: :ok

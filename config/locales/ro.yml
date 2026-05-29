@@ -1,4 +1,41 @@
 ro:
+  auth:
+    errors:
+      unauthorized: "Neautorizat"
+      email_password_required: "email și parola sunt necesare"
+      invalid_credentials: "Email sau parolă incorecte"
+      registration_params_required: "first_name, email și parola sunt necesare"
+      email_taken: "Email-ul este deja înregistrat"
+      email_google_only: "Acest email este asociat unui cont Google. Te rugăm să te autentifici cu Google."
+      id_token_required: "id_token este necesar"
+      invalid_google_token: "Token Google invalid"
+      email_required: "email este necesar"
+      token_password_required: "token și parola sunt necesare"
+      invalid_reset_token: "Token de resetare invalid sau expirat"
+      email_not_changeable_google: "Email-ul nu poate fi schimbat pentru conturile Google"
+      current_password_required: "current_password și parola sunt necesare"
+      incorrect_current_password: "Parola curentă este incorectă"
+      password_not_changeable_google: "Parola nu poate fi schimbată pentru conturile Google"
+    messages:
+      reset_link_sent: "Dacă acel email este înregistrat, un link de resetare a fost trimis."
+  activerecord:
+    attributes:
+      user:
+        first_name: "Prenume"
+        email: "Email"
+        password: "Parolă"
+    errors:
+      models:
+        user:
+          attributes:
+            first_name:
+              blank: "nu poate fi gol"
+            email:
+              blank: "nu poate fi gol"
+              taken: "a fost deja înregistrat"
+              invalid: "este invalid"
+            password:
+              too_short: "este prea scurtă (minimum %{count} caractere)"
   orders:
     errors:
       items_blank: "lista de articole este necesară și nu poate fi goală"
