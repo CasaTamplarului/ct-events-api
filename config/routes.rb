@@ -8,8 +8,9 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       namespace :auth do
-        resource :facebook, only: :create
-        resource :google,   only: :create
+        resource :facebook,  only: :create
+        resource :google,    only: :create
+        resource :microsoft, only: :create
         resource :me, only: %i[show update], controller: 'me' do
           patch :password, on: :member
         end
