@@ -34,6 +34,9 @@ RSpec.describe 'POST /api/v1/auth/google' do
       expect(json['user']['email']).to eq('ion@example.com')
       expect(json['user']['first_name']).to eq('Ion')
       expect(json['user']['last_name']).to eq('Popescu')
+      expect(json['user'].key?('phone_number')).to be true
+      expect(json['user'].key?('city')).to be true
+      expect(json['user'].key?('church_name')).to be true
     end
 
     it 'creates a new user on first sign-in' do
