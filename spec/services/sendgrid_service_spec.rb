@@ -14,56 +14,45 @@ RSpec.describe SendgridService do
     end
 
     it 'posts to the SendGrid mail/send endpoint' do
-      SendgridService.send_password_reset(user: romanian_user, reset_url: reset_url)
+      described_class.send_password_reset(user: romanian_user, reset_url: reset_url)
 
       expect(WebMock).to have_requested(:post, 'https://api.sendgrid.com/v3/mail/send')
     end
 
     it 'sends with the correct template ID' do
-      SendgridService.send_password_reset(user: romanian_user, reset_url: reset_url)
+      described_class.send_password_reset(user: romanian_user, reset_url: reset_url)
 
-      expect(WebMock).to have_requested(:post, 'https://api.sendgrid.com/v3/mail/send')
-        .with { |req| JSON.parse(req.body)['template_id'] == 'd-952a77f57d9f410597cfa1cf84260cef' }
+      expect(WebMock).to(have_requested(:post, 'https://api.sendgrid.com/v3/mail/send')
+        .with { |req| JSON.parse(req.body)['template_id'] == 'd-952a77f57d9f410597cfa1cf84260cef' })
     end
 
     it 'sets is_romanian to true for a Romanian user' do
-      SendgridService.send_password_reset(user: romanian_user, reset_url: reset_url)
+      described_class.send_password_reset(user: romanian_user, reset_url: reset_url)
 
-      expect(WebMock).to have_requested(:post, 'https://api.sendgrid.com/v3/mail/send')
-        .with { |req|
-          data = JSON.parse(req.body)['personalizations'].first['dynamic_template_data']
-          data['is_romanian'] == true
-        }
+      expect(WebMock).to(have_requested(:post, 'https://api.sendgrid.com/v3/mail/send')
+        .with { |req| JSON.parse(req.body).dig('personalizations', 0, 'dynamic_template_data', 'is_romanian') == true })
     end
 
     it 'sets is_romanian to false for a non-Romanian user' do
-      SendgridService.send_password_reset(user: english_user, reset_url: reset_url)
+      described_class.send_password_reset(user: english_user, reset_url: reset_url)
 
-      expect(WebMock).to have_requested(:post, 'https://api.sendgrid.com/v3/mail/send')
-        .with { |req|
-          data = JSON.parse(req.body)['personalizations'].first['dynamic_template_data']
-          data['is_romanian'] == false
-        }
+      expect(WebMock).to(have_requested(:post, 'https://api.sendgrid.com/v3/mail/send')
+        .with { |req| JSON.parse(req.body).dig('personalizations', 0, 'dynamic_template_data', 'is_romanian') == false })
     end
 
     it 'sends first_name and reset_url in dynamic template data' do
-      SendgridService.send_password_reset(user: romanian_user, reset_url: reset_url)
+      described_class.send_password_reset(user: romanian_user, reset_url: reset_url)
 
-      expect(WebMock).to have_requested(:post, 'https://api.sendgrid.com/v3/mail/send')
-        .with { |req|
-          data = JSON.parse(req.body)['personalizations'].first['dynamic_template_data']
-          data['first_name'] == 'Ion' && data['reset_url'] == reset_url
-        }
+      dtd = ->(req) { JSON.parse(req.body).dig('personalizations', 0, 'dynamic_template_data') }
+      expect(WebMock).to(have_requested(:post, 'https://api.sendgrid.com/v3/mail/send')
+        .with { |req| dtd.call(req)['first_name'] == 'Ion' && dtd.call(req)['reset_url'] == reset_url })
     end
 
     it 'includes the current year as a string in dynamic template data' do
-      SendgridService.send_password_reset(user: romanian_user, reset_url: reset_url)
+      described_class.send_password_reset(user: romanian_user, reset_url: reset_url)
 
-      expect(WebMock).to have_requested(:post, 'https://api.sendgrid.com/v3/mail/send')
-        .with { |req|
-          data = JSON.parse(req.body)['personalizations'].first['dynamic_template_data']
-          data['year'] == Time.current.year.to_s
-        }
+      expect(WebMock).to(have_requested(:post, 'https://api.sendgrid.com/v3/mail/send')
+        .with { |req| JSON.parse(req.body).dig('personalizations', 0, 'dynamic_template_data', 'year') == Time.current.year.to_s })
     end
   end
 end

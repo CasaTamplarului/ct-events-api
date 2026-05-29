@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'sendgrid-ruby'
-
 class SendgridService
   RESET_PASSWORD_TEMPLATE_ID = 'd-952a77f57d9f410597cfa1cf84260cef'
 
@@ -22,6 +20,9 @@ class SendgridService
     mail.add_personalization(personalization)
 
     client = SendGrid::API.new(api_key: Rails.application.credentials.dig(:sendgrid, :api_key))
-    client.client.mail._('send').post(request_body: mail.to_json)
+    response = client.client.mail._('send').post(request_body: mail.to_json)
+    unless response.status_code.to_i.between?(200, 299)
+      Rails.logger.error("SendGrid error: #{response.status_code} #{response.body}")
+    end
   end
 end
