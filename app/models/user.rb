@@ -9,7 +9,7 @@ class User < ApplicationRecord
   normalizes :email, with: ->(e) { e.strip.downcase }
 
   validates :first_name, presence: true
-  validates :email, presence: true, uniqueness: true,
-                    format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :email, uniqueness: { allow_nil: true },
+                    format: { with: URI::MailTo::EMAIL_REGEXP }, allow_nil: true
   validates :password, length: { minimum: 8 }, allow_nil: true
 end

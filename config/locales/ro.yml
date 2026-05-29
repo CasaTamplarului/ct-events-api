@@ -9,6 +9,8 @@ ro:
       email_google_only: "Acest email este asociat unui cont Google. Te rugăm să te autentifici cu Google."
       id_token_required: "id_token este necesar"
       invalid_google_token: "Token Google invalid"
+      invalid_facebook_token: "Token Facebook invalid"
+      access_token_required: "access_token este necesar"
       email_required: "email este necesar"
       token_password_required: "token și parola sunt necesare"
       invalid_reset_token: "Token de resetare invalid sau expirat"

@@ -39,4 +39,11 @@ RSpec.describe User do
       expect(user.reload.email).to eq('test@example.com')
     end
   end
+
+  describe 'Facebook phone-only accounts' do
+    it 'is valid with a nil email (Facebook user with phone-only account)' do
+      user = build(:user, email: nil, password: nil, password_digest: nil)
+      expect(user).to be_valid
+    end
+  end
 end
