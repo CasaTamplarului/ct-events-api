@@ -24,6 +24,9 @@ RSpec.describe 'GET /api/v1/auth/me' do
       expect(json['first_name']).to eq('Ion')
       expect(json['last_name']).to eq('Popescu')
       expect(json.key?('avatar_url')).to be true
+      expect(json.key?('phone_number')).to be true
+      expect(json.key?('city')).to be true
+      expect(json.key?('church_name')).to be true
     end
   end
 

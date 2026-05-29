@@ -65,7 +65,10 @@ module Api
               first_name: user.first_name,
               last_name: user.last_name,
               email: user.email,
-              avatar_url: user.avatar_url
+              avatar_url: user.avatar_url,
+              phone_number: user.phone_number,
+              church_name: user.church_name,
+              city: user.city
             }
           end
       end
