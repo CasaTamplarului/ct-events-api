@@ -47,6 +47,17 @@ RSpec.describe 'Auth::Me endpoints' do
                      'church_name' => 'Betania', 'city' => 'Cluj-Napoca' }
         expect(json).to include(expected)
       end
+
+      it 'returns can_change_email false for a user with no email identity' do
+        get_me(headers: { 'Authorization' => "Bearer #{token}" })
+        expect(json['can_change_email']).to be false
+      end
+
+      it 'returns can_change_email true for a user with an email identity' do
+        user.user_identities.create!(provider: 'email', uid: user.email)
+        get_me(headers: { 'Authorization' => "Bearer #{token}" })
+        expect(json['can_change_email']).to be true
+      end
     end
 
     context 'with no Authorization header' do

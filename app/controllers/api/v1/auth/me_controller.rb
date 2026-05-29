@@ -68,7 +68,8 @@ module Api
               phone_number: user.phone_number,
               church_name: user.church_name,
               city: user.city,
-              language: user.language
+              language: user.language,
+              can_change_email: user.user_identities.exists?(provider: 'email')
             }
           end
       end
