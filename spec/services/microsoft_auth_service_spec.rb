@@ -102,6 +102,17 @@ RSpec.describe MicrosoftAuthService do
       end
     end
 
+    context 'when JWKS endpoint times out' do
+      before do
+        stub_request(:get, jwks_uri).to_raise(Net::ReadTimeout)
+      end
+
+      it 'raises InvalidTokenError' do
+        expect { described_class.call(encode_token) }
+          .to raise_error(MicrosoftAuthService::InvalidTokenError)
+      end
+    end
+
     context 'with missing credentials' do
       before do
         allow(Rails.application.credentials).to receive(:dig)

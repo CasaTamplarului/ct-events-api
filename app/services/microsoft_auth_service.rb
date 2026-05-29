@@ -67,7 +67,8 @@ class MicrosoftAuthService
         @jwks_cache
       rescue JSON::ParserError => e
         raise InvalidTokenError, "Invalid JWKS response: #{e.message}"
-      rescue SocketError, Errno::ECONNREFUSED, Errno::ECONNRESET, Errno::ETIMEDOUT => e
+      rescue SocketError, Errno::ECONNREFUSED, Errno::ECONNRESET, Errno::ETIMEDOUT,
+             Net::OpenTimeout, Net::ReadTimeout => e
         raise InvalidTokenError, "Network error fetching JWKS: #{e.message}"
       end
   end
