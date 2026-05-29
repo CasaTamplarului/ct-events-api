@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class User < ApplicationRecord
-  has_secure_password(validations: false)
+  has_secure_password(validations: false, reset_token: false)
 
   has_many :attendees, dependent: :nullify
   has_many :user_identities, dependent: :destroy
