@@ -58,6 +58,18 @@ RSpec.describe 'Auth::Me endpoints' do
         get_me(headers: { 'Authorization' => "Bearer #{token}" })
         expect(json['can_change_email']).to be true
       end
+
+      it 'includes email_preferences with all five fields' do
+        get_me(headers: { 'Authorization' => "Bearer #{token}" })
+
+        expect(json['email_preferences']).to eq({
+          'marketing_emails'        => false,
+          'payment_reminder_emails' => false,
+          'payment_receipt_emails'  => false,
+          'event_reminder_emails'   => false,
+          'event_update_emails'     => false
+        })
+      end
     end
 
     context 'with no Authorization header' do

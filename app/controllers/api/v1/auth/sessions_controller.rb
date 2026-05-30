@@ -40,8 +40,13 @@ module Api
               church_name: user.church_name,
               city: user.city,
               language: user.language,
-              can_change_email: user.user_identities.exists?(provider: 'email')
+              can_change_email: user.user_identities.exists?(provider: 'email'),
+              email_preferences: email_preferences_json(user)
             }
+          end
+
+          def email_preferences_json(user)
+            EmailUnsubscribeTokenService::PREFERENCE_COLUMNS.index_with { |col| user.public_send(col) }
           end
       end
     end
