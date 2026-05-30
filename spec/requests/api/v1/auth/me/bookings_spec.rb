@@ -60,6 +60,15 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
         expect(json.first['order_reference']).to eq(booking[:order].order_reference)
       end
 
+      it 'includes total_price as the sum of ticket prices' do
+        create_booking(user: user, start_date: 10.days.from_now, end_date: 13.days.from_now,
+                       with_ticket: true)
+
+        get '/api/v1/auth/me/bookings/upcoming', headers: auth_headers
+
+        expect(json.first['total_price']).to eq('150.0')
+      end
+
       it 'includes all three payment statuses' do # rubocop:disable RSpec/ExampleLength
         create_booking(user: user, start_date: 10.days.from_now, end_date: 13.days.from_now,
                        payment_status: :paid)

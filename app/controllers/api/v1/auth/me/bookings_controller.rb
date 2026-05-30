@@ -92,6 +92,7 @@ module Api
               {
                 order_reference: order.order_reference,
                 payment_status: attendees.first.payment_status,
+                total_price: attendees.sum { |a| a.ticket&.price || 0 },
                 event: serialise_event(event, lang),
                 attendees: attendees.map { |a| serialise_attendee(a, lang) }
               }
