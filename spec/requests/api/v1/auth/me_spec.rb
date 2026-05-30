@@ -70,6 +70,29 @@ RSpec.describe 'Auth::Me endpoints' do
           'event_update_emails'     => false
         })
       end
+
+      it 'includes role in response' do
+        get_me(headers: { 'Authorization' => "Bearer #{token}" })
+        expect(json['role']).to eq('attendee')
+      end
+
+      it 'includes permissions hash in response' do
+        get_me(headers: { 'Authorization' => "Bearer #{token}" })
+        expect(json['permissions']).to eq({
+          'can_check_in_attendees' => false,
+          'can_scan_food_stamp'    => false
+        })
+      end
+
+      it 'returns updated permissions for a volunteer' do
+        user.update!(role: 'volunteer')
+        get_me(headers: { 'Authorization' => "Bearer #{token}" })
+        expect(json['role']).to eq('volunteer')
+        expect(json['permissions']).to eq({
+          'can_check_in_attendees' => true,
+          'can_scan_food_stamp'    => true
+        })
+      end
     end
 
     context 'with no Authorization header' do
