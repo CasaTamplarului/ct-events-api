@@ -3,9 +3,11 @@
 class Event < ApplicationRecord
   has_many :attendees, dependent: :destroy
   has_many :events_translations, dependent: :destroy, inverse_of: :event
-  has_many :tickets, -> { order(:sort) }, dependent: :destroy
+  has_many :tickets, -> { order(:sort) }, dependent: :destroy, inverse_of: :event
   has_many :event_attendee_fields, -> { order(:sort) }, dependent: :destroy, inverse_of: :event
-  has_many :event_gallery_items, -> { order(:sort) }, class_name: "EventGallery", dependent: :destroy, inverse_of: :event
+  has_many :event_gallery_items, lambda {
+    order(:sort)
+  }, class_name: 'EventGallery', dependent: :destroy, inverse_of: :event
   has_many :event_speakers, -> { order(:sort) }, dependent: :destroy, inverse_of: :event
 
   # Enums
@@ -20,6 +22,56 @@ class Event < ApplicationRecord
       .where('start_date > ?', Time.zone.now)
       .order(start_date: :asc)
       .limit(1)
+  }
+
+  scope :by_filter, lambda { |filter|
+    base = where(status: 'live')
+    case filter.to_s
+    when 'upcoming' then base.where(start_date: Time.zone.now..)
+    when 'past'     then base.where(start_date: ...Time.zone.now)
+    else                 base
+    end
+  }
+
+  scope :by_keyword, lambda { |search, lang|
+    return all if search.blank?
+
+    joins(:events_translations)
+      .where(events_translations: { languages_code: lang })
+      .where(
+        'events_translations.name ILIKE :q OR events_translations.tag_line ILIKE :q',
+        q: "%#{sanitize_sql_like(search)}%"
+      )
+  }
+
+  scope :by_year, lambda { |year|
+    return all if year.blank?
+
+    where('EXTRACT(YEAR FROM start_date) = ?', year.to_i)
+  }
+
+  scope :by_pricing, lambda { |pricing|
+    return all if pricing.blank? || pricing.to_s == 'both'
+
+    case pricing.to_s
+    when 'free'
+      left_joins(:tickets)
+        .group('events.id')
+        .having('MIN(tickets.price) IS NULL OR MIN(tickets.price) = 0')
+    when 'paid'
+      left_joins(:tickets)
+        .group('events.id')
+        .having('MIN(tickets.price) > 0')
+    else
+      all
+    end
+  }
+
+  scope :sorted_for, lambda { |filter|
+    case filter.to_s
+    when 'upcoming' then order(start_date: :asc)
+    else                 order(start_date: :desc)
+    end
   }
 
   def translations(language_code)
