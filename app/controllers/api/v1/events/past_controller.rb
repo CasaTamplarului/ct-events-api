@@ -5,7 +5,7 @@ module Api
     module Events
       class PastController < ActionController::API
         def index
-          events = Event.past.limit(6)
+          events = Event.past.order(start_date: :desc).limit(10)
 
           render json:
             ThumbnailEventSerializer.new(events,

@@ -5,7 +5,7 @@ module Api
     module Events
       class UpcomingController < ActionController::API
         def index
-          events = Event.upcoming.limit(6)
+          events = Event.upcoming.order(start_date: :asc).limit(10)
 
           render json:
             ThumbnailEventSerializer.new(events, params: { languages_code: params[:languages_code] }).serialize,

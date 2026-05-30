@@ -109,6 +109,10 @@ Metrics/PerceivedComplexity:
 Naming/PredicatePrefix:
   Enabled: false
 # RSpec
+RSpec/ExampleLength:
+  Max: 15
+RSpec/LetSetup:
+  Enabled: false
 RSpec/MultipleExpectations:
   Max: 4
 RSpec/MultipleMemoizedHelpers:
