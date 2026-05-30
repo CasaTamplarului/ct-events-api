@@ -81,6 +81,7 @@ class SendgridService
           'event_location' => event.location_name,
           'attendees' => group.map { |a| attendee_data(a, language) },
           'total_price' => group.sum { |a| a.ticket&.price || 0 },
+          'is_pending' => group.first.payment_pending?,
           'year' => Time.current.year.to_s
         )
         mail.add_personalization(personalization)

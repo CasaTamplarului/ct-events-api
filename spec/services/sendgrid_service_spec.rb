@@ -147,6 +147,23 @@ RSpec.describe SendgridService do
         expect(dtd['total_price']).to eq('150.0')
       end
 
+      it 'sets is_pending: true when payment is pending' do
+        described_class.send_booking_confirmation(order: order, language: language_code)
+        dtd = JSON.parse(WebMock::RequestRegistry.instance.requested_signatures.hash.keys.last.body)
+                  .dig('personalizations', 0, 'dynamic_template_data')
+        expect(dtd['is_pending']).to be(true)
+      end
+
+      it 'sets is_pending: false when payment is paid' do # rubocop:disable RSpec/ExampleLength
+        paid_order = create(:order)
+        create(:attendee, event: event, order: paid_order, ticket: ticket,
+                          email_address: 'paid@example.com', payment_status: :paid)
+        described_class.send_booking_confirmation(order: paid_order, language: language_code)
+        dtd = JSON.parse(WebMock::RequestRegistry.instance.requested_signatures.hash.keys.last.body)
+                  .dig('personalizations', 0, 'dynamic_template_data')
+        expect(dtd['is_pending']).to be(false)
+      end
+
       it 'includes attendee first_name, last_name, ticket_name, description, price, and food_included' do # rubocop:disable RSpec/ExampleLength
         described_class.send_booking_confirmation(order: order, language: language_code)
         attendees_data = JSON.parse(WebMock::RequestRegistry.instance.requested_signatures.hash.keys.last.body)
