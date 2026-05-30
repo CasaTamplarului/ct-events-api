@@ -2,6 +2,7 @@
 
 FactoryBot.define do
   factory :event do
+    sequence(:slug) { |n| "event-slug-#{n}" }
     status { :live }
     start_date { Faker::Date.forward(days: 10) }
     end_date { Faker::Date.forward(days: 13) }

@@ -42,6 +42,7 @@ Rails.application.routes.draw do
           resources :upcoming, only: :index
           resources :past, only: :index
           resources :hero, only: :index
+          resources :listing, only: :index
         end
 
         resources :event, only: :show, param: :slug
