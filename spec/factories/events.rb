@@ -2,6 +2,7 @@
 
 FactoryBot.define do
   factory :event do
+    status { :live }
     start_date { Faker::Date.forward(days: 10) }
     end_date { Faker::Date.forward(days: 13) }
     max_number_of_people { Faker::Number.number(digits: 2) }

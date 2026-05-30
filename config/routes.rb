@@ -15,6 +15,10 @@ Rails.application.routes.draw do
         resource :me, only: %i[show update destroy], controller: 'me' do
           patch :password, on: :member
         end
+        scope '/me/bookings' do
+          get :upcoming, to: 'me/bookings#upcoming'
+          get :past,     to: 'me/bookings#past'
+        end
         resource :registration, only: :create
         resource :session, only: :create
         scope '/password' do
