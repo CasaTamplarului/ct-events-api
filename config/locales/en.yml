@@ -33,6 +33,7 @@ en:
   auth:
     errors:
       unauthorized: "Unauthorized"
+      forbidden: "Forbidden"
       email_password_required: "email and password are required"
       invalid_credentials: "Invalid email or password"
       registration_params_required: "first_name, email, and password are required"

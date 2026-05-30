@@ -17,4 +17,10 @@ module Authenticatable
   rescue JWT::DecodeError
     render json: { error: I18n.t('auth.errors.unauthorized') }, status: :unauthorized
   end
+
+  def require_permission!(permission)
+    return if current_user&.can?(permission)
+
+    render json: { error: I18n.t('auth.errors.forbidden') }, status: :forbidden
+  end
 end

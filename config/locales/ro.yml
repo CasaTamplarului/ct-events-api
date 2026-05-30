@@ -2,6 +2,7 @@ ro:
   auth:
     errors:
       unauthorized: "Neautorizat"
+      forbidden: "Interzis"
       email_password_required: "email și parola sunt necesare"
       invalid_credentials: "Email sau parolă incorecte"
       registration_params_required: "first_name, email și parola sunt necesare"
