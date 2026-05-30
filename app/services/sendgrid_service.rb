@@ -6,7 +6,13 @@ class SendgridService
   RESET_PASSWORD_TEMPLATE_ID       = 'd-952a77f57d9f410597cfa1cf84260cef'
   BOOKING_CONFIRMATION_TEMPLATE_ID = 'd-0276cfb6a8b54df996962912bb01cd71'
 
+  def self.emails_enabled?
+    ENV['DISABLE_EMAILS'].blank?
+  end
+
   def self.send_password_reset(user:, reset_url:)
+    return unless emails_enabled?
+
     mail = SendGrid::Mail.new
     from_email = Rails.application.credentials.dig(:sendgrid, :from_email) || 'noreply@example.com'
     mail.from = SendGrid::Email.new(email: from_email)
@@ -29,7 +35,9 @@ class SendgridService
     end
   end
 
-  def self.send_booking_confirmation(order:, language:)
+  def self.send_booking_confirmation(order:, language:) # rubocop:disable Metrics/CyclomaticComplexity
+    return unless emails_enabled?
+
     attendees = order.attendees
                      .includes({ ticket: :tickets_translations }, { event: :events_translations })
                      .reject { |a| a.email_address.blank? }

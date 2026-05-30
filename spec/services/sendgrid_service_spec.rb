@@ -54,6 +54,19 @@ RSpec.describe SendgridService do
       expect(WebMock).to(have_requested(:post, 'https://api.sendgrid.com/v3/mail/send')
         .with { |req| JSON.parse(req.body).dig('personalizations', 0, 'dynamic_template_data', 'year') == Time.current.year.to_s })
     end
+
+    context 'when DISABLE_EMAILS is set' do
+      around do |ex|
+        ENV['DISABLE_EMAILS'] = 'true'
+        ex.run
+        ENV.delete('DISABLE_EMAILS')
+      end
+
+      it 'does not send any email' do
+        described_class.send_password_reset(user: romanian_user, reset_url: reset_url)
+        expect(WebMock).not_to have_requested(:post, 'https://api.sendgrid.com/v3/mail/send')
+      end
+    end
   end
 
   describe '.send_booking_confirmation' do
@@ -268,6 +281,21 @@ RSpec.describe SendgridService do
         allow(Rails.logger).to receive(:error)
         expect { described_class.send_booking_confirmation(order: order, language: language_code) }.not_to raise_error
         expect(Rails.logger).to have_received(:error).with(/SendGrid/)
+      end
+    end
+
+    context 'when DISABLE_EMAILS is set' do
+      around do |ex|
+        ENV['DISABLE_EMAILS'] = 'true'
+        ex.run
+        ENV.delete('DISABLE_EMAILS')
+      end
+
+      before { create(:attendee, event: event, order: order, email_address: 'ion@example.com') }
+
+      it 'does not send any email' do
+        described_class.send_booking_confirmation(order: order, language: language_code)
+        expect(WebMock).not_to have_requested(:post, 'https://api.sendgrid.com/v3/mail/send')
       end
     end
   end
