@@ -48,5 +48,6 @@ RSpec.describe 'require_permission! (Authenticatable concern)' do
   it 'returns 401 Unauthorized when no token is provided' do
     get '/spec/permission_check', headers: { 'Content-Type' => 'application/json' }
     expect(response).to have_http_status(:unauthorized)
+    expect(json['error']).to eq('Unauthorized')
   end
 end
