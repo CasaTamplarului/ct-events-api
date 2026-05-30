@@ -37,6 +37,13 @@ Rails.application.routes.draw do
         end
       end
 
+      namespace :scan do
+        scope '/orders/:order_reference' do
+          get '/', to: 'orders#show', as: 'scan_order'
+          patch '/', to: 'orders#update', as: 'scan_order_update'
+        end
+      end
+
       get '/unsubscribe', to: 'unsubscribe#show'
 
       scope '/:languages_code', constraints: { languages_code: /[a-zA-Z]{2}-[a-zA-Z]{2}/ } do
