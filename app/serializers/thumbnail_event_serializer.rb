@@ -15,14 +15,19 @@ class ThumbnailEventSerializer < ApplicationSerializer
     object.translations(params[:languages_code]).description
   end
 
-  attribute :fully_booked, &:fully_booked?
+  attribute :is_past, &:past?
+
+  attribute :fully_booked do |object|
+    object.past? ? nil : object.fully_booked?
+  end
 
   attribute :starts_from do |object|
-    params[:show_price] == false ? nil : object.starts_from
+    object.past? ? nil : object.starts_from
   end
 
   attribute :tickets do |object|
-    return nil unless object.tickets
+    next nil if object.past?
+    next nil unless object.tickets.any?
 
     TicketSerializer.new(object.tickets,
                          params: { languages_code: params[:languages_code], show_price: params[:show_price] })

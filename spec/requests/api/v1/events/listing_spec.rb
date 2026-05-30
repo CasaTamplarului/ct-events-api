@@ -225,6 +225,55 @@ RSpec.describe 'GET /api/v1/:lang/events/listing' do
     end
   end
 
+  describe 'event shape — past vs upcoming' do
+    let!(:upcoming_event) do
+      e = create_live_event(start_date: 5.days.from_now, name: 'Upcoming')
+      create(:ticket, event: e, price: 50)
+      e
+    end
+    let!(:past_event) do
+      e = create_live_event(start_date: 5.days.ago, name: 'Past')
+      create(:ticket, event: e, price: 50)
+      e
+    end
+
+    it 'includes is_past: false for upcoming events' do
+      get_listing(filter: 'upcoming')
+      event = json['events'].find { |e| e['slug'] == upcoming_event.slug }
+      expect(event['is_past']).to be false
+    end
+
+    it 'includes is_past: true for past events' do
+      get_listing(filter: 'past')
+      event = json['events'].find { |e| e['slug'] == past_event.slug }
+      expect(event['is_past']).to be true
+    end
+
+    it 'includes tickets and starts_from for upcoming events' do
+      get_listing(filter: 'upcoming')
+      event = json['events'].find { |e| e['slug'] == upcoming_event.slug }
+      expect(event['tickets']).to be_present
+      expect(event['starts_from']).to be_present
+      expect(event['fully_booked']).not_to be_nil
+    end
+
+    it 'omits tickets, starts_from, and fully_booked for past events' do
+      get_listing(filter: 'past')
+      event = json['events'].find { |e| e['slug'] == past_event.slug }
+      expect(event['tickets']).to be_nil
+      expect(event['starts_from']).to be_nil
+      expect(event['fully_booked']).to be_nil
+    end
+
+    it 'applies is_past correctly in filter=all' do
+      get_listing(filter: 'all')
+      upcoming = json['events'].find { |e| e['slug'] == upcoming_event.slug }
+      past     = json['events'].find { |e| e['slug'] == past_event.slug }
+      expect(upcoming['is_past']).to be false
+      expect(past['is_past']).to be true
+    end
+  end
+
   describe 'empty result' do
     it 'returns empty events array with zero meta' do
       get_listing(search: 'xyzzy_nomatch')
