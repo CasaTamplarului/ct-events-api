@@ -39,9 +39,9 @@ RSpec.describe 'PATCH /api/v1/auth/me/email_preferences' do
       patch_preferences({ marketing_emails: false })
 
       expect(json['email_preferences'].keys).to match_array(%w[
-        marketing_emails payment_reminder_emails payment_receipt_emails
-        event_reminder_emails event_update_emails
-      ])
+                                                              marketing_emails payment_reminder_emails payment_receipt_emails
+                                                              event_reminder_emails event_update_emails
+                                                            ])
     end
 
     it 'ignores unknown fields and still returns 200' do
@@ -49,9 +49,9 @@ RSpec.describe 'PATCH /api/v1/auth/me/email_preferences' do
 
       expect(response).to have_http_status(:ok)
       expect(json['email_preferences'].keys).to match_array(%w[
-        marketing_emails payment_reminder_emails payment_receipt_emails
-        event_reminder_emails event_update_emails
-      ])
+                                                              marketing_emails payment_reminder_emails payment_receipt_emails
+                                                              event_reminder_emails event_update_emails
+                                                            ])
     end
   end
 
