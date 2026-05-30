@@ -53,6 +53,13 @@ RSpec.describe 'PATCH /api/v1/auth/me/email_preferences' do
                                                               event_reminder_emails event_update_emails
                                                             ])
     end
+
+    it 'persists a value being set back to false' do
+      user.update!(marketing_emails: true)
+      patch_preferences({ marketing_emails: false })
+
+      expect(user.reload.marketing_emails).to be false
+    end
   end
 
   context 'without a JWT' do

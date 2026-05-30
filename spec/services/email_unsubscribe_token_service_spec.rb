@@ -3,6 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe EmailUnsubscribeTokenService do
+  include ActiveSupport::Testing::TimeHelpers
+
   let(:user) { create(:user) }
 
   describe '.generate' do
@@ -33,6 +35,12 @@ RSpec.describe EmailUnsubscribeTokenService do
 
     it 'returns nil for an empty string' do
       expect(described_class.verify('')).to be_nil
+    end
+
+    it 'returns nil for an expired token' do
+      token = nil
+      travel_to(91.days.ago) { token = described_class.generate(user: user, type: 'marketing_emails') }
+      expect(described_class.verify(token)).to be_nil
     end
   end
 end

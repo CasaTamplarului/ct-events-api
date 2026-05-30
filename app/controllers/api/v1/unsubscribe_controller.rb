@@ -10,8 +10,11 @@ module Api
         user = User.active.find_by(id: data[:user_id])
         return redirect_to "#{frontend_url}?error=invalid_token", allow_other_host: true unless user
 
-        user.update(data[:type] => false)
-        redirect_to "#{frontend_url}?type=#{data[:type]}", allow_other_host: true
+        if user.update(data[:type] => false)
+          redirect_to "#{frontend_url}?type=#{data[:type]}", allow_other_host: true
+        else
+          redirect_to "#{frontend_url}?error=invalid_token", allow_other_host: true
+        end
       end
 
       private
