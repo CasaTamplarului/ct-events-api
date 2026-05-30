@@ -16,15 +16,14 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
   def create_booking(user:, start_date:, end_date:, payment_status: :paid, with_ticket: false)
     event = create(:event, start_date: start_date, end_date: end_date)
     create(:events_translation, event: event, languages_code: 'ro-RO', name: 'Conferința Test')
-    order = create(:order)
+    order = create(:order, payment_status: payment_status)
     ticket = nil
     if with_ticket
       ticket = create(:ticket, event: event, price: 150, food_included: true)
       create(:tickets_translation, tickets_id: ticket.id, languages_code: 'ro-RO', name: 'Adult',
                                    description: 'Includes all meals')
     end
-    attendee = create(:attendee, event: event, order: order, user: user,
-                                 payment_status: payment_status, ticket: ticket)
+    attendee = create(:attendee, event: event, order: order, user: user, ticket: ticket)
     { event: event, order: order, attendee: attendee }
   end
 
@@ -241,8 +240,8 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
 
     context 'with a paid booking' do
       before do
-        order = create(:order)
-        create(:attendee, event: event_a, order: order, user: user, payment_status: :paid)
+        order = create(:order, payment_status: :paid)
+        create(:attendee, event: event_a, order: order, user: user)
       end
 
       it 'returns has_booking true with the order_reference' do
@@ -255,8 +254,8 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
 
     context 'with a payment_pending booking' do
       before do
-        order = create(:order)
-        create(:attendee, event: event_a, order: order, user: user, payment_status: :payment_pending)
+        order = create(:order, payment_status: :payment_pending)
+        create(:attendee, event: event_a, order: order, user: user)
       end
 
       it 'returns has_booking true' do
@@ -267,8 +266,8 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
 
     context 'with a refunded booking' do
       before do
-        order = create(:order)
-        create(:attendee, event: event_a, order: order, user: user, payment_status: :refunded)
+        order = create(:order, payment_status: :refunded)
+        create(:attendee, event: event_a, order: order, user: user)
       end
 
       it 'returns has_booking false' do
@@ -296,8 +295,8 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
 
     context 'with multiple slugs' do
       before do
-        order = create(:order)
-        create(:attendee, event: event_a, order: order, user: user, payment_status: :paid)
+        order = create(:order, payment_status: :paid)
+        create(:attendee, event: event_a, order: order, user: user)
       end
 
       it 'returns correct result for each slug in one call' do

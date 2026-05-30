@@ -3,6 +3,8 @@
 class Order < ApplicationRecord
   has_many :attendees, dependent: :destroy
 
+  enum :payment_status, { payment_pending: 0, paid: 1, refunded: 2 }
+
   after_create :generate_order_reference
 
   private

@@ -168,9 +168,9 @@ RSpec.describe SendgridService do
       end
 
       it 'sets is_pending: false when payment is paid' do # rubocop:disable RSpec/ExampleLength
-        paid_order = create(:order)
+        paid_order = create(:order, payment_status: :paid)
         create(:attendee, event: event, order: paid_order, ticket: ticket,
-                          email_address: 'paid@example.com', payment_status: :paid)
+                          email_address: 'paid@example.com')
         described_class.send_booking_confirmation(order: paid_order, language: language_code)
         dtd = JSON.parse(WebMock::RequestRegistry.instance.requested_signatures.hash.keys.last.body)
                   .dig('personalizations', 0, 'dynamic_template_data')

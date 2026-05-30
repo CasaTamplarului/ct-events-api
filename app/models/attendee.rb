@@ -6,8 +6,6 @@ class Attendee < ApplicationRecord
   belongs_to :order, optional: true
   belongs_to :ticket, optional: true
 
-  # Enums
-  enum :payment_status, { payment_pending: 0, paid: 1, refunded: 2 }
   enum :dietary_preference, { no_preference: 0, vegetarian: 1, vegan: 2 }
 
   def self.backfill_user(email:, user_id:)
