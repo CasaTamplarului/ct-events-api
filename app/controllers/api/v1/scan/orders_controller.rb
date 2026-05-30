@@ -15,18 +15,21 @@ module Api
         end
 
         def update
-          if params[:payment_status].blank? && params[:attendees].blank?
+          update_params = params.permit(:payment_status, attendees: %i[id checked_in])
+
+          if update_params[:payment_status].blank? && update_params[:attendees].blank?
             return render json: { error: 'Nothing to update' }, status: :unprocessable_content
           end
 
-          if params[:payment_status].present? && !Order.payment_statuses.key?(params[:payment_status].to_s)
-            return render json: { error: "Invalid payment_status: #{params[:payment_status]}" },
+          if update_params[:payment_status].present? &&
+             !Order.payment_statuses.key?(update_params[:payment_status].to_s)
+            return render json: { error: "Invalid payment_status: #{update_params[:payment_status]}" },
                           status: :unprocessable_content
           end
 
           ActiveRecord::Base.transaction do
-            @order.update!(payment_status: params[:payment_status]) if params[:payment_status].present?
-            update_attendee_checkins
+            @order.update!(payment_status: update_params[:payment_status]) if update_params[:payment_status].present?
+            update_attendee_checkins(update_params)
           end
 
           render json: serialise_order
@@ -39,15 +42,14 @@ module Api
             render json: { error: 'Not found' }, status: :not_found unless @order
           end
 
-          def update_attendee_checkins
-            return if params[:attendees].blank?
+          def update_attendee_checkins(update_params)
+            return if update_params[:attendees].blank?
 
-            order_attendee_ids = @order.attendees.pluck(:id).to_set
-            Array(params[:attendees]).each do |entry|
-              id = entry[:id].to_i
-              next unless order_attendee_ids.include?(id)
+            order_attendees = @order.attendees.index_by(&:id)
+            Array(update_params[:attendees]).each do |entry|
+              attendee = order_attendees[entry[:id].to_i]
+              next unless attendee
 
-              attendee = Attendee.find(id)
               if ActiveModel::Type::Boolean.new.cast(entry[:checked_in])
                 attendee.update!(checked_in: true, checked_in_at: Time.current,
                                  checked_in_by_user_id: current_user.id)

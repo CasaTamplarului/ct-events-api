@@ -142,13 +142,13 @@ RSpec.describe 'Scan Orders API' do
 
     it 'returns 422 when body has no updateable fields' do
       patch_order(order.order_reference, {})
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       expect(json['error']).to eq('Nothing to update')
     end
 
     it 'returns 422 for an invalid payment_status value' do
       patch_order(order.order_reference, { payment_status: 'bounced' })
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
 
     it 'returns the same shape as GET on success' do
