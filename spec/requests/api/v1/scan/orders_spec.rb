@@ -8,11 +8,11 @@ RSpec.describe 'Scan Orders API' do
   let(:attendee_user)  { create(:user, role: 'attendee') }
   let(:event)          { create(:event) }
   let(:order)          { create(:order, payment_status: :paid) }
-  let!(:attendee1) do
+  let!(:first_attendee) do
     create(:attendee, event: event, order: order,
                       first_name: 'Ion', last_name: 'Popescu', email_address: 'ion@example.com')
   end
-  let!(:attendee2) do
+  let!(:second_attendee) do
     create(:attendee, event: event, order: order,
                       first_name: 'Maria', last_name: 'Ionescu', email_address: 'maria@example.com')
   end
@@ -76,7 +76,7 @@ RSpec.describe 'Scan Orders API' do
 
     context 'when an attendee is checked in' do
       before do
-        attendee1.update!(
+        first_attendee.update!(
           checked_in: true,
           checked_in_at: Time.zone.parse('2026-06-01 10:00:00'),
           checked_in_by_user_id: admin.id
@@ -85,7 +85,7 @@ RSpec.describe 'Scan Orders API' do
 
       it 'returns checked_in: true with timestamp and checker name' do
         get_order(order.order_reference)
-        a = json['attendees'].find { |x| x['id'] == attendee1.id }
+        a = json['attendees'].find { |x| x['id'] == first_attendee.id }
         expect(a['checked_in']).to be true
         expect(a['checked_in_at']).to be_present
         expect(a['checked_in_by']).to eq("#{admin.first_name} #{admin.last_name}".strip)
@@ -97,12 +97,12 @@ RSpec.describe 'Scan Orders API' do
         Language.find_or_create_by!(code: 'ro-RO') { |l| l.name = 'Romanian' }
         ticket = create(:ticket, event: event, price: 100)
         create(:tickets_translation, tickets_id: ticket.id, languages_code: 'ro-RO', name: 'General')
-        attendee1.update!(ticket: ticket)
+        first_attendee.update!(ticket: ticket)
       end
 
       it 'includes the ticket name from the ro-RO translation' do
         get_order(order.order_reference)
-        a = json['attendees'].find { |x| x['id'] == attendee1.id }
+        a = json['attendees'].find { |x| x['id'] == first_attendee.id }
         expect(a['ticket_name']).to eq('General')
       end
     end
@@ -110,8 +110,130 @@ RSpec.describe 'Scan Orders API' do
     context 'when an attendee has no ticket' do
       it 'returns ticket_name: nil' do
         get_order(order.order_reference)
-        a = json['attendees'].find { |x| x['id'] == attendee1.id }
+        a = json['attendees'].find { |x| x['id'] == first_attendee.id }
         expect(a['ticket_name']).to be_nil
+      end
+    end
+  end
+
+  describe 'PATCH /api/v1/scan/orders/:order_reference' do
+    def patch_order(ref, body, user: admin)
+      patch "/api/v1/scan/orders/#{ref}",
+            params: body.to_json,
+            headers: auth_header(user)
+    end
+
+    it 'returns 401 without a token' do
+      patch "/api/v1/scan/orders/#{order.order_reference}",
+            params: { payment_status: 'paid' }.to_json,
+            headers: { 'Content-Type' => 'application/json' }
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it 'returns 403 for attendee role' do
+      patch_order(order.order_reference, { payment_status: 'paid' }, user: attendee_user)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it 'returns 404 for unknown order reference' do
+      patch_order('CT-2026-99999', { payment_status: 'paid' })
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 422 when body has no updateable fields' do
+      patch_order(order.order_reference, {})
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(json['error']).to eq('Nothing to update')
+    end
+
+    it 'returns 422 for an invalid payment_status value' do
+      patch_order(order.order_reference, { payment_status: 'bounced' })
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+
+    it 'returns the same shape as GET on success' do
+      patch_order(order.order_reference, { payment_status: 'paid' })
+      expect(json.keys).to include('order_reference', 'payment_status', 'attendees')
+    end
+
+    context 'when updating payment_status' do
+      it 'marks the order as paid' do
+        order.update!(payment_status: :payment_pending)
+        patch_order(order.order_reference, { payment_status: 'paid' })
+        expect(response).to have_http_status(:ok)
+        expect(json['payment_status']).to eq('paid')
+        expect(order.reload.payment_status).to eq('paid')
+      end
+
+      it 'marks the order as payment_pending (unpay)' do
+        order.update!(payment_status: :paid)
+        patch_order(order.order_reference, { payment_status: 'payment_pending' })
+        expect(response).to have_http_status(:ok)
+        expect(json['payment_status']).to eq('payment_pending')
+        expect(order.reload.payment_status).to eq('payment_pending')
+      end
+    end
+
+    context 'when checking in attendees' do
+      it 'checks in a single attendee and records who did it' do
+        patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, checked_in: true }] })
+        expect(response).to have_http_status(:ok)
+        first_attendee.reload
+        expect(first_attendee.checked_in).to be true
+        expect(first_attendee.checked_in_at).to be_present
+        expect(first_attendee.checked_in_by_user_id).to eq(admin.id)
+      end
+
+      it 'checks in multiple attendees in one request' do
+        patch_order(order.order_reference, {
+                      attendees: [
+                        { id: first_attendee.id, checked_in: true },
+                        { id: second_attendee.id, checked_in: true }
+                      ]
+                    })
+        expect(response).to have_http_status(:ok)
+        expect(first_attendee.reload.checked_in).to be true
+        expect(second_attendee.reload.checked_in).to be true
+      end
+
+      it 'unchecks in an attendee and clears the tracking fields' do
+        first_attendee.update!(checked_in: true, checked_in_at: Time.current,
+                               checked_in_by_user_id: admin.id)
+        patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, checked_in: false }] })
+        expect(response).to have_http_status(:ok)
+        first_attendee.reload
+        expect(first_attendee.checked_in).to be false
+        expect(first_attendee.checked_in_at).to be_nil
+        expect(first_attendee.checked_in_by_user_id).to be_nil
+      end
+
+      it 'reflects check-in state in the response' do
+        patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, checked_in: true }] })
+        a = json['attendees'].find { |x| x['id'] == first_attendee.id }
+        expect(a['checked_in']).to be true
+        expect(a['checked_in_by']).to eq("#{admin.first_name} #{admin.last_name}".strip)
+      end
+
+      it 'silently ignores attendee IDs not belonging to this order' do
+        other_order = create(:order)
+        other_attendee = create(:attendee, event: event, order: other_order)
+        patch_order(order.order_reference, { attendees: [{ id: other_attendee.id, checked_in: true }] })
+        expect(response).to have_http_status(:ok)
+        expect(other_attendee.reload.checked_in).to be false
+      end
+    end
+
+    context 'when combining payment and check-in update' do
+      it 'updates both in one request' do
+        order.update!(payment_status: :payment_pending)
+        patch_order(order.order_reference, {
+                      payment_status: 'paid',
+                      attendees: [{ id: first_attendee.id, checked_in: true }]
+                    })
+        expect(response).to have_http_status(:ok)
+        expect(json['payment_status']).to eq('paid')
+        a = json['attendees'].find { |x| x['id'] == first_attendee.id }
+        expect(a['checked_in']).to be true
       end
     end
   end
