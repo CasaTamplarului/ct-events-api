@@ -10,9 +10,9 @@ class User < ApplicationRecord
   ROLES = %w[admin volunteer attendee].freeze
 
   ROLE_PERMISSIONS = {
-    "admin"     => { can_check_in_attendees: true,  can_scan_food_stamp: true  },
-    "volunteer" => { can_check_in_attendees: true,  can_scan_food_stamp: true  },
-    "attendee"  => { can_check_in_attendees: false, can_scan_food_stamp: false }
+    "admin"     => { can_check_in_attendees: true,  can_scan_food_stamp: true  }.freeze,
+    "volunteer" => { can_check_in_attendees: true,  can_scan_food_stamp: true  }.freeze,
+    "attendee"  => { can_check_in_attendees: false, can_scan_food_stamp: false }.freeze
   }.freeze
 
   attribute :role, :string, default: "attendee"
