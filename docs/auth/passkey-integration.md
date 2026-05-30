@@ -14,7 +14,7 @@ Set `WEBAUTHN_ORIGIN` to the exact origin the browser is on (scheme + host + por
 
 ```
 WEBAUTHN_ORIGIN=https://ctevents.chiciudean.family   # prod
-WEBAUTHN_ORIGIN=http://localhost:5173                 # dev
+WEBAUTHN_ORIGIN=http://localhost:3003                 # dev
 ```
 
 ---
