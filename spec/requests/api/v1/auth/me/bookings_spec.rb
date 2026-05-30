@@ -209,4 +209,108 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
       end
     end
   end
+
+  # ── POST /api/v1/auth/me/bookings/check ──────────────────────────────────────
+
+  describe 'POST /api/v1/auth/me/bookings/check' do
+    let(:event_a) do
+      create(:event, slug: 'conf-2026', start_date: 10.days.from_now, end_date: 13.days.from_now)
+    end
+    let(:event_b) do
+      create(:event, slug: 'tabara-2026', start_date: 20.days.from_now, end_date: 23.days.from_now)
+    end
+
+    def post_check(slugs)
+      post '/api/v1/auth/me/bookings/check',
+           params: { slugs: slugs }.to_json,
+           headers: auth_headers
+    end
+
+    context 'with a paid booking' do
+      before do
+        order = create(:order)
+        create(:attendee, event: event_a, order: order, user: user, payment_status: :paid)
+      end
+
+      it 'returns has_booking true with the order_reference' do
+        post_check(['conf-2026'])
+        expect(response).to have_http_status(:ok)
+        expect(json['conf-2026']['has_booking']).to be true
+        expect(json['conf-2026']['order_reference']).to match(/\ACT-\d{4}-\d{5}\z/)
+      end
+    end
+
+    context 'with a payment_pending booking' do
+      before do
+        order = create(:order)
+        create(:attendee, event: event_a, order: order, user: user, payment_status: :payment_pending)
+      end
+
+      it 'returns has_booking true' do
+        post_check(['conf-2026'])
+        expect(json['conf-2026']['has_booking']).to be true
+      end
+    end
+
+    context 'with a refunded booking' do
+      before do
+        order = create(:order)
+        create(:attendee, event: event_a, order: order, user: user, payment_status: :refunded)
+      end
+
+      it 'returns has_booking false' do
+        post_check(['conf-2026'])
+        expect(json['conf-2026']['has_booking']).to be false
+        expect(json['conf-2026']['order_reference']).to be_nil
+      end
+    end
+
+    context 'with no booking for the event' do
+      it 'returns has_booking false' do
+        post_check(['conf-2026'])
+        expect(json['conf-2026']['has_booking']).to be false
+        expect(json['conf-2026']['order_reference']).to be_nil
+      end
+    end
+
+    context 'with an unknown slug' do
+      it 'returns has_booking false for unknown slugs' do
+        post_check(['does-not-exist'])
+        expect(json['does-not-exist']['has_booking']).to be false
+        expect(json['does-not-exist']['order_reference']).to be_nil
+      end
+    end
+
+    context 'with multiple slugs' do
+      before do
+        order = create(:order)
+        create(:attendee, event: event_a, order: order, user: user, payment_status: :paid)
+      end
+
+      it 'returns correct result for each slug in one call' do
+        post_check(%w[conf-2026 tabara-2026])
+        expect(json['conf-2026']['has_booking']).to be true
+        expect(json['tabara-2026']['has_booking']).to be false
+      end
+    end
+
+    context 'with missing slugs param' do
+      it 'returns 422' do
+        post '/api/v1/auth/me/bookings/check',
+             params: {}.to_json,
+             headers: auth_headers
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(json['error']).to eq(I18n.t('auth.errors.slugs_required'))
+      end
+    end
+
+    context 'with no JWT' do
+      it 'returns 401' do
+        post '/api/v1/auth/me/bookings/check',
+             params: { slugs: ['conf-2026'] }.to_json,
+             headers: { 'Content-Type' => 'application/json' }
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
 end

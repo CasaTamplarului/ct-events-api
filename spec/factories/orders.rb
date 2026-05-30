@@ -2,6 +2,6 @@
 
 FactoryBot.define do
   factory :order do
-    order_reference { "CT-#{Time.zone.now.year}-00001" }
+    sequence(:order_reference) { |n| "CT-#{Time.zone.now.year}-#{n.to_s.rjust(5, '0')}" }
   end
 end

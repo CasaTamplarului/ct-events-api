@@ -24,6 +24,7 @@ ro:
       passkey_verification_failed: "Verificarea passkey a eșuat"
       passkey_not_found: "Passkey negăsit"
       passkey_already_registered: "Passkey deja înregistrat"
+      slugs_required: "slugs este obligatoriu"
     messages:
       reset_link_sent: "Dacă acel email este înregistrat, un link de resetare a fost trimis."
   activerecord:

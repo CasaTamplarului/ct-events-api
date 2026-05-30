@@ -55,6 +55,7 @@ en:
       passkey_verification_failed: "Passkey verification failed"
       passkey_not_found: "Passkey not found"
       passkey_already_registered: "Passkey already registered"
+      slugs_required: "slugs is required"
     messages:
       reset_link_sent: "If that email is registered, a reset link has been sent."
   activerecord:

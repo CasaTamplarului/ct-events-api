@@ -27,6 +27,32 @@ module Api
             render json: serialise_orders(orders)
           end
 
+          def check
+            slugs = params[:slugs]
+            if slugs.blank?
+              render json: { error: I18n.t('auth.errors.slugs_required') },
+                     status: :unprocessable_content
+              return
+            end
+
+            slugs = slugs.first(50)
+            result = slugs.index_with { { has_booking: false, order_reference: nil } }
+
+            Attendee
+              .joins(:event, :order)
+              .where(user_id: current_user.id)
+              .where(payment_status: %i[paid payment_pending])
+              .where(events: { slug: slugs })
+              .select('events.slug AS event_slug, orders.order_reference')
+              .each do |row|
+                next if result[row.event_slug][:has_booking]
+
+                result[row.event_slug] = { has_booking: true, order_reference: row.order_reference }
+              end
+
+            render json: result
+          end
+
           private
 
             def orders_for_user_scoped_to(where_clause:, sort:)
