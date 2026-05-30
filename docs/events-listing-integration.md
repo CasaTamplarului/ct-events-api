@@ -70,14 +70,19 @@ GET /api/v1/:lang/events/upcoming   → up to 10 events, start_date ASC
 GET /api/v1/:lang/events/past       → up to 10 events, start_date DESC
 ```
 
-The past endpoint omits pricing information (`starts_from` and `tickets` are `null`).
+Events with a start date in the past have `is_past: true` and omit booking/pricing fields — see the Event Object section for details.
 
 ---
 
 ## Event Object
 
+Every event object — regardless of which endpoint returned it — always includes `is_past`.
+
+**Upcoming event (`is_past: false`):**
+
 ```json
 {
+  "is_past": false,
   "name": "Conferința 2026",
   "tag_line": "O conferință pentru toți",
   "description": "Descriere completă a evenimentului.",
@@ -86,7 +91,7 @@ The past endpoint omits pricing information (`starts_from` and `tickets` are `nu
   "end_date": "2026-06-20T18:00:00.000Z",
   "location_name": "Casa Tâmplarului",
   "address": "Str. Exemplu 1, Cluj-Napoca",
-  "embed_url": "https://...",
+  "embed_url": null,
   "fully_booked": false,
   "starts_from": "150.0",
   "hero_image": "https://cdn.directus.io/...",
@@ -96,8 +101,34 @@ The past endpoint omits pricing information (`starts_from` and `tickets` are `nu
 }
 ```
 
+**Past event (`is_past: true`):**
+
+```json
+{
+  "is_past": true,
+  "name": "Conferința 2025",
+  "tag_line": "...",
+  "description": "...",
+  "slug": "conferinta-2025",
+  "start_date": "2025-06-18T10:00:00.000Z",
+  "end_date": "2025-06-20T18:00:00.000Z",
+  "location_name": "Casa Tâmplarului",
+  "address": "...",
+  "embed_url": null,
+  "fully_booked": null,
+  "starts_from": null,
+  "hero_image": "https://cdn.directus.io/...",
+  "hero_portrait": "https://cdn.directus.io/...",
+  "gallery_preview": "https://cdn.directus.io/...",
+  "tickets": null
+}
+```
+
+### Field reference
+
 | Field | Type | Notes |
 |-------|------|-------|
+| `is_past` | boolean | `true` when `start_date` is in the past. Use this to decide what UI to show — do not compute it from `start_date` on the client |
 | `name` | string | Translated to the requested language |
 | `tag_line` | string | Translated |
 | `description` | string \| null | Translated |
@@ -107,14 +138,16 @@ The past endpoint omits pricing information (`starts_from` and `tickets` are `nu
 | `location_name` | string \| null | |
 | `address` | string \| null | |
 | `embed_url` | string \| null | External embed, e.g. livestream |
-| `fully_booked` | boolean | True when capacity is reached |
-| `starts_from` | string (decimal) \| null | Minimum ticket price. `null` on the past endpoint and when there are no tickets. `"0.0"` for free events. |
+| `fully_booked` | boolean \| null | `null` when `is_past: true` |
+| `starts_from` | string (decimal) \| null | Minimum ticket price. `null` when `is_past: true` or when there are no tickets. `"0.0"` for free events |
 | `hero_image` | URL \| null | Landscape image for card/banner |
 | `hero_portrait` | URL \| null | Portrait image |
 | `gallery_preview` | URL \| null | First gallery image |
-| `tickets` | array \| null | Null on the past endpoint |
+| `tickets` | array \| null | `null` when `is_past: true` |
 
 ### Ticket Object
+
+Only present when `is_past: false` and the event has tickets.
 
 ```json
 {
@@ -131,7 +164,7 @@ The past endpoint omits pricing information (`starts_from` and `tickets` are `nu
 | `id` | integer | |
 | `name` | string | Translated |
 | `description` | string \| null | Translated |
-| `price` | string (decimal) \| null | Null on the past endpoint |
+| `price` | string (decimal) | |
 | `food_included` | boolean | |
 
 ---
@@ -168,4 +201,42 @@ GET /api/v1/ro-RO/events/upcoming
 - Show a "no results" state when `meta.total_count === 0`.
 - Disable the "next page" button when `meta.current_page === meta.total_pages`.
 - Use `slug` to build the event detail link, e.g. `/events/conferinta-2026`.
-- `starts_from === null` → no pricing badge. `starts_from === "0.0"` → "Free" badge. Otherwise show the formatted price.
+
+### Rendering past vs upcoming cards
+
+Use `is_past` as the single source of truth for what to show on a card:
+
+```ts
+if (event.is_past) {
+  // Show: name, dates, image, description, location
+  // Hide: ticket list, pricing badge, "Book now" / "Fully booked" button
+} else {
+  // Show everything, including booking UI
+}
+```
+
+**Pricing badge logic (upcoming events only):**
+
+```ts
+if (!event.is_past) {
+  if (event.starts_from === null) {
+    // No tickets — hide pricing badge
+  } else if (event.starts_from === "0.0") {
+    // Show "Free" badge
+  } else {
+    // Show formatted price, e.g. "From 150 RON"
+  }
+}
+```
+
+**Booking button:**
+
+```ts
+if (!event.is_past) {
+  if (event.fully_booked) {
+    // Show disabled "Fully booked" button
+  } else {
+    // Show "Book now" button → link to event detail page
+  }
+}
+```
