@@ -14,6 +14,7 @@ Rails.application.routes.draw do
         resource :apple,     only: :create
         resource :me, only: %i[show update destroy], controller: 'me' do
           patch :password, on: :member
+          resource :email_preferences, only: :update, controller: 'me/email_preferences'
         end
         scope '/me/bookings' do
           get  :upcoming, to: 'me/bookings#upcoming'
@@ -35,6 +36,8 @@ Rails.application.routes.draw do
           delete ':id',                to: 'passkeys#destroy', as: 'passkey'
         end
       end
+
+      get '/unsubscribe', to: 'unsubscribe#show'
 
       scope '/:languages_code', constraints: { languages_code: /[a-zA-Z]{2}-[a-zA-Z]{2}/ } do
         # Events
