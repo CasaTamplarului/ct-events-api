@@ -19,8 +19,9 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
     order = create(:order)
     ticket = nil
     if with_ticket
-      ticket = create(:ticket, event: event)
-      create(:tickets_translation, tickets_id: ticket.id, languages_code: 'ro-RO', name: 'Adult')
+      ticket = create(:ticket, event: event, price: 150, food_included: true)
+      create(:tickets_translation, tickets_id: ticket.id, languages_code: 'ro-RO', name: 'Adult',
+                                   description: 'Includes all meals')
     end
     attendee = create(:attendee, event: event, order: order, user: user,
                                  payment_status: payment_status, ticket: ticket)
@@ -120,7 +121,7 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
         expect(json.first['event']['name']).to eq('Conferința Test')
       end
 
-      it 'includes attendee fields with ticket_name' do # rubocop:disable RSpec/ExampleLength
+      it 'includes attendee fields with ticket details' do # rubocop:disable RSpec/ExampleLength,RSpec/MultipleExpectations
         booking = create_booking(user: user, start_date: 10.days.from_now,
                                  end_date: 13.days.from_now, with_ticket: true)
 
@@ -130,6 +131,9 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
         expect(a['first_name']).to eq(booking[:attendee].first_name)
         expect(a['last_name']).to eq(booking[:attendee].last_name)
         expect(a['ticket_name']).to eq('Adult')
+        expect(a['ticket_description']).to eq('Includes all meals')
+        expect(a['ticket_price']).to eq('150.0')
+        expect(a['food_included']).to be(true)
         expect(a['dietary_preference']).to eq('no_preference')
       end
 

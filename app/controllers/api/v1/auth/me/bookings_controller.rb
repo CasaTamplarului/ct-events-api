@@ -111,24 +111,24 @@ module Api
             end
 
             def serialise_attendee(attendee, lang)
+              translation = ticket_translation_for(attendee, lang)
               {
                 first_name: attendee.first_name,
                 last_name: attendee.last_name,
-                ticket_name: ticket_name_for(attendee, lang),
+                ticket_name: translation&.name,
+                ticket_description: translation&.description,
+                ticket_price: attendee.ticket&.price,
+                food_included: attendee.ticket&.food_included,
                 dietary_preference: attendee.dietary_preference
               }
             end
 
-            def ticket_name_for(attendee, lang)
-              ticket = attendee.ticket
-              return nil if ticket.nil?
+            def ticket_translation_for(attendee, lang)
+              translations = attendee.ticket&.tickets_translations
+              return nil if translations.nil?
 
-              translation_name(ticket.tickets_translations, lang)
-            end
-
-            def translation_name(translations, lang)
-              translations.find { |t| t.languages_code == lang }&.name ||
-                translations.find { |t| t.languages_code == 'ro-RO' }&.name
+              translations.find { |t| t.languages_code == lang } ||
+                translations.find { |t| t.languages_code == 'ro-RO' }
             end
         end
       end
