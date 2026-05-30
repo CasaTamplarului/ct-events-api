@@ -22,6 +22,7 @@ module Api
             return
           end
 
+          Attendee.backfill_user(email: user.email, user_id: user.id)
           jwt = JwtService.encode(user.id)
           render json: { jwt: jwt, user: user_json(user) }, status: :ok
         end

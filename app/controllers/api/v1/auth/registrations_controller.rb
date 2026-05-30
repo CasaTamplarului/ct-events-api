@@ -45,7 +45,7 @@ module Api
               )
               user.user_identities.create!(provider: 'email', uid: user.email)
               # rubocop:disable Rails/SkipsModelValidations
-              Attendee.where(email_address: user.email).update_all(user_id: user.id)
+              Attendee.backfill_user(email: user.email, user_id: user.id)
               # rubocop:enable Rails/SkipsModelValidations
               user
             end

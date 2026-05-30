@@ -77,7 +77,8 @@ module Api
           passkey.update!(sign_count: webauthn_credential.sign_count)
 
           user = passkey.user
-          jwt  = JwtService.encode(user.id)
+          Attendee.backfill_user(email: user.email, user_id: user.id) if user.email.present?
+          jwt = JwtService.encode(user.id)
           render json: { jwt: jwt, user: user_json(user) }
         rescue ActiveRecord::RecordNotFound
           render json: { error: I18n.t('auth.errors.passkey_not_found') }, status: :not_found

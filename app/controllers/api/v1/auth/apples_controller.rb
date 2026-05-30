@@ -46,7 +46,7 @@ module Api
               ActiveRecord::Base.transaction do
                 user.user_identities.create!(provider: 'apple', uid: apple_data[:uid])
                 # rubocop:disable Rails/SkipsModelValidations
-                Attendee.where(email_address: apple_data[:email]).update_all(user_id: user.id)
+                Attendee.backfill_user(email: apple_data[:email], user_id: user.id)
                 # rubocop:enable Rails/SkipsModelValidations
               end
               return user
@@ -60,7 +60,7 @@ module Api
               )
               user.user_identities.create!(provider: 'apple', uid: apple_data[:uid])
               # rubocop:disable Rails/SkipsModelValidations
-              Attendee.where(email_address: apple_data[:email]).update_all(user_id: user.id)
+              Attendee.backfill_user(email: apple_data[:email], user_id: user.id)
               # rubocop:enable Rails/SkipsModelValidations
               user
             end
