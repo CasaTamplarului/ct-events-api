@@ -29,6 +29,11 @@ module Api
           end
         end
 
+        def destroy
+          UserDeletionService.call(current_user)
+          head :no_content
+        end
+
         def password
           unless email_identity?
             render json: { error: I18n.t('auth.errors.password_not_changeable_google') }, status: :unprocessable_content

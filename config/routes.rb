@@ -12,7 +12,7 @@ Rails.application.routes.draw do
         resource :google,    only: :create
         resource :microsoft, only: :create
         resource :apple,     only: :create
-        resource :me, only: %i[show update], controller: 'me' do
+        resource :me, only: %i[show update destroy], controller: 'me' do
           patch :password, on: :member
         end
         resource :registration, only: :create

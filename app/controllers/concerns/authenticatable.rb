@@ -12,7 +12,7 @@ module Authenticatable
     return render json: { error: I18n.t('auth.errors.unauthorized') }, status: :unauthorized if token.blank?
 
     user_id = JwtService.decode(token)
-    @current_user = User.find_by(id: user_id)
+    @current_user = User.active.find_by(id: user_id)
     render json: { error: I18n.t('auth.errors.unauthorized') }, status: :unauthorized unless @current_user
   rescue JWT::DecodeError
     render json: { error: I18n.t('auth.errors.unauthorized') }, status: :unauthorized

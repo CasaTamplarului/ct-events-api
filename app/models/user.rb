@@ -9,6 +9,8 @@ class User < ApplicationRecord
 
   normalizes :email, with: ->(e) { e&.strip&.downcase }
 
+  scope :active, -> { where(deleted_at: nil) }
+
   validates :first_name, presence: true
   validates :email, uniqueness: { allow_nil: true },
                     format: { with: URI::MailTo::EMAIL_REGEXP }, allow_nil: true

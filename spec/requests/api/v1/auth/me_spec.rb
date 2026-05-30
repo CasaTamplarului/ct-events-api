@@ -152,6 +152,58 @@ RSpec.describe 'Auth::Me endpoints' do
     end
   end
 
+  # ── DELETE /api/v1/auth/me ───────────────────────────────────────────────────
+
+  describe 'DELETE /api/v1/auth/me' do
+    def delete_me(headers: { 'Authorization' => "Bearer #{token}" })
+      delete '/api/v1/auth/me',
+             headers: { 'Content-Type' => 'application/json' }.merge(headers)
+    end
+
+    context 'with a valid JWT' do
+      it 'returns 204' do
+        delete_me
+        expect(response).to have_http_status(:no_content)
+      end
+
+      it 'stamps deleted_at on the user' do
+        delete_me
+        expect(user.reload.deleted_at).to be_present
+      end
+
+      it 'sets first_name to "Deleted"' do
+        delete_me
+        expect(user.reload.first_name).to eq('Deleted')
+      end
+
+      it 'clears the email' do
+        delete_me
+        expect(user.reload.email).to be_nil
+      end
+    end
+
+    context 'when reusing the same JWT after deletion' do
+      before { delete_me }
+
+      it 'returns 401 on GET /api/v1/auth/me' do
+        get_me(headers: { 'Authorization' => "Bearer #{token}" })
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      it 'returns 401 on a second DELETE /api/v1/auth/me' do
+        delete_me
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'with no Authorization header' do
+      it 'returns 401' do
+        delete_me(headers: {})
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
+
   # ── PATCH /api/v1/auth/me/password ───────────────────────────────────────────
 
   describe 'PATCH /api/v1/auth/me/password' do
