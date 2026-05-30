@@ -63,4 +63,60 @@ RSpec.describe User do
       expect(user.event_update_emails).to be false
     end
   end
+
+  describe 'role' do
+    describe 'default' do
+      it 'defaults to attendee' do
+        user = create(:user)
+        expect(user.reload.role).to eq('attendee')
+      end
+    end
+
+    describe 'validation' do
+      it 'is valid with attendee role' do
+        expect(build(:user, role: 'attendee')).to be_valid
+      end
+
+      it 'is valid with volunteer role' do
+        expect(build(:user, role: 'volunteer')).to be_valid
+      end
+
+      it 'is valid with admin role' do
+        expect(build(:user, role: 'admin')).to be_valid
+      end
+
+      it 'is invalid with an unknown role' do
+        user = build(:user, role: 'superuser')
+        expect(user).not_to be_valid
+        expect(user.errors[:role]).to be_present
+      end
+    end
+
+    describe '#can?' do
+      context 'admin role' do
+        let(:user) { build(:user, role: 'admin') }
+
+        it { expect(user.can?(:can_check_in_attendees)).to be true }
+        it { expect(user.can?(:can_scan_food_stamp)).to be true }
+      end
+
+      context 'volunteer role' do
+        let(:user) { build(:user, role: 'volunteer') }
+
+        it { expect(user.can?(:can_check_in_attendees)).to be true }
+        it { expect(user.can?(:can_scan_food_stamp)).to be true }
+      end
+
+      context 'attendee role' do
+        let(:user) { build(:user, role: 'attendee') }
+
+        it { expect(user.can?(:can_check_in_attendees)).to be false }
+        it { expect(user.can?(:can_scan_food_stamp)).to be false }
+      end
+
+      it 'returns false for an unknown permission' do
+        expect(build(:user, role: 'admin').can?(:fly_to_moon)).to be false
+      end
+    end
+  end
 end
