@@ -4,12 +4,12 @@ require 'rails_helper'
 
 RSpec.describe 'POST /api/v1/:lang/orders' do
   let(:language_code) { 'ro-RO' }
-  let!(:language) { Language.find_or_create_by!(code: language_code) { |l| l.name = 'Romanian' } }
+  let(:language) { Language.find_or_create_by!(code: language_code) { |l| l.name = 'Romanian' } }
 
   let(:event) { create(:event, status: :live, slug: 'tabara-impact-2026', max_number_of_people: 10) }
   let(:ticket) { create(:ticket, event: event, price: 350) }
-  let!(:ticket_translation) { create(:tickets_translation, tickets_id: ticket.id, languages_code: language_code, name: 'Standard') }
-  let!(:event_translation) { create(:events_translation, event: event, languages_code: language_code, name: 'Tabara Impact') }
+  let(:ticket_translation) { create(:tickets_translation, tickets_id: ticket.id, languages_code: language_code, name: 'Standard') }
+  let(:event_translation) { create(:events_translation, event: event, languages_code: language_code, name: 'Tabara Impact') }
 
   let(:valid_item) do
     {
@@ -22,6 +22,14 @@ RSpec.describe 'POST /api/v1/:lang/orders' do
         phone_number: '0722000000'
       }
     }
+  end
+
+  before do
+    language
+    ticket_translation
+    event_translation
+    stub_request(:post, 'https://api.sendgrid.com/v3/mail/send')
+      .to_return(status: 202, body: '', headers: {})
   end
 
   def post_order(items)
@@ -122,6 +130,20 @@ RSpec.describe 'POST /api/v1/:lang/orders' do
 
       expect(response).to have_http_status(:unprocessable_entity)
       expect(json['error']).to be_present
+    end
+  end
+
+  context 'when order is created successfully — email' do
+    it 'sends a booking confirmation email' do
+      post_order([valid_item])
+
+      expect(WebMock).to have_requested(:post, 'https://api.sendgrid.com/v3/mail/send').once
+    end
+
+    it 'still creates the order if email fails' do
+      stub_request(:post, 'https://api.sendgrid.com/v3/mail/send').to_raise(SocketError)
+      expect { post_order([valid_item]) }.to change(Order, :count).by(1)
+      expect(response).to have_http_status(:created)
     end
   end
 end
