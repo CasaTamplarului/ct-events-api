@@ -5,6 +5,7 @@ class Attendee < ApplicationRecord
   belongs_to :user, optional: true
   belongs_to :order, optional: true
   belongs_to :ticket, optional: true
+  belongs_to :checked_in_by, class_name: 'User', foreign_key: :checked_in_by_user_id, optional: true
 
   enum :dietary_preference, { no_preference: 0, vegetarian: 1, vegan: 2 }
 

@@ -10,12 +10,15 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_30_222445) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_30_223013) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
 
   create_table "attendees", force: :cascade do |t|
+    t.boolean "checked_in", default: false, null: false
+    t.datetime "checked_in_at"
+    t.bigint "checked_in_by_user_id"
     t.string "church_name"
     t.string "city"
     t.datetime "created_at", default: -> { "now()" }, null: false
@@ -29,6 +32,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_30_222445) do
     t.bigint "ticket_id"
     t.datetime "updated_at", default: -> { "now()" }, null: false
     t.bigint "user_id"
+    t.index ["checked_in_by_user_id"], name: "index_attendees_on_checked_in_by_user_id"
     t.index ["event_id"], name: "index_attendees_on_event_id"
     t.index ["order_id"], name: "index_attendees_on_order_id"
     t.index ["ticket_id"], name: "index_attendees_on_ticket_id"
@@ -568,6 +572,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_30_222445) do
   add_foreign_key "attendees", "orders"
   add_foreign_key "attendees", "tickets"
   add_foreign_key "attendees", "users"
+  add_foreign_key "attendees", "users", column: "checked_in_by_user_id"
   add_foreign_key "directus_access", "directus_policies", column: "policy", name: "directus_access_policy_foreign", on_delete: :cascade
   add_foreign_key "directus_access", "directus_roles", column: "role", name: "directus_access_role_foreign", on_delete: :cascade
   add_foreign_key "directus_access", "directus_users", column: "user", name: "directus_access_user_foreign", on_delete: :cascade
