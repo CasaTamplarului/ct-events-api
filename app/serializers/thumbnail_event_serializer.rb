@@ -16,12 +16,16 @@ class ThumbnailEventSerializer < ApplicationSerializer
   end
 
   attribute :fully_booked, &:fully_booked?
-  attribute :starts_from, &:starts_from
+
+  attribute :starts_from do |object|
+    params[:show_price] == false ? nil : object.starts_from
+  end
 
   attribute :tickets do |object|
     return nil unless object.tickets
 
-    TicketSerializer.new(object.tickets, params: { languages_code: params[:languages_code] })
+    TicketSerializer.new(object.tickets,
+                         params: { languages_code: params[:languages_code], show_price: params[:show_price] })
   end
 
   attribute :slug, &:slug

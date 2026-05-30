@@ -8,7 +8,9 @@ module Api
           events = Event.past.limit(6)
 
           render json:
-            ThumbnailEventSerializer.new(events, params: { languages_code: params[:languages_code] }).serialize,
+            ThumbnailEventSerializer.new(events,
+                                         params: { languages_code: params[:languages_code],
+                                                   show_price: false }).serialize,
                  status: :ok
         end
       end
