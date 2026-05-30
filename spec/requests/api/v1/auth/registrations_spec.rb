@@ -68,6 +68,30 @@ RSpec.describe 'POST /api/v1/auth/registration' do
 
       expect(User.find_by(email: 'ion@example.com').language).to eq('ro-RO')
     end
+
+    context 'with marketing_emails: true' do
+      it 'creates the user with marketing_emails enabled' do
+        post_registration(valid_params.merge(marketing_emails: true))
+
+        user = User.find_by(email: 'ion@example.com')
+        expect(user.marketing_emails).to be true
+      end
+
+      it 'returns marketing_emails: true in the response email_preferences' do
+        post_registration(valid_params.merge(marketing_emails: true))
+
+        expect(json['user']['email_preferences']['marketing_emails']).to be true
+      end
+    end
+
+    context 'without marketing_emails param' do
+      it 'defaults marketing_emails to false' do
+        post_registration(valid_params)
+
+        user = User.find_by(email: 'ion@example.com')
+        expect(user.marketing_emails).to be false
+      end
+    end
   end
 
   context 'with an existing attendee matching the registration email' do

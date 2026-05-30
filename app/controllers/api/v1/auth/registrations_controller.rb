@@ -41,12 +41,11 @@ module Api
                 phone_number: params[:phone_number].presence,
                 church_name: params[:church_name].presence,
                 city: params[:city].presence,
-                language: params[:language].presence
+                language: params[:language].presence,
+                marketing_emails: params.fetch(:marketing_emails, false) == true
               )
               user.user_identities.create!(provider: 'email', uid: user.email)
-              # rubocop:disable Rails/SkipsModelValidations
               Attendee.backfill_user(email: user.email, user_id: user.id)
-              # rubocop:enable Rails/SkipsModelValidations
               user
             end
           end
