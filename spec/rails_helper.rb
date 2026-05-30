@@ -24,6 +24,7 @@ RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
   config.include RequestSpecHelper, type: :request
   config.after do
+    I18n.locale = I18n.default_locale
     Faker::UniqueGenerator.clear
     DatabaseCleaner.clean
   end
