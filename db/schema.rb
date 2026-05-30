@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_29_193530) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_30_100820) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -543,6 +543,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_29_193530) do
     t.string "church_name"
     t.string "city"
     t.datetime "created_at", default: -> { "now()" }, null: false
+    t.datetime "deleted_at"
     t.string "email"
     t.string "first_name", null: false
     t.string "language"
@@ -552,6 +553,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_29_193530) do
     t.datetime "password_reset_token_expires_at"
     t.string "phone_number"
     t.datetime "updated_at", default: -> { "now()" }, null: false
+    t.index ["deleted_at"], name: "index_users_on_deleted_at"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["password_reset_token"], name: "index_users_on_password_reset_token", unique: true
   end
