@@ -4,7 +4,7 @@ require 'rqrcode'
 
 class SendgridService
   RESET_PASSWORD_TEMPLATE_ID       = 'd-952a77f57d9f410597cfa1cf84260cef'
-  BOOKING_CONFIRMATION_TEMPLATE_ID = 'd-PLACEHOLDER'
+  BOOKING_CONFIRMATION_TEMPLATE_ID = 'd-0276cfb6a8b54df996962912bb01cd71'
 
   def self.send_password_reset(user:, reset_url:)
     mail = SendGrid::Mail.new
@@ -99,14 +99,15 @@ class SendgridService
       end
 
       def attendee_data(attendee, lang) # rubocop:disable Metrics/CyclomaticComplexity
-        ticket_name = attendee.ticket&.tickets_translations
-                              &.find { |t| t.languages_code == lang }&.name ||
-                      attendee.ticket&.tickets_translations
-                              &.find { |t| t.languages_code == 'ro-RO' }&.name
+        translation = attendee.ticket&.tickets_translations&.find { |t| t.languages_code == lang } ||
+                      attendee.ticket&.tickets_translations&.find { |t| t.languages_code == 'ro-RO' }
         {
           'first_name' => attendee.first_name,
           'last_name' => attendee.last_name,
-          'ticket_name' => ticket_name
+          'ticket_name' => translation&.name,
+          'ticket_description' => translation&.description,
+          'ticket_price' => attendee.ticket&.price,
+          'food_included' => attendee.ticket&.food_included
         }
       end
   end

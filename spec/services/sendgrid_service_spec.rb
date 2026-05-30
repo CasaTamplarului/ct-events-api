@@ -65,13 +65,14 @@ RSpec.describe SendgridService do
              end_date: Time.zone.parse('2026-06-20 18:00:00'),
              location_name: 'Casa Tâmplarului')
     end
-    let(:ticket) { create(:ticket, event: event) }
+    let(:ticket) { create(:ticket, event: event, price: 150, food_included: true) }
     let(:order) { create(:order) }
 
     before do
       Language.find_or_create_by!(code: language_code) { |l| l.name = 'Romanian' }
       create(:events_translation, event: event, languages_code: 'ro-RO', name: 'Conferința 2026')
-      create(:tickets_translation, tickets_id: ticket.id, languages_code: 'ro-RO', name: 'Adult')
+      create(:tickets_translation, tickets_id: ticket.id, languages_code: 'ro-RO', name: 'Adult',
+                                   description: 'Includes all meals')
       stub_request(:post, 'https://api.sendgrid.com/v3/mail/send')
         .to_return(status: 202, body: '', headers: {})
     end
@@ -139,14 +140,17 @@ RSpec.describe SendgridService do
         expect(dtd['event_location']).to eq('Casa Tâmplarului')
       end
 
-      it 'includes attendee first_name, last_name, and ticket_name' do # rubocop:disable RSpec/ExampleLength
+      it 'includes attendee first_name, last_name, ticket_name, description, price, and food_included' do # rubocop:disable RSpec/ExampleLength
         described_class.send_booking_confirmation(order: order, language: language_code)
         attendees_data = JSON.parse(WebMock::RequestRegistry.instance.requested_signatures.hash.keys.last.body)
                              .dig('personalizations', 0, 'dynamic_template_data', 'attendees')
         expect(attendees_data.first).to include(
           'first_name' => 'Ion',
           'last_name' => 'Popescu',
-          'ticket_name' => 'Adult'
+          'ticket_name' => 'Adult',
+          'ticket_description' => 'Includes all meals',
+          'ticket_price' => '150.0',
+          'food_included' => true
         )
       end
 
