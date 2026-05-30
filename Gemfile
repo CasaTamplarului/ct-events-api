@@ -26,6 +26,7 @@ gem 'webauthn', '~> 3.0'
 
 # Email
 gem 'sendgrid-ruby'
+gem 'rqrcode'
 
 # Rate limiting
 gem 'rack-attack', '~> 6.7'
