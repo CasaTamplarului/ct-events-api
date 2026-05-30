@@ -14,7 +14,10 @@ class EmailUnsubscribeTokenService
   def self.generate(user:, type:)
     raise ArgumentError, "Unknown preference type: #{type}" unless PREFERENCE_COLUMNS.include?(type.to_s)
 
-    Rails.application.message_verifier(VERIFIER_SALT).generate({ user_id: user.id, type: type.to_s })
+    Rails.application.message_verifier(VERIFIER_SALT).generate(
+      { user_id: user.id, type: type.to_s },
+      expires_in: 90.days
+    )
   end
 
   def self.verify(token)
@@ -23,7 +26,7 @@ class EmailUnsubscribeTokenService
     data = Rails.application.message_verifier(VERIFIER_SALT).verify(token)
     return nil unless PREFERENCE_COLUMNS.include?(data['type'])
 
-    # Convert string keys to symbols for Rails 8+ compatibility
+    # MessageVerifier deserializes as string-keyed Hash; normalize to symbols for callers
     { user_id: data['user_id'], type: data['type'] }
   rescue ActiveSupport::MessageVerifier::InvalidSignature
     nil
