@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_30_100820) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_30_202642) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -545,12 +545,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_30_100820) do
     t.datetime "created_at", default: -> { "now()" }, null: false
     t.datetime "deleted_at"
     t.string "email"
+    t.boolean "event_reminder_emails", default: false, null: false
+    t.boolean "event_update_emails", default: false, null: false
     t.string "first_name", null: false
     t.string "language"
     t.string "last_name"
+    t.boolean "marketing_emails", default: false, null: false
     t.string "password_digest"
     t.string "password_reset_token"
     t.datetime "password_reset_token_expires_at"
+    t.boolean "payment_receipt_emails", default: false, null: false
+    t.boolean "payment_reminder_emails", default: false, null: false
     t.string "phone_number"
     t.datetime "updated_at", default: -> { "now()" }, null: false
     t.index ["deleted_at"], name: "index_users_on_deleted_at"
