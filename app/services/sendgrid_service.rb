@@ -80,6 +80,7 @@ class SendgridService
           'event_start_date' => event.start_date.strftime('%-d %B %Y'),
           'event_location' => event.location_name,
           'attendees' => group.map { |a| attendee_data(a, language) },
+          'total_price' => group.sum { |a| a.ticket&.price || 0 },
           'year' => Time.current.year.to_s
         )
         mail.add_personalization(personalization)
