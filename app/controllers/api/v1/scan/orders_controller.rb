@@ -49,7 +49,10 @@ module Api
               attrs = {}
 
               if entry.key?(:checked_in)
-                if ActiveModel::Type::Boolean.new.cast(entry[:checked_in])
+                checking_in = ActiveModel::Type::Boolean.new.cast(entry[:checked_in])
+                if checking_in && (attendee.attendee_cancelled? || attendee.refunded?)
+                  next
+                elsif checking_in
                   attrs.merge!(checked_in: true, checked_in_at: Time.current,
                                checked_in_by_user_id: current_user.id)
                 else
