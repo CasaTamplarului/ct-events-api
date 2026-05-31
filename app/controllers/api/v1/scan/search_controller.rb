@@ -76,7 +76,7 @@ module Api
 
           def search_by_order_ref(query)
             Order.where('order_reference ILIKE ?', "%#{query}%")
-                 .order(:order_reference)
+                 .order(created_at: :desc)
                  .limit(20)
           end
 
@@ -89,7 +89,7 @@ module Api
                    q: "%#{query}%"
                  )
                  .distinct
-                 .order(:order_reference)
+                 .order(created_at: :desc)
                  .limit(20)
           end
 
@@ -98,7 +98,7 @@ module Api
                  .where(events: { id: @event.id })
                  .where('attendees.email_address ILIKE ?', "%#{query}%")
                  .distinct
-                 .order(:order_reference)
+                 .order(created_at: :desc)
                  .limit(20)
           end
 
@@ -107,7 +107,7 @@ module Api
                  .where(events: { id: @event.id })
                  .where('attendees.phone_number ILIKE ?', "%#{query}%")
                  .distinct
-                 .order(:order_reference)
+                 .order(created_at: :desc)
                  .limit(20)
           end
       end
