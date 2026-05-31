@@ -20,6 +20,8 @@ Rails.application.routes.draw do
           get  :upcoming, to: 'me/bookings#upcoming'
           get  :past,     to: 'me/bookings#past'
           post :check,    to: 'me/bookings#check'
+          delete ':order_reference',                to: 'me/bookings#cancel_order',    as: 'cancel_booking'
+          delete ':order_reference/attendees/:id',  to: 'me/bookings#cancel_attendee', as: 'cancel_booking_attendee'
         end
         resource :registration, only: :create
         resource :session, only: :create

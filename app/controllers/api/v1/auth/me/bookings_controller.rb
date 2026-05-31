@@ -53,6 +53,51 @@ module Api
             render json: result
           end
 
+          def cancel_order
+            order = Order.find_by(order_reference: params[:order_reference])
+            return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless order
+
+            user_attendees = order.attendees.where(user_id: current_user.id)
+            return render json: { error: I18n.t('errors.not_found') }, status: :not_found if user_attendees.empty?
+
+            cancellable = user_attendees.where(payment_status: :payment_pending)
+            if cancellable.empty?
+              return render json: { error: I18n.t('bookings.errors.nothing_to_cancel') },
+                            status: :unprocessable_content
+            end
+
+            # rubocop:disable Rails/SkipsModelValidations
+            cancellable.update_all(payment_status: Attendee.payment_statuses['attendee_cancelled'])
+            # rubocop:enable Rails/SkipsModelValidations
+
+            attendees = order.attendees
+                             .includes({ ticket: :tickets_translations }, { event: :events_translations })
+                             .where(user_id: current_user.id)
+                             .to_a
+            render json: serialise_order(order, attendees)
+          end
+
+          def cancel_attendee
+            order = Order.find_by(order_reference: params[:order_reference])
+            return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless order
+
+            attendee = order.attendees.find_by(id: params[:id], user_id: current_user.id)
+            return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless attendee
+
+            unless attendee.payment_pending?
+              return render json: { error: I18n.t('bookings.errors.cannot_cancel') },
+                            status: :unprocessable_content
+            end
+
+            attendee.update!(payment_status: :attendee_cancelled)
+
+            attendees = order.attendees
+                             .includes({ ticket: :tickets_translations }, { event: :events_translations })
+                             .where(user_id: current_user.id)
+                             .to_a
+            render json: serialise_order(order, attendees)
+          end
+
           private
 
             def orders_for_user_scoped_to(where_clause:, sort:)

@@ -326,4 +326,124 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
       end
     end
   end
+
+  describe 'DELETE /api/v1/auth/me/bookings/:order_reference' do
+    let(:event) { create(:event, start_date: 10.days.from_now, end_date: 13.days.from_now) }
+    let!(:order) { create(:order) }
+    let!(:attendee) do
+      create(:attendee, event: event, order: order, user: user, payment_status: :payment_pending)
+    end
+
+    it 'returns 401 without a token' do
+      delete "/api/v1/auth/me/bookings/#{order.order_reference}"
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it 'returns 404 for unknown order reference' do
+      delete '/api/v1/auth/me/bookings/CT-2026-99999', headers: auth_headers
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 404 when the user has no attendees in the order' do
+      other_order = create(:order)
+      other_user = create(:user, first_name: 'Other', email: 'other@example.com')
+      create(:attendee, event: event, order: other_order, user: other_user)
+      delete "/api/v1/auth/me/bookings/#{other_order.order_reference}", headers: auth_headers
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 422 when all user attendees are already paid' do
+      attendee.update!(payment_status: :paid)
+      delete "/api/v1/auth/me/bookings/#{order.order_reference}", headers: auth_headers
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(json['error']).to eq(I18n.t('bookings.errors.nothing_to_cancel'))
+    end
+
+    it 'returns 422 when all user attendees are already cancelled' do
+      attendee.update!(payment_status: :attendee_cancelled)
+      delete "/api/v1/auth/me/bookings/#{order.order_reference}", headers: auth_headers
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    it 'cancels all payment_pending attendees and returns the updated booking' do
+      delete "/api/v1/auth/me/bookings/#{order.order_reference}", headers: auth_headers
+      expect(response).to have_http_status(:ok)
+      expect(attendee.reload.payment_status).to eq('attendee_cancelled')
+      expect(json['order_reference']).to eq(order.order_reference)
+      expect(json['payment_status']).to eq('attendee_cancelled')
+    end
+
+    it 'does not cancel attendees belonging to other users in the same order' do
+      other_user = create(:user, first_name: 'Other', email: 'other2@example.com')
+      other_attendee = create(:attendee, event: event, order: order, user: other_user,
+                                         payment_status: :payment_pending)
+      delete "/api/v1/auth/me/bookings/#{order.order_reference}", headers: auth_headers
+      expect(other_attendee.reload.payment_status).to eq('payment_pending')
+    end
+
+    it 'does not cancel paid attendees belonging to the current user' do
+      paid_attendee = create(:attendee, event: event, order: order, user: user,
+                                        payment_status: :paid)
+      delete "/api/v1/auth/me/bookings/#{order.order_reference}", headers: auth_headers
+      expect(paid_attendee.reload.payment_status).to eq('paid')
+    end
+  end
+
+  describe 'DELETE /api/v1/auth/me/bookings/:order_reference/attendees/:id' do
+    let(:event) { create(:event, start_date: 10.days.from_now, end_date: 13.days.from_now) }
+    let!(:order) { create(:order) }
+    let!(:attendee) do
+      create(:attendee, event: event, order: order, user: user, payment_status: :payment_pending)
+    end
+    let!(:other_attendee) do
+      create(:attendee, event: event, order: order, user: user, payment_status: :payment_pending)
+    end
+
+    it 'returns 401 without a token' do
+      delete "/api/v1/auth/me/bookings/#{order.order_reference}/attendees/#{attendee.id}"
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it 'returns 404 for unknown order reference' do
+      delete "/api/v1/auth/me/bookings/CT-2026-99999/attendees/#{attendee.id}", headers: auth_headers
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 404 when attendee belongs to another user' do
+      other_user = create(:user, first_name: 'Other', email: 'other3@example.com')
+      other_attendee_record = create(:attendee, event: event, order: order, user: other_user)
+      delete "/api/v1/auth/me/bookings/#{order.order_reference}/attendees/#{other_attendee_record.id}",
+             headers: auth_headers
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 422 when attendee is already paid' do
+      attendee.update!(payment_status: :paid)
+      delete "/api/v1/auth/me/bookings/#{order.order_reference}/attendees/#{attendee.id}",
+             headers: auth_headers
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(json['error']).to eq(I18n.t('bookings.errors.cannot_cancel'))
+    end
+
+    it 'returns 422 when attendee is already cancelled' do
+      attendee.update!(payment_status: :attendee_cancelled)
+      delete "/api/v1/auth/me/bookings/#{order.order_reference}/attendees/#{attendee.id}",
+             headers: auth_headers
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    it 'cancels the specific attendee and returns the updated booking' do
+      delete "/api/v1/auth/me/bookings/#{order.order_reference}/attendees/#{attendee.id}",
+             headers: auth_headers
+      expect(response).to have_http_status(:ok)
+      expect(attendee.reload.payment_status).to eq('attendee_cancelled')
+      expect(json['order_reference']).to eq(order.order_reference)
+    end
+
+    it 'does not affect other attendees in the same order' do
+      delete "/api/v1/auth/me/bookings/#{order.order_reference}/attendees/#{attendee.id}",
+             headers: auth_headers
+      expect(other_attendee.reload.payment_status).to eq('payment_pending')
+    end
+  end
 end
