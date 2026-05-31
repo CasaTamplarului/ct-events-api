@@ -37,7 +37,7 @@ module Api
           def prevent_self_checkin!
             return unless current_user.attendees.exists?(order: @order)
 
-            render json: { error: I18n.t('auth.errors.forbidden') }, status: :forbidden
+            render json: { error: I18n.t('scan.errors.self_checkin_forbidden') }, status: :forbidden
           end
 
           def update_attendee_checkins(update_params) # rubocop:disable Metrics/CyclomaticComplexity

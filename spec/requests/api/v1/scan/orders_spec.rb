@@ -268,14 +268,16 @@ RSpec.describe 'Scan Orders API' do
       context 'when the current user is an attendee in the order' do
         before { create(:attendee, event: event, order: order, user: admin) }
 
-        it 'returns 403 when trying to check in attendees' do
+        it 'returns 403 with a descriptive message when trying to check in attendees' do
           patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, checked_in: true }] })
           expect(response).to have_http_status(:forbidden)
+          expect(json['error']).to eq(I18n.t('scan.errors.self_checkin_forbidden'))
         end
 
-        it 'returns 403 when trying to update attendee payment status' do
+        it 'returns 403 with a descriptive message when trying to update attendee payment status' do
           patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, payment_status: 'paid' }] })
           expect(response).to have_http_status(:forbidden)
+          expect(json['error']).to eq(I18n.t('scan.errors.self_checkin_forbidden'))
         end
       end
     end

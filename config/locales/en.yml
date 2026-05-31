@@ -91,3 +91,6 @@ en:
     errors:
       nothing_to_cancel: "No cancellable attendees found for this order"
       cannot_cancel: "This attendee cannot be cancelled (payment already processed)"
+  scan:
+    errors:
+      self_checkin_forbidden: "You cannot check in an order you are part of"
