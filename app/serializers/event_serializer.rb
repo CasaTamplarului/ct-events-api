@@ -16,7 +16,9 @@ class EventSerializer < ApplicationSerializer
   end
 
   attribute :fully_booked, &:fully_booked?
-  attribute :starts_from, &:starts_from
+  attribute :starts_from do |object|
+    object.past? ? nil : object.starts_from
+  end
 
   attribute :tickets do |object|
     next nil if object.past? || object.tickets.empty?
