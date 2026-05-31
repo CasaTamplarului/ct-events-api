@@ -49,12 +49,10 @@ module Api
               attrs = {}
 
               if entry.key?(:checked_in)
-                checking_in = ActiveModel::Type::Boolean.new.cast(entry[:checked_in])
-                if checking_in && (attendee.attendee_cancelled? || attendee.refunded?)
-                  next
-                elsif checking_in
+                if ActiveModel::Type::Boolean.new.cast(entry[:checked_in])
                   attrs.merge!(checked_in: true, checked_in_at: Time.current,
                                checked_in_by_user_id: current_user.id)
+                  attrs[:payment_status] = :payment_pending if attendee.attendee_cancelled? || attendee.refunded?
                 else
                   attrs.merge!(checked_in: false, checked_in_at: nil, checked_in_by_user_id: nil)
                 end

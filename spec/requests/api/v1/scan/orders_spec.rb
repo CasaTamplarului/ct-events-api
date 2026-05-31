@@ -220,26 +220,22 @@ RSpec.describe 'Scan Orders API' do
         expect(other_attendee.reload.checked_in).to be false
       end
 
-      it 'silently skips check-in for a cancelled attendee' do
+      it 'checks in a cancelled attendee and resets their status to payment_pending' do
         first_attendee.update!(payment_status: :attendee_cancelled)
         patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, checked_in: true }] })
         expect(response).to have_http_status(:ok)
-        expect(first_attendee.reload.checked_in).to be false
+        first_attendee.reload
+        expect(first_attendee.checked_in).to be true
+        expect(first_attendee.payment_status).to eq('payment_pending')
       end
 
-      it 'silently skips check-in for a refunded attendee' do
+      it 'checks in a refunded attendee and resets their status to payment_pending' do
         first_attendee.update!(payment_status: :refunded)
         patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, checked_in: true }] })
         expect(response).to have_http_status(:ok)
-        expect(first_attendee.reload.checked_in).to be false
-      end
-
-      it 'still allows undo check-in for a cancelled attendee' do
-        first_attendee.update!(payment_status: :attendee_cancelled, checked_in: true,
-                               checked_in_at: Time.current, checked_in_by_user_id: admin.id)
-        patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, checked_in: false }] })
-        expect(response).to have_http_status(:ok)
-        expect(first_attendee.reload.checked_in).to be false
+        first_attendee.reload
+        expect(first_attendee.checked_in).to be true
+        expect(first_attendee.payment_status).to eq('payment_pending')
       end
     end
 
