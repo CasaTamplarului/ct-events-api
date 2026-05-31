@@ -101,30 +101,45 @@ module Api
           private
 
             def orders_for_user_scoped_to(where_clause:, sort:)
-              # Collect ordered, distinct order IDs via attendees (avoids DISTINCT + ORDER BY conflict)
+              # Include orders where user is a non-cancelled attendee OR where user created the order
               ordered_order_ids =
-                Attendee.joins(:event)
-                        .where(user_id: current_user.id)
-                        .where.not(payment_status: :attendee_cancelled)
-                        .where(where_clause, Time.current)
-                        .where(events: { status: Event.statuses[:live] })
-                        .order(sort)
-                        .pluck(:order_id)
-                        .uniq
+                Order.joins(attendees: :event)
+                     .where(events: { status: Event.statuses[:live] })
+                     .where(where_clause, Time.current)
+                     .where(
+                       'orders.user_id = :uid OR (attendees.user_id = :uid AND attendees.payment_status != :cancelled)',
+                       uid: current_user.id,
+                       cancelled: Attendee.payment_statuses[:attendee_cancelled]
+                     )
+                     .order(sort)
+                     .pluck('orders.id')
+                     .uniq
 
-              # Load and return orders preserving the correct sort order
               orders_by_id = Order.where(id: ordered_order_ids).index_by(&:id)
               ordered_order_ids.filter_map { |id| orders_by_id[id] }
             end
 
-            def serialise_orders(orders)
+            def serialise_orders(orders) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
               return [] if orders.empty?
 
-              order_ids = orders.map(&:id)
-              attendees_by_order = Attendee
-                                   .where(order_id: order_ids, user_id: current_user.id)
-                                   .includes({ ticket: :tickets_translations }, { event: :events_translations })
-                                   .group_by(&:order_id)
+              own_order_ids   = orders.select { |o| o.user_id == current_user.id }.map(&:id)
+              other_order_ids = orders.reject { |o| o.user_id == current_user.id }.map(&:id)
+
+              attendees_by_order = {}
+
+              if own_order_ids.any?
+                Attendee.where(order_id: own_order_ids)
+                        .includes({ ticket: :tickets_translations }, { event: :events_translations })
+                        .group_by(&:order_id)
+                        .each { |oid, atts| attendees_by_order[oid] = atts }
+              end
+
+              if other_order_ids.any?
+                Attendee.where(order_id: other_order_ids, user_id: current_user.id)
+                        .includes({ ticket: :tickets_translations }, { event: :events_translations })
+                        .group_by(&:order_id)
+                        .each { |oid, atts| attendees_by_order[oid] = atts }
+              end
 
               orders.filter_map { |order| serialise_order(order, attendees_by_order[order.id] || []) }
             end
@@ -162,6 +177,7 @@ module Api
               {
                 first_name: attendee.first_name,
                 last_name: attendee.last_name,
+                payment_status: attendee.payment_status,
                 ticket_name: translation&.name,
                 ticket_description: translation&.description,
                 ticket_price: attendee.ticket&.price,

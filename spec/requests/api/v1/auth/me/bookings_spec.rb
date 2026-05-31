@@ -139,6 +139,7 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
         a = json.first['attendees'].first
         expect(a['first_name']).to eq(booking[:attendee].first_name)
         expect(a['last_name']).to eq(booking[:attendee].last_name)
+        expect(a['payment_status']).to eq('paid')
         expect(a['ticket_name']).to eq('Adult')
         expect(a['ticket_description']).to eq('Includes all meals')
         expect(a['ticket_price']).to eq('150.0')
@@ -146,7 +147,7 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
         expect(a['dietary_preference']).to eq('no_preference')
       end
 
-      it 'only returns the current user attendees, not other users on the same order' do
+      it 'only returns the current user attendees when user did not create the order' do
         other_user = create(:user, email: 'other@example.com')
         event = create(:event, start_date: 10.days.from_now, end_date: 13.days.from_now)
         order = create(:order)
@@ -157,6 +158,32 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
 
         expect(json.first['attendees'].length).to eq(1)
         expect(json.first['attendees'].first['first_name']).to eq('Ion')
+      end
+
+      it 'returns all attendees when user created the order' do
+        other_user = create(:user, email: 'other@example.com')
+        event = create(:event, start_date: 10.days.from_now, end_date: 13.days.from_now)
+        create(:events_translation, event: event, languages_code: 'ro-RO', name: 'Conferința Test')
+        order = create(:order, user: user)
+        create(:attendee, event: event, order: order, user: user,       first_name: 'Ion')
+        create(:attendee, event: event, order: order, user: other_user, first_name: 'Maria')
+
+        get '/api/v1/auth/me/bookings/upcoming', headers: auth_headers
+
+        names = json.first['attendees'].pluck('first_name')
+        expect(names).to contain_exactly('Ion', 'Maria')
+      end
+
+      it 'includes orders the user created even if no attendee is linked to them' do
+        event = create(:event, start_date: 10.days.from_now, end_date: 13.days.from_now)
+        create(:events_translation, event: event, languages_code: 'ro-RO', name: 'Conferința Test')
+        order = create(:order, user: user)
+        create(:attendee, event: event, order: order, user: nil, first_name: 'Guest')
+
+        get '/api/v1/auth/me/bookings/upcoming', headers: auth_headers
+
+        expect(json.first['order_reference']).to eq(order.order_reference)
+        expect(json.first['attendees'].first['first_name']).to eq('Guest')
       end
 
       it 'does not return past bookings' do
