@@ -125,17 +125,7 @@ RSpec.describe 'POST /api/v1/:lang/orders' do
   describe 'duplicate registration' do
     before { create(:attendee, event: event, email_address: 'ion@example.com') }
 
-    it 'returns 422 when same email is already registered for the event' do
-      post_order([valid_item])
-
-      expect(response).to have_http_status(:unprocessable_entity)
-      expect(json['error']).to be_present
-    end
-
-    it 'allows re-registration when the existing attendee has cancelled' do
-      Attendee.find_by(event: event, email_address: 'ion@example.com')
-              .update!(payment_status: :attendee_cancelled)
-
+    it 'allows re-registration regardless of existing attendee status' do
       post_order([valid_item])
 
       expect(response).to have_http_status(:created)

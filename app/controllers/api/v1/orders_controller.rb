@@ -18,9 +18,6 @@ module Api
         check_capacity(resolved)
         return if performed?
 
-        check_duplicate_registrations(resolved)
-        return if performed?
-
         order = persist_order(resolved)
         SendgridService.send_booking_confirmation(order: order, language: params[:languages_code])
         render json: { order_reference: order.order_reference }, status: :created
@@ -60,21 +57,6 @@ module Api
               render json: { error: t('orders.errors.fully_booked') }, status: :conflict
               break
             end
-          end
-        end
-
-        def check_duplicate_registrations(resolved)
-          resolved.each do |item|
-            email = item[:attendee_attrs][:email_address]
-            next if email.blank?
-
-            next unless Attendee.where(event: item[:event], email_address: email)
-                                .where.not(payment_status: :attendee_cancelled)
-                                .exists?
-
-            render json: { error: t('orders.errors.already_registered', email: email) },
-                   status: :unprocessable_content
-            break
           end
         end
 
