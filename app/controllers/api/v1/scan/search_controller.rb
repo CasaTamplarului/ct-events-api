@@ -23,6 +23,7 @@ module Api
                    when 'phone'     then search_by_phone(params[:query])
                    end
 
+          orders = orders.includes(attendees: [:checked_in_by, { ticket: :tickets_translations }])
           render json: orders.map { |o| serialise_order(o) }
         end
 

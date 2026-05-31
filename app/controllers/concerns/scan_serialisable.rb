@@ -4,9 +4,13 @@ module ScanSerialisable
   private
 
     def serialise_order(order)
-      attendees = order.attendees
-                       .includes(:checked_in_by, ticket: :tickets_translations)
-                       .order(:id)
+      attendees = if order.association(:attendees).loaded?
+                    order.attendees.sort_by(&:id)
+                  else
+                    order.attendees
+                         .includes(:checked_in_by, ticket: :tickets_translations)
+                         .order(:id)
+                  end
       {
         order_reference: order.order_reference,
         payment_status: order.payment_status,
