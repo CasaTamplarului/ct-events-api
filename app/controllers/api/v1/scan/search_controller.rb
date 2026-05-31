@@ -13,8 +13,7 @@ module Api
         before_action :authenticate_user!
         before_action { require_permission!(:can_check_in_attendees) }
 
-        def index
-        end
+        def index; end
       end
     end
   end
