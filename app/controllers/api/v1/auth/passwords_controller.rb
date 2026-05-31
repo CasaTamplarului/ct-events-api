@@ -5,6 +5,7 @@ module Api
     module Auth
       class PasswordsController < ActionController::API
         include LocaleSetter
+        include UserSerialisable
 
         wrap_parameters false
         before_action :set_locale
@@ -55,28 +56,6 @@ module Api
           jwt = JwtService.encode(user.id)
           render json: { jwt: jwt, user: user_json(user) }, status: :ok
         end
-
-        private
-
-          def user_json(user)
-            {
-              id: user.id,
-              first_name: user.first_name,
-              last_name: user.last_name,
-              email: user.email,
-              avatar_url: user.avatar_url,
-              phone_number: user.phone_number,
-              church_name: user.church_name,
-              city: user.city,
-              language: user.language,
-              can_change_email: user.user_identities.exists?(provider: 'email'),
-              email_preferences: email_preferences_json(user)
-            }
-          end
-
-          def email_preferences_json(user)
-            EmailUnsubscribeTokenService::PREFERENCE_COLUMNS.index_with { |col| user.public_send(col) }
-          end
       end
     end
   end

@@ -6,6 +6,7 @@ module Api
       class PasskeysController < ActionController::API
         include Authenticatable
         include LocaleSetter
+        include UserSerialisable
 
         before_action :authenticate_user!, only: %i[register_options register index destroy]
         before_action :set_locale
@@ -138,26 +139,6 @@ module Api
             render json: { error: I18n.t('auth.errors.invalid_challenge_token') },
                    status: :unauthorized
             nil
-          end
-
-          def user_json(user)
-            {
-              id: user.id,
-              first_name: user.first_name,
-              last_name: user.last_name,
-              email: user.email,
-              avatar_url: user.avatar_url,
-              phone_number: user.phone_number,
-              church_name: user.church_name,
-              city: user.city,
-              language: user.language,
-              can_change_email: user.user_identities.exists?(provider: 'email'),
-              email_preferences: email_preferences_json(user)
-            }
-          end
-
-          def email_preferences_json(user)
-            EmailUnsubscribeTokenService::PREFERENCE_COLUMNS.index_with { |col| user.public_send(col) }
           end
       end
     end

@@ -5,6 +5,7 @@ module Api
     module Auth
       class RegistrationsController < ActionController::API
         include LocaleSetter
+        include UserSerialisable
 
         before_action :set_locale
 
@@ -60,26 +61,6 @@ module Api
                           !existing_user.user_identities.exists?(provider: 'email')
             key = google_only ? 'email_google_only' : 'email_taken'
             render json: { error: I18n.t("auth.errors.#{key}") }, status: :conflict
-          end
-
-          def user_json(user)
-            {
-              id: user.id,
-              first_name: user.first_name,
-              last_name: user.last_name,
-              email: user.email,
-              avatar_url: user.avatar_url,
-              phone_number: user.phone_number,
-              church_name: user.church_name,
-              city: user.city,
-              language: user.language,
-              can_change_email: user.user_identities.exists?(provider: 'email'),
-              email_preferences: email_preferences_json(user)
-            }
-          end
-
-          def email_preferences_json(user)
-            EmailUnsubscribeTokenService::PREFERENCE_COLUMNS.index_with { |col| user.public_send(col) }
           end
       end
     end
