@@ -131,6 +131,15 @@ RSpec.describe 'POST /api/v1/:lang/orders' do
       expect(response).to have_http_status(:unprocessable_entity)
       expect(json['error']).to be_present
     end
+
+    it 'allows re-registration when the existing attendee has cancelled' do
+      Attendee.find_by(event: event, email_address: 'ion@example.com')
+              .update!(payment_status: :attendee_cancelled)
+
+      post_order([valid_item])
+
+      expect(response).to have_http_status(:created)
+    end
   end
 
   context 'when order is created successfully — email' do

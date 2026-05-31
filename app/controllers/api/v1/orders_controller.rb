@@ -68,7 +68,9 @@ module Api
             email = item[:attendee_attrs][:email_address]
             next if email.blank?
 
-            next unless Attendee.exists?(event: item[:event], email_address: email)
+            next unless Attendee.where(event: item[:event], email_address: email)
+                                .where.not(payment_status: :attendee_cancelled)
+                                .exists?
 
             render json: { error: t('orders.errors.already_registered', email: email) },
                    status: :unprocessable_content
