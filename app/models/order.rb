@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class Order < ApplicationRecord
+  belongs_to :user, optional: true
   has_many :attendees, dependent: :destroy
 
   after_create :generate_order_reference

@@ -7,6 +7,7 @@ module Api
                                      city].freeze
 
       before_action :set_locale
+      before_action :set_current_user
 
       def create
         items = params[:items]
@@ -26,6 +27,16 @@ module Api
       end
 
       private
+
+        def set_current_user
+          token = request.headers['Authorization']&.split&.last
+          return if token.blank?
+
+          user_id = JwtService.decode(token)
+          @current_user = User.active.find_by(id: user_id)
+        rescue JWT::DecodeError
+          nil
+        end
 
         def resolve_items(items)
           items.each_with_object([]) do |item, result|
@@ -63,11 +74,14 @@ module Api
         def persist_order(resolved)
           order = nil
           ActiveRecord::Base.transaction do
-            order = Order.create!
+            order = Order.create!(user: @current_user)
             resolved.each do |item|
+              email = item[:attendee_attrs][:email_address]
+              linked_user = email.present? ? User.active.find_by('LOWER(email) = LOWER(?)', email) : nil
               order.attendees.create!(
                 event: item[:event],
                 ticket: item[:ticket],
+                user: linked_user,
                 **item[:attendee_attrs]
               )
             end
