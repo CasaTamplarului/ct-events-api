@@ -59,7 +59,7 @@ module Api
             @event = Event.find_by(slug: params[:event_slug])
 
             unless @event
-              render json: { error: 'Not found' }, status: :not_found
+              render json: { error: I18n.t('errors.not_found') }, status: :not_found
               return false
             end
 

@@ -13,7 +13,7 @@ module ScanSerialisable
                   end
       {
         order_reference: order.order_reference,
-        payment_status: order.payment_status,
+        payment_status: order.payment_status(attendees),
         attendees: attendees.map { |a| serialise_attendee(a) }
       }
     end
@@ -29,6 +29,7 @@ module ScanSerialisable
                      &.tickets_translations
                              &.find { |t| t.languages_code == 'ro-RO' }
                              &.name,
+        payment_status: attendee.payment_status,
         checked_in: attendee.checked_in,
         checked_in_at: attendee.checked_in_at,
         checked_in_by: by ? "#{by.first_name} #{by.last_name}".strip : nil

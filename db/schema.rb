@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_30_223013) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_31_193039) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -28,6 +28,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_30_223013) do
     t.string "first_name"
     t.string "last_name"
     t.bigint "order_id"
+    t.integer "payment_status", default: 0, null: false
     t.string "phone_number"
     t.bigint "ticket_id"
     t.datetime "updated_at", default: -> { "now()" }, null: false
@@ -495,7 +496,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_30_223013) do
   create_table "orders", force: :cascade do |t|
     t.datetime "created_at", default: -> { "now()" }, null: false
     t.string "order_reference"
-    t.integer "payment_status", default: 0, null: false
     t.datetime "updated_at", default: -> { "now()" }, null: false
     t.index ["order_reference"], name: "index_orders_on_order_reference", unique: true
   end

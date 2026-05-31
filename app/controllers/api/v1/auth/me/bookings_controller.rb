@@ -41,7 +41,7 @@ module Api
             Attendee
               .joins(:event, :order)
               .where(user_id: current_user.id)
-              .merge(Order.where(payment_status: %i[paid payment_pending]))
+              .where(payment_status: %i[paid payment_pending])
               .where(events: { slug: slugs })
               .select('events.slug AS event_slug, orders.order_reference')
               .each do |row|
@@ -60,6 +60,7 @@ module Api
               ordered_order_ids =
                 Attendee.joins(:event)
                         .where(user_id: current_user.id)
+                        .where.not(payment_status: :attendee_cancelled)
                         .where(where_clause, Time.current)
                         .where(events: { status: Event.statuses[:live] })
                         .order(sort)
@@ -91,7 +92,7 @@ module Api
 
               {
                 order_reference: order.order_reference,
-                payment_status: order.payment_status,
+                payment_status: order.payment_status(attendees),
                 total_price: attendees.sum { |a| a.ticket&.price || 0 },
                 event: serialise_event(event, lang),
                 attendees: attendees.map { |a| serialise_attendee(a, lang) }

@@ -16,14 +16,15 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
   def create_booking(user:, start_date:, end_date:, payment_status: :paid, with_ticket: false)
     event = create(:event, start_date: start_date, end_date: end_date)
     create(:events_translation, event: event, languages_code: 'ro-RO', name: 'Conferința Test')
-    order = create(:order, payment_status: payment_status)
+    order = create(:order)
     ticket = nil
     if with_ticket
       ticket = create(:ticket, event: event, price: 150, food_included: true)
       create(:tickets_translation, tickets_id: ticket.id, languages_code: 'ro-RO', name: 'Adult',
                                    description: 'Includes all meals')
     end
-    attendee = create(:attendee, event: event, order: order, user: user, ticket: ticket)
+    attendee = create(:attendee, event: event, order: order, user: user,
+                                 payment_status: payment_status, ticket: ticket)
     { event: event, order: order, attendee: attendee }
   end
 
@@ -68,7 +69,7 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
         expect(json.first['total_price']).to eq('150.0')
       end
 
-      it 'includes all three payment statuses' do # rubocop:disable RSpec/ExampleLength
+      it 'includes all three payment statuses' do
         create_booking(user: user, start_date: 10.days.from_now, end_date: 13.days.from_now,
                        payment_status: :paid)
         create_booking(user: user, start_date: 20.days.from_now, end_date: 23.days.from_now,
@@ -104,7 +105,7 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
         expect(e['end_date']).to be_present
       end
 
-      it 'returns event name in the user language' do # rubocop:disable RSpec/ExampleLength
+      it 'returns event name in the user language' do
         user.update!(language: 'en-US')
         event = create(:event, start_date: 10.days.from_now, end_date: 13.days.from_now)
         create(:events_translation, event: event, languages_code: 'en-US', name: 'Test Conference')
@@ -117,7 +118,7 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
         expect(json.first['event']['name']).to eq('Test Conference')
       end
 
-      it 'falls back to ro-RO event name when user language has no translation' do # rubocop:disable RSpec/ExampleLength
+      it 'falls back to ro-RO event name when user language has no translation' do
         user.update!(language: 'en-US')
         event = create(:event, start_date: 10.days.from_now, end_date: 13.days.from_now)
         create(:events_translation, event: event, languages_code: 'ro-RO', name: 'Conferința Test')
@@ -129,7 +130,7 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
         expect(json.first['event']['name']).to eq('Conferința Test')
       end
 
-      it 'includes attendee fields with ticket details' do # rubocop:disable RSpec/ExampleLength,RSpec/MultipleExpectations
+      it 'includes attendee fields with ticket details' do # rubocop:disable RSpec/MultipleExpectations
         booking = create_booking(user: user, start_date: 10.days.from_now,
                                  end_date: 13.days.from_now, with_ticket: true)
 
@@ -145,7 +146,7 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
         expect(a['dietary_preference']).to eq('no_preference')
       end
 
-      it 'only returns the current user attendees, not other users on the same order' do # rubocop:disable RSpec/ExampleLength
+      it 'only returns the current user attendees, not other users on the same order' do
         other_user = create(:user, email: 'other@example.com')
         event = create(:event, start_date: 10.days.from_now, end_date: 13.days.from_now)
         order = create(:order)
@@ -240,8 +241,8 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
 
     context 'with a paid booking' do
       before do
-        order = create(:order, payment_status: :paid)
-        create(:attendee, event: event_a, order: order, user: user)
+        order = create(:order)
+        create(:attendee, event: event_a, order: order, user: user, payment_status: :paid)
       end
 
       it 'returns has_booking true with the order_reference' do
@@ -254,8 +255,8 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
 
     context 'with a payment_pending booking' do
       before do
-        order = create(:order, payment_status: :payment_pending)
-        create(:attendee, event: event_a, order: order, user: user)
+        order = create(:order)
+        create(:attendee, event: event_a, order: order, user: user, payment_status: :payment_pending)
       end
 
       it 'returns has_booking true' do
@@ -266,8 +267,8 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
 
     context 'with a refunded booking' do
       before do
-        order = create(:order, payment_status: :refunded)
-        create(:attendee, event: event_a, order: order, user: user)
+        order = create(:order)
+        create(:attendee, event: event_a, order: order, user: user, payment_status: :refunded)
       end
 
       it 'returns has_booking false' do
@@ -295,8 +296,8 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
 
     context 'with multiple slugs' do
       before do
-        order = create(:order, payment_status: :paid)
-        create(:attendee, event: event_a, order: order, user: user)
+        order = create(:order)
+        create(:attendee, event: event_a, order: order, user: user, payment_status: :paid)
       end
 
       it 'returns correct result for each slug in one call' do

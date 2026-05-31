@@ -7,14 +7,16 @@ RSpec.describe 'Scan Orders API' do
   let(:volunteer)      { create(:user, role: 'volunteer') }
   let(:attendee_user)  { create(:user, role: 'attendee') }
   let(:event)          { create(:event) }
-  let(:order)          { create(:order, payment_status: :paid) }
+  let(:order)          { create(:order) }
   let!(:first_attendee) do
     create(:attendee, event: event, order: order,
-                      first_name: 'Ion', last_name: 'Popescu', email_address: 'ion@example.com')
+                      first_name: 'Ion', last_name: 'Popescu',
+                      email_address: 'ion@example.com', payment_status: :paid)
   end
   let!(:second_attendee) do
     create(:attendee, event: event, order: order,
-                      first_name: 'Maria', last_name: 'Ionescu', email_address: 'maria@example.com')
+                      first_name: 'Maria', last_name: 'Ionescu',
+                      email_address: 'maria@example.com', payment_status: :paid)
   end
 
   def auth_header(user)
@@ -63,7 +65,14 @@ RSpec.describe 'Scan Orders API' do
       get_order(order.order_reference)
       a = json['attendees'].first
       expect(a.keys).to include('id', 'first_name', 'last_name', 'email_address',
-                                'ticket_name', 'checked_in', 'checked_in_at', 'checked_in_by')
+                                'ticket_name', 'payment_status', 'checked_in', 'checked_in_at', 'checked_in_by')
+    end
+
+    it 'returns payment_status for each attendee' do
+      get_order(order.order_reference)
+      json['attendees'].each do |a|
+        expect(a['payment_status']).to be_present
+      end
     end
 
     it 'returns checked_in: false and nil timestamps for unchecked attendees' do
@@ -136,18 +145,19 @@ RSpec.describe 'Scan Orders API' do
 
     it 'returns 401 without a token' do
       patch "/api/v1/scan/orders/#{order.order_reference}",
-            params: { payment_status: 'paid' }.to_json,
+            params: { attendees: [{ id: first_attendee.id, checked_in: true }] }.to_json,
             headers: { 'Content-Type' => 'application/json' }
       expect(response).to have_http_status(:unauthorized)
     end
 
     it 'returns 403 for attendee role' do
-      patch_order(order.order_reference, { payment_status: 'paid' }, user: attendee_user)
+      patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, checked_in: true }] },
+                  user: attendee_user)
       expect(response).to have_http_status(:forbidden)
     end
 
     it 'returns 404 for unknown order reference' do
-      patch_order('CT-2026-99999', { payment_status: 'paid' })
+      patch_order('CT-2026-99999', { attendees: [{ id: 1, checked_in: true }] })
       expect(response).to have_http_status(:not_found)
     end
 
@@ -157,32 +167,9 @@ RSpec.describe 'Scan Orders API' do
       expect(json['error']).to eq('Nothing to update')
     end
 
-    it 'returns 422 for an invalid payment_status value' do
-      patch_order(order.order_reference, { payment_status: 'bounced' })
-      expect(response).to have_http_status(:unprocessable_content)
-    end
-
     it 'returns the same shape as GET on success' do
-      patch_order(order.order_reference, { payment_status: 'paid' })
+      patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, checked_in: true }] })
       expect(json.keys).to include('order_reference', 'payment_status', 'attendees')
-    end
-
-    context 'when updating payment_status' do
-      it 'marks the order as paid' do
-        order.update!(payment_status: :payment_pending)
-        patch_order(order.order_reference, { payment_status: 'paid' })
-        expect(response).to have_http_status(:ok)
-        expect(json['payment_status']).to eq('paid')
-        expect(order.reload.payment_status).to eq('paid')
-      end
-
-      it 'marks the order as payment_pending (unpay)' do
-        order.update!(payment_status: :paid)
-        patch_order(order.order_reference, { payment_status: 'payment_pending' })
-        expect(response).to have_http_status(:ok)
-        expect(json['payment_status']).to eq('payment_pending')
-        expect(order.reload.payment_status).to eq('payment_pending')
-      end
     end
 
     context 'when checking in attendees' do
@@ -234,17 +221,46 @@ RSpec.describe 'Scan Orders API' do
       end
     end
 
-    context 'when combining payment and check-in update' do
-      it 'updates both in one request' do
-        order.update!(payment_status: :payment_pending)
+    context 'when updating attendee payment_status' do
+      it 'marks an attendee as paid' do
+        first_attendee.update!(payment_status: :payment_pending)
+        patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, payment_status: 'paid' }] })
+        expect(response).to have_http_status(:ok)
+        expect(first_attendee.reload.payment_status).to eq('paid')
+        a = json['attendees'].find { |x| x['id'] == first_attendee.id }
+        expect(a['payment_status']).to eq('paid')
+      end
+
+      it 'marks an attendee as payment_pending' do
+        patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, payment_status: 'payment_pending' }] })
+        expect(response).to have_http_status(:ok)
+        expect(first_attendee.reload.payment_status).to eq('payment_pending')
+      end
+
+      it 'silently ignores an invalid payment_status value' do
+        patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, payment_status: 'bounced' }] })
+        expect(response).to have_http_status(:ok)
+        expect(first_attendee.reload.payment_status).to eq('paid')
+      end
+
+      it 'can update both checked_in and payment_status in one entry' do
+        first_attendee.update!(payment_status: :payment_pending)
         patch_order(order.order_reference, {
-                      payment_status: 'paid',
-                      attendees: [{ id: first_attendee.id, checked_in: true }]
+                      attendees: [{ id: first_attendee.id, checked_in: true, payment_status: 'paid' }]
                     })
         expect(response).to have_http_status(:ok)
-        expect(json['payment_status']).to eq('paid')
-        a = json['attendees'].find { |x| x['id'] == first_attendee.id }
-        expect(a['checked_in']).to be true
+        first_attendee.reload
+        expect(first_attendee.checked_in).to be true
+        expect(first_attendee.payment_status).to eq('paid')
+      end
+    end
+
+    context 'when computed order payment_status reflects attendees' do
+      it 'returns partial when attendees have mixed statuses' do
+        first_attendee.update!(payment_status: :paid)
+        second_attendee.update!(payment_status: :payment_pending)
+        patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, checked_in: true }] })
+        expect(json['payment_status']).to eq('partial')
       end
     end
 
@@ -257,8 +273,8 @@ RSpec.describe 'Scan Orders API' do
           expect(response).to have_http_status(:forbidden)
         end
 
-        it 'returns 403 when trying to change payment status' do
-          patch_order(order.order_reference, { payment_status: 'paid' })
+        it 'returns 403 when trying to update attendee payment status' do
+          patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, payment_status: 'paid' }] })
           expect(response).to have_http_status(:forbidden)
         end
       end

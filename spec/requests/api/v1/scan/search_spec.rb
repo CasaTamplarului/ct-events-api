@@ -8,18 +8,20 @@ RSpec.describe 'GET /api/v1/scan/search' do
   let(:attendee_user) { create(:user, role: 'attendee') }
   let(:event)         { create(:event, slug: 'conferinta-2026') }
   let(:other_event)   { create(:event, slug: 'tabara-2026') }
-  let(:first_order)   { create(:order, payment_status: :paid) }
-  let(:second_order)  { create(:order, payment_status: :payment_pending) }
+  let(:first_order)   { create(:order) }
+  let(:second_order)  { create(:order) }
 
   let!(:first_attendee) do
     create(:attendee, event: event, order: first_order,
                       first_name: 'Ion', last_name: 'Popescu',
-                      email_address: 'ion@example.com', phone_number: '0722111222')
+                      email_address: 'ion@example.com', phone_number: '0722111222',
+                      payment_status: :paid)
   end
   let!(:second_attendee) do
     create(:attendee, event: event, order: second_order,
                       first_name: 'Maria', last_name: 'Ionescu',
-                      email_address: 'maria@example.com', phone_number: '0733444555')
+                      email_address: 'maria@example.com', phone_number: '0733444555',
+                      payment_status: :payment_pending)
   end
   let!(:other_event_attendee) do
     create(:attendee, event: other_event, order: first_order,
@@ -120,7 +122,7 @@ RSpec.describe 'GET /api/v1/scan/search' do
       expect(order_json.keys).to include('order_reference', 'payment_status', 'attendees')
       expect(order_json['attendees'].first.keys).to include(
         'id', 'first_name', 'last_name', 'email_address',
-        'ticket_name', 'checked_in', 'checked_in_at', 'checked_in_by'
+        'ticket_name', 'payment_status', 'checked_in', 'checked_in_at', 'checked_in_by'
       )
     end
   end

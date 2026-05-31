@@ -8,6 +8,7 @@ class Attendee < ApplicationRecord
   belongs_to :checked_in_by, class_name: 'User', foreign_key: :checked_in_by_user_id, optional: true,
                              inverse_of: false
 
+  enum :payment_status, { payment_pending: 0, paid: 1, refunded: 2, attendee_cancelled: 3 }
   enum :dietary_preference, { no_preference: 0, vegetarian: 1, vegan: 2 }
 
   def self.backfill_user(email:, user_id:)

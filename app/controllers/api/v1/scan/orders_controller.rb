@@ -17,23 +17,13 @@ module Api
         end
 
         def update
-          update_params = params.permit(:payment_status, attendees: %i[id checked_in])
+          update_params = params.permit(attendees: %i[id checked_in payment_status])
 
-          if update_params[:payment_status].blank? && update_params[:attendees].blank?
+          if update_params[:attendees].blank?
             return render json: { error: 'Nothing to update' }, status: :unprocessable_content
           end
 
-          if update_params[:payment_status].present? &&
-             !Order.payment_statuses.key?(update_params[:payment_status].to_s)
-            return render json: { error: "Invalid payment_status: #{update_params[:payment_status]}" },
-                          status: :unprocessable_content
-          end
-
-          ActiveRecord::Base.transaction do
-            @order.update!(payment_status: update_params[:payment_status]) if update_params[:payment_status].present?
-            update_attendee_checkins(update_params)
-          end
-
+          update_attendee_checkins(update_params)
           render json: serialise_order(@order)
         end
 
@@ -41,7 +31,7 @@ module Api
 
           def set_order
             @order = Order.find_by(order_reference: params[:order_reference])
-            render json: { error: 'Not found' }, status: :not_found unless @order
+            render json: { error: I18n.t('errors.not_found') }, status: :not_found unless @order
           end
 
           def prevent_self_checkin!
@@ -50,20 +40,28 @@ module Api
             render json: { error: I18n.t('auth.errors.forbidden') }, status: :forbidden
           end
 
-          def update_attendee_checkins(update_params)
-            return if update_params[:attendees].blank?
-
+          def update_attendee_checkins(update_params) # rubocop:disable Metrics/CyclomaticComplexity
             order_attendees = @order.attendees.index_by(&:id)
             Array(update_params[:attendees]).each do |entry|
               attendee = order_attendees[entry[:id].to_i]
               next unless attendee
 
-              if ActiveModel::Type::Boolean.new.cast(entry[:checked_in])
-                attendee.update!(checked_in: true, checked_in_at: Time.current,
-                                 checked_in_by_user_id: current_user.id)
-              else
-                attendee.update!(checked_in: false, checked_in_at: nil, checked_in_by_user_id: nil)
+              attrs = {}
+
+              if entry.key?(:checked_in)
+                if ActiveModel::Type::Boolean.new.cast(entry[:checked_in])
+                  attrs.merge!(checked_in: true, checked_in_at: Time.current,
+                               checked_in_by_user_id: current_user.id)
+                else
+                  attrs.merge!(checked_in: false, checked_in_at: nil, checked_in_by_user_id: nil)
+                end
               end
+
+              if entry[:payment_status].present? && Attendee.payment_statuses.key?(entry[:payment_status].to_s)
+                attrs[:payment_status] = entry[:payment_status]
+              end
+
+              attendee.update!(attrs) if attrs.any?
             end
           end
       end

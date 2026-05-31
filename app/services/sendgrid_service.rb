@@ -38,11 +38,12 @@ class SendgridService
   def self.send_booking_confirmation(order:, language:) # rubocop:disable Metrics/CyclomaticComplexity
     return unless emails_enabled?
 
-    attendees = order.attendees
-                     .includes({ ticket: :tickets_translations }, { event: :events_translations })
-                     .reject { |a| a.email_address.blank? }
+    all_attendees = order.attendees
+                         .includes({ ticket: :tickets_translations }, { event: :events_translations })
+                         .to_a
 
-    return if attendees.empty?
+    attendees_with_email = all_attendees.reject { |a| a.email_address.blank? }
+    return if attendees_with_email.empty?
 
     qr     = RQRCode::QRCode.new(order.order_reference)
     png    = qr.as_png(size: 300, border_modules: 4)
@@ -51,11 +52,12 @@ class SendgridService
     from_email = Rails.application.credentials.dig(:sendgrid, :from_email) || 'noreply@example.com'
     client     = SendGrid::API.new(api_key: Rails.application.credentials.dig(:sendgrid, :api_key))
 
-    attendees.group_by(&:email_address).each do |email_address, group|
+    attendees_with_email.group_by(&:email_address).each do |email_address, group|
       send_confirmation_to(
         email_address: email_address,
         group: group,
         order: order,
+        all_attendees: all_attendees,
         language: language.to_s,
         qr_b64: qr_b64,
         from_email: from_email,
@@ -69,7 +71,7 @@ class SendgridService
   class << self
     private
 
-      def send_confirmation_to(email_address:, group:, order:, language:, qr_b64:, from_email:, client:) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
+      def send_confirmation_to(email_address:, group:, order:, language:, qr_b64:, from_email:, client:, all_attendees:) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
         event      = group.first.event
         event_name = event.events_translations.find { |t| t.languages_code == language }&.name ||
                      event.events_translations.find { |t| t.languages_code == 'ro-RO' }&.name
@@ -89,7 +91,7 @@ class SendgridService
           'event_location' => event.location_name,
           'attendees' => group.map { |a| attendee_data(a, language) },
           'total_price' => group.sum { |a| a.ticket&.price || 0 },
-          'is_pending' => order.payment_pending?,
+          'is_pending' => order.payment_pending?(all_attendees),
           'year' => Time.current.year.to_s
         )
         mail.add_personalization(personalization)
