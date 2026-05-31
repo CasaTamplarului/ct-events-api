@@ -43,7 +43,7 @@ RSpec.describe 'POST /api/v1/:lang/orders' do
       post_order([valid_item])
 
       expect(response).to have_http_status(:created)
-      expect(json['order_reference']).to match(/\ACT-\d{4}-\d{5}\z/)
+      expect(json['order_reference']).to match(/\ACT-\d{4}-[A-Z0-9]{6}\z/)
     end
 
     it 'creates one attendee per item' do

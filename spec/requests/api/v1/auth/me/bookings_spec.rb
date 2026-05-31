@@ -276,7 +276,7 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
         post_check(['conf-2026'])
         expect(response).to have_http_status(:ok)
         expect(json['conf-2026']['has_booking']).to be true
-        expect(json['conf-2026']['order_reference']).to match(/\ACT-\d{4}-\d{5}\z/)
+        expect(json['conf-2026']['order_reference']).to match(/\ACT-\d{4}-[A-Z0-9]{6}\z/)
       end
     end
 

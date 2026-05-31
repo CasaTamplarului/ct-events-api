@@ -19,11 +19,19 @@ class Order < ApplicationRecord
     %w[payment_pending partial].include?(payment_status(attendees_collection))
   end
 
+  REFERENCE_CHARS = (('A'..'Z').to_a + ('0'..'9').to_a).freeze
+
   private
 
     def generate_order_reference
-      # rubocop:disable Rails/SkipsModelValidations
-      update_column(:order_reference, "CT-#{created_at.year}-#{format('%05d', id)}")
-      # rubocop:enable Rails/SkipsModelValidations
+      loop do
+        ref = "CT-#{created_at.year}-#{Array.new(6) { REFERENCE_CHARS.sample }.join}"
+        next if Order.exists?(order_reference: ref)
+
+        # rubocop:disable Rails/SkipsModelValidations
+        update_column(:order_reference, ref)
+        # rubocop:enable Rails/SkipsModelValidations
+        break
+      end
     end
 end
