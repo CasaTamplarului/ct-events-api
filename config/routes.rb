@@ -38,6 +38,7 @@ Rails.application.routes.draw do
       end
 
       namespace :scan do
+        get 'search', to: 'search#index'
         scope '/orders/:order_reference' do
           get '/', to: 'orders#show', as: 'scan_order'
           patch '/', to: 'orders#update', as: 'scan_order_update'
