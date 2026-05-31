@@ -70,11 +70,7 @@ module Api
             cancellable.update_all(payment_status: Attendee.payment_statuses['attendee_cancelled'])
             # rubocop:enable Rails/SkipsModelValidations
 
-            attendees = order.attendees
-                             .includes({ ticket: :tickets_translations }, { event: :events_translations })
-                             .where(user_id: current_user.id)
-                             .to_a
-            render json: serialise_order(order, attendees)
+            render json: serialise_order(order, attendees_for_response(order))
           end
 
           def cancel_attendee
@@ -91,14 +87,15 @@ module Api
 
             attendee.update!(payment_status: :attendee_cancelled)
 
-            attendees = order.attendees
-                             .includes({ ticket: :tickets_translations }, { event: :events_translations })
-                             .where(user_id: current_user.id)
-                             .to_a
-            render json: serialise_order(order, attendees)
+            render json: serialise_order(order, attendees_for_response(order))
           end
 
           private
+
+            def attendees_for_response(order)
+              scope = order.attendees.includes({ ticket: :tickets_translations }, { event: :events_translations })
+              (order.user_id == current_user.id ? scope : scope.where(user_id: current_user.id)).to_a
+            end
 
             def orders_for_user_scoped_to(where_clause:, sort:)
               # Include orders where user is a non-cancelled attendee OR where user created the order
