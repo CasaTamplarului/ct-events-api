@@ -42,14 +42,14 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
         expect(json).to eq([])
       end
 
-      it 'returns upcoming bookings ordered by start_date ASC' do
-        create_booking(user: user, start_date: 30.days.from_now, end_date: 33.days.from_now)
-        create_booking(user: user, start_date: 10.days.from_now, end_date: 13.days.from_now)
+      it 'returns upcoming bookings ordered by created_at DESC (newest first)' do
+        first_booking  = create_booking(user: user, start_date: 30.days.from_now, end_date: 33.days.from_now)
+        second_booking = create_booking(user: user, start_date: 10.days.from_now, end_date: 13.days.from_now)
 
         get '/api/v1/auth/me/bookings/upcoming', headers: auth_headers
 
-        start_dates = json.map { |b| b['event']['start_date'] }
-        expect(start_dates).to eq(start_dates.sort)
+        refs = json.map { |b| b['order_reference'] }
+        expect(refs).to eq([second_booking[:order].order_reference, first_booking[:order].order_reference])
       end
 
       it 'includes the order_reference' do
@@ -213,14 +213,14 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
         expect(json).to eq([])
       end
 
-      it 'returns past bookings ordered by start_date DESC' do
-        create_booking(user: user, start_date: 30.days.ago, end_date: 27.days.ago)
-        create_booking(user: user, start_date: 10.days.ago, end_date: 7.days.ago)
+      it 'returns past bookings ordered by created_at DESC (newest first)' do
+        first_booking  = create_booking(user: user, start_date: 30.days.ago, end_date: 27.days.ago)
+        second_booking = create_booking(user: user, start_date: 10.days.ago, end_date: 7.days.ago)
 
         get '/api/v1/auth/me/bookings/past', headers: auth_headers
 
-        start_dates = json.map { |b| b['event']['start_date'] }
-        expect(start_dates).to eq(start_dates.sort.reverse)
+        refs = json.map { |b| b['order_reference'] }
+        expect(refs).to eq([second_booking[:order].order_reference, first_booking[:order].order_reference])
       end
 
       it 'does not return upcoming bookings' do
