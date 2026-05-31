@@ -114,6 +114,17 @@ RSpec.describe 'Scan Orders API' do
         expect(a['ticket_name']).to be_nil
       end
     end
+
+    describe 'self-check-in prevention' do
+      context 'when the current user is an attendee in the order' do
+        before { create(:attendee, event: event, order: order, user: admin) }
+
+        it 'still returns 200 for GET' do
+          get_order(order.order_reference)
+          expect(response).to have_http_status(:ok)
+        end
+      end
+    end
   end
 
   describe 'PATCH /api/v1/scan/orders/:order_reference' do
@@ -234,6 +245,22 @@ RSpec.describe 'Scan Orders API' do
         expect(json['payment_status']).to eq('paid')
         a = json['attendees'].find { |x| x['id'] == first_attendee.id }
         expect(a['checked_in']).to be true
+      end
+    end
+
+    describe 'self-check-in prevention' do
+      context 'when the current user is an attendee in the order' do
+        before { create(:attendee, event: event, order: order, user: admin) }
+
+        it 'returns 403 when trying to check in attendees' do
+          patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, checked_in: true }] })
+          expect(response).to have_http_status(:forbidden)
+        end
+
+        it 'returns 403 when trying to change payment status' do
+          patch_order(order.order_reference, { payment_status: 'paid' })
+          expect(response).to have_http_status(:forbidden)
+        end
       end
     end
   end

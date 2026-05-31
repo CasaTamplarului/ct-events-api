@@ -10,6 +10,7 @@ module Api
         before_action :authenticate_user!
         before_action { require_permission!(:can_check_in_attendees) }
         before_action :set_order
+        before_action :prevent_self_checkin!, only: :update
 
         def show
           render json: serialise_order(@order)
@@ -41,6 +42,12 @@ module Api
           def set_order
             @order = Order.find_by(order_reference: params[:order_reference])
             render json: { error: 'Not found' }, status: :not_found unless @order
+          end
+
+          def prevent_self_checkin!
+            return unless current_user.attendees.exists?(order: @order)
+
+            render json: { error: I18n.t('auth.errors.forbidden') }, status: :forbidden
           end
 
           def update_attendee_checkins(update_params)
