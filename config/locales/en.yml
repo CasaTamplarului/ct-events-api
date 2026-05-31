@@ -77,6 +77,8 @@ en:
               invalid: "is invalid"
             password:
               too_short: "is too short (minimum is %{count} characters)"
+  errors:
+    not_found: "Not found"
   orders:
     errors:
       items_blank: "items is required and must not be empty"
@@ -85,3 +87,7 @@ en:
       fully_booked: "This event is fully booked"
       already_registered: "%{email} is already registered for this event"
       internal_error: "Internal server error"
+  bookings:
+    errors:
+      nothing_to_cancel: "No cancellable attendees found for this order"
+      cannot_cancel: "This attendee cannot be cancelled (payment already processed)"

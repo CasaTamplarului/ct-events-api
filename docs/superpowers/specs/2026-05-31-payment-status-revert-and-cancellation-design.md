@@ -250,7 +250,7 @@ end
 ```ruby
 def cancel_order
   order = Order.find_by(order_reference: params[:order_reference])
-  return render json: { error: 'Not found' }, status: :not_found unless order
+  return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless order
 
   cancellable = order.attendees.where(user_id: current_user.id, payment_status: :payment_pending)
   return render json: { error: I18n.t('bookings.errors.nothing_to_cancel') }, status: :unprocessable_content if cancellable.empty?
@@ -265,10 +265,10 @@ end
 ```ruby
 def cancel_attendee
   order = Order.find_by(order_reference: params[:order_reference])
-  return render json: { error: 'Not found' }, status: :not_found unless order
+  return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless order
 
   attendee = order.attendees.find_by(id: params[:id], user_id: current_user.id)
-  return render json: { error: 'Not found' }, status: :not_found unless attendee
+  return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless attendee
 
   unless attendee.payment_pending?
     return render json: { error: I18n.t('bookings.errors.cannot_cancel') }, status: :unprocessable_content
@@ -280,15 +280,20 @@ def cancel_attendee
 end
 ```
 
-### I18n keys to add
+### I18n keys
+
+Add to both `config/locales/en.yml` and `config/locales/ro.yml` (already added in the codebase):
 
 ```yaml
-# en.yml and ro.yml
+errors:
+  not_found: "Not found"           # ro: "Nu a fost găsit"
 bookings:
   errors:
     nothing_to_cancel: "No cancellable attendees found for this order"
     cannot_cancel: "This attendee cannot be cancelled (payment already processed)"
 ```
+
+`I18n.t('errors.not_found')` replaces all hardcoded `'Not found'` string literals throughout the codebase — including the existing `set_order` in `Api::V1::Scan::OrdersController`, `SearchController`, and any other scan controllers that currently use the literal string.
 
 ### Response
 

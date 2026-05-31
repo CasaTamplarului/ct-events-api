@@ -46,6 +46,8 @@ ro:
               invalid: "este invalid"
             password:
               too_short: "este prea scurtă (minimum %{count} caractere)"
+  errors:
+    not_found: "Nu a fost găsit"
   orders:
     errors:
       items_blank: "lista de articole este necesară și nu poate fi goală"
@@ -54,3 +56,7 @@ ro:
       fully_booked: "Acest eveniment este complet rezervat"
       already_registered: "%{email} este deja înregistrat la acest eveniment"
       internal_error: "Eroare internă de server"
+  bookings:
+    errors:
+      nothing_to_cancel: "Nu există participanți care pot fi anulați pentru această comandă"
+      cannot_cancel: "Acest participant nu poate fi anulat (plata a fost deja procesată)"
