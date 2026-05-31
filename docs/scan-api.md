@@ -69,7 +69,7 @@ GET /api/v1/scan/search?type=phone&query=0722&event_slug=conferinta-2026
 [
   {
     "order_reference": "CT-2026-00042",
-    "payment_status": "payment_pending",
+    "payment_status": "paid",
     "attendees": [
       {
         "id": 1,
@@ -77,6 +77,7 @@ GET /api/v1/scan/search?type=phone&query=0722&event_slug=conferinta-2026
         "last_name": "Popescu",
         "email_address": "ion@example.com",
         "ticket_name": "General",
+        "payment_status": "paid",
         "checked_in": false,
         "checked_in_at": null,
         "checked_in_by": null
@@ -104,6 +105,7 @@ Returns `[]` when nothing matches.
 - For `name`/`email`/`phone`, the `event_slug` scopes which orders are returned (only orders where at least one attendee at that event matches). All attendees in each matching order are included in the response.
 - `ticket_name` is always the Romanian (`ro-RO`) translation.
 - `checked_in_by` is the full name of the staff member who performed the check-in, or `null`.
+- The order-level `payment_status` is computed from attendees (see [payment_status values](#payment_status-values)).
 
 ---
 
@@ -120,7 +122,7 @@ GET /api/v1/scan/orders/:order_reference
 ```json
 {
   "order_reference": "CT-2026-00042",
-  "payment_status": "payment_pending",
+  "payment_status": "paid",
   "attendees": [
     {
       "id": 1,
@@ -128,6 +130,7 @@ GET /api/v1/scan/orders/:order_reference
       "last_name": "Popescu",
       "email_address": "ion@example.com",
       "ticket_name": "General",
+      "payment_status": "paid",
       "checked_in": false,
       "checked_in_at": null,
       "checked_in_by": null
@@ -146,7 +149,7 @@ GET /api/v1/scan/orders/:order_reference
 
 ## 4. Check in / update an order
 
-Check in one or more attendees and optionally update the payment status. All fields are optional — send only what you want to change.
+Check in one or more attendees and optionally update payment status per attendee. All fields are optional — send only what you want to change.
 
 ```
 PATCH /api/v1/scan/orders/:order_reference
@@ -156,9 +159,8 @@ PATCH /api/v1/scan/orders/:order_reference
 
 ```json
 {
-  "payment_status": "paid",
   "attendees": [
-    { "id": 1, "checked_in": true },
+    { "id": 1, "checked_in": true, "payment_status": "paid" },
     { "id": 2, "checked_in": false }
   ]
 }
@@ -166,17 +168,18 @@ PATCH /api/v1/scan/orders/:order_reference
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `payment_status` | string (optional) | `"payment_pending"` \| `"paid"` \| `"refunded"` |
-| `attendees` | array (optional) | List of attendees to update |
+| `attendees` | array | List of attendees to update (required — at least this key must be present) |
 | `attendees[].id` | integer | Attendee ID |
-| `attendees[].checked_in` | boolean | `true` to check in, `false` to undo |
+| `attendees[].checked_in` | boolean (optional) | `true` to check in, `false` to undo |
+| `attendees[].payment_status` | string (optional) | `"payment_pending"` \| `"paid"` \| `"refunded"` |
 
 **Behaviour**
 
 - **Check in** (`checked_in: true`): records `checked_in_at` (current time) and `checked_in_by` (current user).
 - **Undo check-in** (`checked_in: false`): clears `checked_in_at` and `checked_in_by`.
+- **Payment status** is set per attendee. An invalid value is silently ignored (attendee unchanged).
 - Attendee IDs that do not belong to this order are silently ignored.
-- Payment status and attendee check-ins are applied in a single transaction.
+- `checked_in` and `payment_status` can be combined in a single attendee entry.
 
 **Response 200** — same shape as GET, reflecting the updated state:
 
@@ -191,6 +194,7 @@ PATCH /api/v1/scan/orders/:order_reference
       "last_name": "Popescu",
       "email_address": "ion@example.com",
       "ticket_name": "General",
+      "payment_status": "paid",
       "checked_in": true,
       "checked_in_at": "2026-06-01T10:00:00.000Z",
       "checked_in_by": "Ana Ionescu"
@@ -204,8 +208,7 @@ PATCH /api/v1/scan/orders/:order_reference
 | Scenario | Status | `error` |
 |----------|--------|---------|
 | Order reference not found | 404 | `"Not found"` |
-| Neither `payment_status` nor `attendees` provided | 422 | `"Nothing to update"` |
-| Invalid `payment_status` value | 422 | `"Invalid payment_status: ..."` |
+| `attendees` key missing or empty | 422 | `"Nothing to update"` |
 | Authenticated user is an attendee in this order | 403 | `"Forbidden"` |
 
 ---
@@ -226,9 +229,9 @@ PATCH /api/v1/scan/orders/:order_reference
    GET  /api/v1/scan/orders/:order_reference
        → show order + attendees
 
-3. Staff checks in attendees (optionally marks as paid):
+3. Staff checks in attendees (optionally marks payment):
    PATCH /api/v1/scan/orders/:order_reference
-         { "payment_status": "paid", "attendees": [{ "id": 1, "checked_in": true }] }
+         { "attendees": [{ "id": 1, "checked_in": true, "payment_status": "paid" }] }
 
 4. Response from PATCH is the refreshed order — no need for a separate GET.
 ```
@@ -237,8 +240,23 @@ PATCH /api/v1/scan/orders/:order_reference
 
 ## payment_status values
 
+### Per-attendee
+
 | Value | Meaning |
 |-------|---------|
 | `"payment_pending"` | Payment not yet received |
 | `"paid"` | Payment confirmed |
-| `"refunded"` | Order was refunded |
+| `"refunded"` | Payment was refunded |
+| `"attendee_cancelled"` | Attendee cancelled their own spot |
+
+### Order-level (computed)
+
+The order-level `payment_status` is derived from its attendees. `attendee_cancelled` attendees are excluded from the calculation.
+
+| Value | Meaning |
+|-------|---------|
+| `"payment_pending"` | All active attendees are pending |
+| `"paid"` | All active attendees are paid |
+| `"refunded"` | All active attendees are refunded |
+| `"partial"` | Active attendees have mixed statuses |
+| `"attendee_cancelled"` | All attendees have cancelled |
