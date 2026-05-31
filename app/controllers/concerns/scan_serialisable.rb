@@ -22,7 +22,7 @@ module ScanSerialisable
         last_name: attendee.last_name,
         email_address: attendee.email_address,
         ticket_name: attendee.ticket
-                             &.tickets_translations
+                     &.tickets_translations
                              &.find { |t| t.languages_code == 'ro-RO' }
                              &.name,
         checked_in: attendee.checked_in,
