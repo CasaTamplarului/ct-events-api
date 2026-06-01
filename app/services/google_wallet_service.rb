@@ -13,7 +13,9 @@ class GoogleWalletService
     @order     = order
     @language  = language
     @issuer_id = ENV.fetch('GOOGLE_WALLET_ISSUER_ID') { raise ArgumentError, 'GOOGLE_WALLET_ISSUER_ID is not set' }
-    sa_json    = ENV.fetch('GOOGLE_WALLET_SERVICE_ACCOUNT_JSON') { raise ArgumentError, 'GOOGLE_WALLET_SERVICE_ACCOUNT_JSON is not set' }
+    sa_json = ENV.fetch('GOOGLE_WALLET_SERVICE_ACCOUNT_JSON') do
+      raise ArgumentError, 'GOOGLE_WALLET_SERVICE_ACCOUNT_JSON is not set'
+    end
     parsed = JSON.parse(sa_json)
     @service_account_email = parsed['client_email']
     @private_key = OpenSSL::PKey::RSA.new(parsed['private_key'])
@@ -59,7 +61,7 @@ class GoogleWalletService
     end
 
     def access_token
-      @credentials.fetch_access_token!['access_token']
+      @access_token ||= @credentials.fetch_access_token!['access_token']
     end
 
     def upsert_class
@@ -91,12 +93,14 @@ class GoogleWalletService
 
       if post_response.code == '409'
         put_response = wallet_request(:put, "#{collection}/#{id}", body, token)
-        raise ApiError, "PUT #{put_response.code}: #{put_response.body}" unless put_response.code.to_i.between?(200, 299)
+        unless put_response.code.to_i.between?(200, 299)
+          raise ApiError, "PUT to #{collection}/#{id} failed with status #{put_response.code}"
+        end
 
         return
       end
 
-      raise ApiError, "POST #{post_response.code}: #{post_response.body}"
+      raise ApiError, "POST to #{collection} failed with status #{post_response.code}"
     end
 
     def wallet_request(method, path, body, token)

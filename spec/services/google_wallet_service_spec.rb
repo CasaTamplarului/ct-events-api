@@ -4,7 +4,9 @@ require 'rails_helper'
 require 'cgi'
 
 RSpec.describe GoogleWalletService do
-  let(:private_key) { OpenSSL::PKey::RSA.generate(1024) }
+  subject(:service) { described_class.new(order: order, language: 'ro-RO') }
+
+  let(:private_key) { OpenSSL::PKey::RSA.generate(2048) }
   let(:sa_json) do
     {
       type: 'service_account',
@@ -58,8 +60,6 @@ RSpec.describe GoogleWalletService do
       )
   end
 
-  subject(:service) { described_class.new(order: order, language: 'ro-RO') }
-
   # ── Initialization ──────────────────────────────────────────────────────────
 
   describe 'initialization' do
@@ -107,37 +107,35 @@ RSpec.describe GoogleWalletService do
     end
 
     it 'sends the class request with the correct event data' do
-      expected_class_id = class_id
       service.save_url
-      expect(WebMock).to have_requested(:post,
-                                        'https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass')
-        .with { |req|
-          body = JSON.parse(req.body)
-          body['id'] == expected_class_id &&
-            body.dig('eventName', 'defaultValue', 'value') == 'Gala de Vară' &&
-            body.dig('venue', 'name', 'defaultValue', 'value') == 'Casa Tâmplarului' &&
-            body.dig('dateTime', 'start').is_a?(String) &&
-            !body.dig('dateTime', 'start').nil? &&
-            body.dig('dateTime', 'end').is_a?(String) &&
-            !body.dig('dateTime', 'end').nil?
-        }
+      expect(WebMock).to(
+        have_requested(:post,
+                       'https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass')
+          .with do |req|
+            body = JSON.parse(req.body)
+            body['id'] == class_id &&
+              body.dig('eventName', 'defaultValue', 'value') == 'Gala de Vară' &&
+              body.dig('venue', 'name', 'defaultValue', 'value') == 'Casa Tâmplarului' &&
+              body.dig('dateTime', 'start').is_a?(String) &&
+              body.dig('dateTime', 'end').is_a?(String)
+          end
+      )
     end
 
     it 'sends the object request with the correct order data' do
-      expected_class_id    = class_id
-      expected_object_id   = ticket_object_id
-      expected_order_ref   = order.order_reference
       service.save_url
-      expect(WebMock).to have_requested(:post,
-                                        'https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject')
-        .with { |req|
-          body = JSON.parse(req.body)
-          body['id'] == expected_object_id &&
-            body['classId'] == expected_class_id &&
-            body['state'] == 'ACTIVE' &&
-            body.dig('barcode', 'type') == 'QR_CODE' &&
-            body.dig('barcode', 'value') == expected_order_ref
-        }
+      expect(WebMock).to(
+        have_requested(:post,
+                       'https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject')
+          .with do |req|
+            body = JSON.parse(req.body)
+            body['id'] == ticket_object_id &&
+              body['classId'] == class_id &&
+              body['state'] == 'ACTIVE' &&
+              body.dig('barcode', 'type') == 'QR_CODE' &&
+              body.dig('barcode', 'value') == order.order_reference
+          end
+      )
     end
 
     context 'when the class already exists (409)' do
