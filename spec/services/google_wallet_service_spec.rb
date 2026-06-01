@@ -115,7 +115,11 @@ RSpec.describe GoogleWalletService do
           body = JSON.parse(req.body)
           body['id'] == expected_class_id &&
             body.dig('eventName', 'defaultValue', 'value') == 'Gala de Vară' &&
-            body.dig('venue', 'name', 'defaultValue', 'value') == 'Casa Tâmplarului'
+            body.dig('venue', 'name', 'defaultValue', 'value') == 'Casa Tâmplarului' &&
+            body.dig('dateTime', 'start').is_a?(String) &&
+            !body.dig('dateTime', 'start').nil? &&
+            body.dig('dateTime', 'end').is_a?(String) &&
+            !body.dig('dateTime', 'end').nil?
         }
     end
 
@@ -130,6 +134,7 @@ RSpec.describe GoogleWalletService do
           body = JSON.parse(req.body)
           body['id'] == expected_object_id &&
             body['classId'] == expected_class_id &&
+            body['state'] == 'ACTIVE' &&
             body.dig('barcode', 'type') == 'QR_CODE' &&
             body.dig('barcode', 'value') == expected_order_ref
         }
@@ -176,6 +181,19 @@ RSpec.describe GoogleWalletService do
       it 'raises ApiError' do
         expect { service.save_url }.to raise_error(GoogleWalletService::ApiError)
       end
+    end
+
+    it 'returns a JWT with the correct payload' do
+      url = service.save_url
+      token = url.split('/').last
+      # Decode without verification first to get the header
+      header = JWT.decode(token, nil, false).last
+      expect(header['alg']).to eq('RS256')
+      # Decode with public key verification
+      decoded = JWT.decode(token, private_key.public_key, true, algorithms: ['RS256']).first
+      expect(decoded['aud']).to eq('google')
+      expect(decoded['typ']).to eq('savetowallet')
+      expect(decoded.dig('payload', 'eventTicketObjects', 0, 'id')).to eq(ticket_object_id)
     end
   end
 end
