@@ -5,6 +5,14 @@ require 'rails_helper'
 RSpec.describe 'GET /api/v1/auth/me/bookings/:order_reference/wallet/google' do
   before do
     Language.find_or_create_by!(code: 'ro-RO') { |l| l.name = 'Romanian' }
+    stub_request(:post, 'https://www.googleapis.com/oauth2/v4/token')
+      .to_return(
+        status: 200,
+        body: { access_token: 'fake-token', token_type: 'Bearer', expires_in: 3600 }.to_json,
+        headers: { 'Content-Type' => 'application/json' }
+      )
+    stub_request(:post, /walletobjects\.googleapis\.com/)
+      .to_return(status: 200, body: '{}', headers: { 'Content-Type' => 'application/json' })
   end
 
   let(:user)       { create(:user) }
@@ -35,17 +43,6 @@ RSpec.describe 'GET /api/v1/auth/me/bookings/:order_reference/wallet/google' do
   ensure
     ENV['GOOGLE_WALLET_ISSUER_ID']            = orig_issuer
     ENV['GOOGLE_WALLET_SERVICE_ACCOUNT_JSON'] = orig_sa
-  end
-
-  before do
-    stub_request(:post, 'https://www.googleapis.com/oauth2/v4/token')
-      .to_return(
-        status: 200,
-        body: { access_token: 'fake-token', token_type: 'Bearer', expires_in: 3600 }.to_json,
-        headers: { 'Content-Type' => 'application/json' }
-      )
-    stub_request(:post, /walletobjects\.googleapis\.com/)
-      .to_return(status: 200, body: '{}', headers: { 'Content-Type' => 'application/json' })
   end
 
   context 'when the user owns the order' do
@@ -81,13 +78,10 @@ RSpec.describe 'GET /api/v1/auth/me/bookings/:order_reference/wallet/google' do
   end
 
   context 'when the user has no access to the order' do
-    let(:other_user)  { create(:user) }
-    let(:other_order) { create(:order, user: other_user) }
-    let!(:other_attendee) do
-      create(:attendee, order: other_order, event: event, user: other_user, payment_status: :paid)
-    end
-
     it 'returns 404' do
+      other_user  = create(:user)
+      other_order = create(:order, user: other_user)
+      create(:attendee, order: other_order, event: event, user: other_user, payment_status: :paid)
       get "/api/v1/auth/me/bookings/#{other_order.order_reference}/wallet/google", headers: headers
       expect(response).to have_http_status(:not_found)
     end

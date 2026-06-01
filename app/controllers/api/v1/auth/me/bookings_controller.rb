@@ -95,7 +95,7 @@ module Api
             return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless order
 
             authorized = order.user_id == current_user.id ||
-                         order.attendees.where(user_id: current_user.id).exists?
+                         order.attendees.exists?(user_id: current_user.id)
             return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless authorized
 
             lang = current_user.language || 'ro-RO'
