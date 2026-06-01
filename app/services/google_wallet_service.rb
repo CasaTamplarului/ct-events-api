@@ -70,7 +70,10 @@ class GoogleWalletService
         issuerName: 'Casa Tâmplarului',
         reviewStatus: 'UNDER_REVIEW',
         eventName: { defaultValue: { language: 'ro', value: event_name } },
-        venue: { name: { defaultValue: { language: 'ro', value: event.location_name.to_s } } },
+        venue: {
+          name: { defaultValue: { language: 'ro', value: event.location_name.to_s } },
+          address: { defaultValue: { language: 'ro', value: event.address.to_s } }
+        },
         dateTime: { start: event.start_date.iso8601 }
       }
       body[:dateTime][:end] = event.end_date.iso8601 if event.end_date
