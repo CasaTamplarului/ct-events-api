@@ -90,6 +90,22 @@ module Api
             render json: serialise_order(order, attendees_for_response(order))
           end
 
+          def wallet_google
+            order = Order.find_by(order_reference: params[:order_reference])
+            return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless order
+
+            authorized = order.user_id == current_user.id ||
+                         order.attendees.where(user_id: current_user.id).exists?
+            return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless authorized
+
+            lang = current_user.language || 'ro-RO'
+            url  = GoogleWalletService.new(order: order, language: lang).save_url
+            render json: { url: url }
+          rescue GoogleWalletService::ApiError => e
+            Rails.logger.error("Google Wallet error for #{order.order_reference}: #{e.message}")
+            render json: { error: 'Internal server error' }, status: :internal_server_error
+          end
+
           private
 
             def attendees_for_response(order)
