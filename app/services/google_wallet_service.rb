@@ -77,6 +77,8 @@ class GoogleWalletService
         dateTime: { start: event.start_date.iso8601 }
       }
       body[:dateTime][:end] = event.end_date.iso8601 if event.end_date
+      hero_url = ApplicationSerializer.asset_url(event.hero_image)
+      body[:heroImage] = { sourceUri: { uri: hero_url } } if hero_url
       upsert_resource('eventTicketClass', class_id, body)
     end
 
