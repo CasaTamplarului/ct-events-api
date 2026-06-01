@@ -68,6 +68,7 @@ class GoogleWalletService
       body = {
         id: class_id,
         issuerName: 'Casa Tâmplarului',
+        reviewStatus: 'UNDER_REVIEW',
         eventName: { defaultValue: { language: 'ro', value: event_name } },
         venue: { name: { defaultValue: { language: 'ro', value: event.location_name.to_s } } },
         dateTime: { start: event.start_date.iso8601 }
