@@ -4,6 +4,7 @@ require 'zip'
 require 'openssl'
 require 'digest'
 require 'base64'
+require 'net/http'
 
 class AppleWalletService
   class PassGenerationError < StandardError; end
@@ -57,7 +58,24 @@ class AppleWalletService
         path = ASSETS_PATH.join(name)
         files[name] = File.binread(path) if File.exist?(path)
       end
+      if (thumbnail = fetch_thumbnail)
+        files['thumbnail.png']    = thumbnail
+        files['thumbnail@2x.png'] = thumbnail
+        files['thumbnail@3x.png'] = thumbnail
+      end
       files
+    end
+
+    def fetch_thumbnail
+      return nil unless event.hero_image.present?
+
+      url = "#{ApplicationSerializer.asset_url(event.hero_image)}?width=270&height=270&fit=cover&format=png"
+      response = Net::HTTP.get_response(URI(url))
+      return nil unless response.is_a?(Net::HTTPSuccess)
+
+      response.body
+    rescue StandardError
+      nil
     end
 
     def build_pass_json
