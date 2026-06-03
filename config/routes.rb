@@ -25,6 +25,9 @@ Rails.application.routes.draw do
           get ':order_reference/wallet/google',     to: 'me/bookings#wallet_google',   as: 'google_wallet_booking'
           get ':order_reference/attendees/:id/wallet/google', to: 'me/bookings#wallet_google_attendee',
                                                               as: 'google_wallet_attendee'
+          get ':order_reference/wallet/apple',      to: 'me/bookings#wallet_apple',    as: 'apple_wallet_booking'
+          get ':order_reference/attendees/:id/wallet/apple',  to: 'me/bookings#wallet_apple_attendee',
+                                                              as: 'apple_wallet_attendee'
         end
         resource :registration, only: :create
         resource :session, only: :create
