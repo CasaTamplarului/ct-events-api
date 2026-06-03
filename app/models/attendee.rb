@@ -7,6 +7,7 @@ class Attendee < ApplicationRecord
   belongs_to :ticket, optional: true
   belongs_to :checked_in_by, class_name: 'User', foreign_key: :checked_in_by_user_id, optional: true,
                              inverse_of: false
+  has_many :meal_stamps, dependent: :destroy
 
   enum :payment_status, { payment_pending: 0, paid: 1, refunded: 2, attendee_cancelled: 3 }
   enum :dietary_preference, { no_preference: 0, vegetarian: 1, vegan: 2 }
