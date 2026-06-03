@@ -4,7 +4,7 @@ require 'rails_helper'
 require 'cgi'
 
 RSpec.describe GoogleWalletService do
-  subject(:service) { described_class.new(order: order, language: 'ro-RO') }
+  subject(:service) { described_class.new(attendee: attendee, language: 'ro-RO') }
 
   let(:private_key) { OpenSSL::PKey::RSA.generate(2048) }
   let(:sa_json) do
@@ -32,7 +32,8 @@ RSpec.describe GoogleWalletService do
   let!(:attendee)    { create(:attendee, order: order, event: event, payment_status: :paid) }
 
   let(:class_id)         { "#{issuer_id}.#{event.slug.gsub(/[^a-zA-Z0-9_]/, '_')}" }
-  let(:ticket_object_id) { "#{issuer_id}.#{order.order_reference.gsub(/[^a-zA-Z0-9_]/, '_')}" }
+  let(:qr_token)         { "#{order.order_reference}-#{attendee.id}" }
+  let(:ticket_object_id) { "#{issuer_id}.#{qr_token.gsub(/[^a-zA-Z0-9_]/, '_')}" }
 
   around do |example|
     orig_issuer = ENV['GOOGLE_WALLET_ISSUER_ID']
@@ -72,7 +73,7 @@ RSpec.describe GoogleWalletService do
       end
 
       it 'raises ArgumentError' do
-        expect { described_class.new(order: order, language: 'ro-RO') }
+        expect { described_class.new(attendee: attendee, language: 'ro-RO') }
           .to raise_error(ArgumentError, /GOOGLE_WALLET_ISSUER_ID/)
       end
     end
@@ -86,7 +87,7 @@ RSpec.describe GoogleWalletService do
       end
 
       it 'raises ArgumentError' do
-        expect { described_class.new(order: order, language: 'ro-RO') }
+        expect { described_class.new(attendee: attendee, language: 'ro-RO') }
           .to raise_error(ArgumentError, /GOOGLE_WALLET_SERVICE_ACCOUNT_JSON/)
       end
     end
@@ -122,7 +123,7 @@ RSpec.describe GoogleWalletService do
       )
     end
 
-    it 'sends the object request with the correct order data' do
+    it 'sends the object request with the per-attendee QR token' do
       service.save_url
       expect(WebMock).to(
         have_requested(:post,
@@ -133,7 +134,7 @@ RSpec.describe GoogleWalletService do
               body['classId'] == class_id &&
               body['state'] == 'ACTIVE' &&
               body.dig('barcode', 'type') == 'QR_CODE' &&
-              body.dig('barcode', 'value') == order.order_reference
+              body.dig('barcode', 'value') == qr_token
           end
       )
     end
@@ -147,10 +148,9 @@ RSpec.describe GoogleWalletService do
       end
 
       it 'falls back to PUT and still returns a URL' do
-        expected_class_id = class_id
         expect(service.save_url).to start_with('https://pay.google.com/gp/v/save/')
         expect(WebMock).to have_requested(:put,
-                                          "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass/#{expected_class_id}")
+                                          "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass/#{class_id}")
       end
     end
 
@@ -163,10 +163,9 @@ RSpec.describe GoogleWalletService do
       end
 
       it 'falls back to PUT and still returns a URL' do
-        expected_object_id = ticket_object_id
         expect(service.save_url).to start_with('https://pay.google.com/gp/v/save/')
         expect(WebMock).to have_requested(:put,
-                                          "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject/#{expected_object_id}")
+                                          "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject/#{ticket_object_id}")
       end
     end
 
@@ -184,10 +183,8 @@ RSpec.describe GoogleWalletService do
     it 'returns a JWT with the correct payload' do
       url = service.save_url
       token = url.split('/').last
-      # Decode without verification first to get the header
       header = JWT.decode(token, nil, false).last
       expect(header['alg']).to eq('RS256')
-      # Decode with public key verification
       decoded = JWT.decode(token, private_key.public_key, true, algorithms: ['RS256']).first
       expect(decoded['aud']).to eq('google')
       expect(decoded['typ']).to eq('savetowallet')

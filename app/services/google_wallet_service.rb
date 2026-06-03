@@ -9,8 +9,8 @@ class GoogleWalletService
   WALLET_API_BASE = 'https://walletobjects.googleapis.com/walletobjects/v1'
   SCOPES = ['https://www.googleapis.com/auth/wallet_object.issuer'].freeze
 
-  def initialize(order:, language:)
-    @order     = order
+  def initialize(attendee:, language:)
+    @attendee  = attendee
     @language  = language
     @issuer_id = ENV.fetch('GOOGLE_WALLET_ISSUER_ID') { raise ArgumentError, 'GOOGLE_WALLET_ISSUER_ID is not set' }
     sa_json = ENV.fetch('GOOGLE_WALLET_SERVICE_ACCOUNT_JSON') do
@@ -34,12 +34,7 @@ class GoogleWalletService
   private
 
     def event
-      @event ||= begin
-        att = @order.attendees.includes(event: :events_translations).first
-        raise ApiError, 'Order has no attendees' unless att
-
-        att.event
-      end
+      @event ||= @attendee.event
     end
 
     def event_name
@@ -52,8 +47,12 @@ class GoogleWalletService
       "#{@issuer_id}.#{sanitize_id(event.slug)}"
     end
 
+    def qr_token
+      "#{@attendee.order.order_reference}-#{@attendee.id}"
+    end
+
     def wallet_object_id
-      "#{@issuer_id}.#{sanitize_id(@order.order_reference)}"
+      "#{@issuer_id}.#{sanitize_id(qr_token)}"
     end
 
     def sanitize_id(str)
@@ -87,7 +86,7 @@ class GoogleWalletService
         id: wallet_object_id,
         classId: class_id,
         state: 'ACTIVE',
-        barcode: { type: 'QR_CODE', value: @order.order_reference }
+        barcode: { type: 'QR_CODE', value: qr_token }
       }
       upsert_resource('eventTicketObject', wallet_object_id, body)
     end

@@ -116,6 +116,6 @@ RSpec/LetSetup:
 RSpec/MultipleExpectations:
   Max: 4
 RSpec/MultipleMemoizedHelpers:
-  Max: 10
+  Max: 11
 RSpec/NestedGroups:
   Max: 4

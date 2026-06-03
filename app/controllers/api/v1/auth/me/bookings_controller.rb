@@ -94,12 +94,14 @@ module Api
             order = Order.find_by(order_reference: params[:order_reference])
             return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless order
 
-            authorized = order.user_id == current_user.id ||
-                         order.attendees.exists?(user_id: current_user.id)
-            return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless authorized
+            base     = order.attendees.includes(:order, event: :events_translations)
+            attendee = base.find_by(user_id: current_user.id)
+            attendee ||= base.order(:id).first if order.user_id == current_user.id
+
+            return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless attendee
 
             lang = current_user.language || 'ro-RO'
-            url  = GoogleWalletService.new(order: order, language: lang).save_url
+            url  = GoogleWalletService.new(attendee: attendee, language: lang).save_url
             render json: { url: url }
           rescue GoogleWalletService::ApiError => e
             Rails.logger.error("Google Wallet error for #{order.order_reference}: #{e.message}")
