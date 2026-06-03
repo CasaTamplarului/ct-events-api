@@ -6,7 +6,7 @@ module Api
       def show
         event = Event
           .includes(:events_translations, :attendees, :event_attendee_fields, :event_gallery_items,
-                    tickets: :tickets_translations,
+                    tickets: [:tickets_translations, :ticket_meal_slots],
                     event_speakers: :event_speakers_translations)
           .find_by!(slug: params[:slug])
 

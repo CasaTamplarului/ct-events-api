@@ -14,4 +14,10 @@ class TicketSerializer < ApplicationSerializer
   attribute :description do |object|
     object.translations(params[:languages_code])&.description
   end
+
+  attribute :meal_slots do |object|
+    object.ticket_meal_slots
+          .sort_by { |s| [s.occurs_on, s.sort || 0] }
+          .map { |s| { meal_type: s.meal_type, occurs_on: s.occurs_on } }
+  end
 end
