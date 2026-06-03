@@ -87,7 +87,10 @@ class GoogleWalletService
         id: wallet_object_id,
         classId: class_id,
         state: 'ACTIVE',
-        ticketHolder: { fullName: "#{@attendee.first_name} #{@attendee.last_name}".strip },
+        textModulesData: [
+          { id: 'attendee_name', header: 'Participant',
+            body: "#{@attendee.first_name} #{@attendee.last_name}".strip }
+        ],
         barcode: { type: 'QR_CODE', value: @attendee.qr_code }
       }
       upsert_resource('eventTicketObject', wallet_object_id, body)

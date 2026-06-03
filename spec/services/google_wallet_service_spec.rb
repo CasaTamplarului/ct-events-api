@@ -147,17 +147,18 @@ RSpec.describe GoogleWalletService do
       end
     end
 
-    it 'sends the object request with the per-attendee QR token and holder name' do
+    it 'sends the object request with the per-attendee QR token and attendee name' do
       service.save_url
       expect(WebMock).to(
         have_requested(:post,
                        'https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject')
           .with do |req|
             body = JSON.parse(req.body)
+            name_module = body['textModulesData']&.find { |m| m['id'] == 'attendee_name' }
             body['id'] == ticket_object_id &&
               body['classId'] == class_id &&
               body['state'] == 'ACTIVE' &&
-              body.dig('ticketHolder', 'fullName') == "#{attendee.first_name} #{attendee.last_name}" &&
+              name_module&.dig('body') == "#{attendee.first_name} #{attendee.last_name}" &&
               body.dig('barcode', 'type') == 'QR_CODE' &&
               body.dig('barcode', 'value') == qr_token
           end
