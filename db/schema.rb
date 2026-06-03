@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_31_195348) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_03_153314) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -493,6 +493,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_31_195348) do
     t.datetime "updated_at", default: -> { "now()" }, null: false
   end
 
+  create_table "meal_stamps", force: :cascade do |t|
+    t.bigint "attendee_id", null: false
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.bigint "stamped_by_user_id", null: false
+    t.bigint "ticket_meal_slot_id", null: false
+    t.index ["attendee_id", "ticket_meal_slot_id"], name: "index_meal_stamps_on_attendee_id_and_ticket_meal_slot_id"
+    t.index ["attendee_id"], name: "index_meal_stamps_on_attendee_id"
+    t.index ["ticket_meal_slot_id"], name: "index_meal_stamps_on_ticket_meal_slot_id"
+  end
+
   create_table "orders", force: :cascade do |t|
     t.datetime "created_at", default: -> { "now()" }, null: false
     t.string "order_reference"
@@ -512,6 +522,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_31_195348) do
     t.bigint "user_id", null: false
     t.index ["external_id"], name: "index_passkeys_on_external_id", unique: true
     t.index ["user_id"], name: "index_passkeys_on_user_id"
+  end
+
+  create_table "ticket_meal_slots", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "meal_type", null: false
+    t.date "occurs_on", null: false
+    t.integer "sort"
+    t.bigint "ticket_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ticket_id", "occurs_on", "meal_type"], name: "idx_on_ticket_id_occurs_on_meal_type_c7e73ddfbf"
+    t.index ["ticket_id"], name: "index_ticket_meal_slots_on_ticket_id"
   end
 
   create_table "tickets", force: :cascade do |t|
@@ -627,8 +648,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_31_195348) do
   add_foreign_key "events", "directus_files", column: "hero_portrait", name: "events_hero_portrait_foreign", on_delete: :nullify
   add_foreign_key "events_translations", "events", on_delete: :cascade
   add_foreign_key "events_translations", "languages", column: "languages_code", primary_key: "code", on_update: :cascade, on_delete: :restrict
+  add_foreign_key "meal_stamps", "attendees"
+  add_foreign_key "meal_stamps", "ticket_meal_slots"
+  add_foreign_key "meal_stamps", "users", column: "stamped_by_user_id"
   add_foreign_key "orders", "users"
   add_foreign_key "passkeys", "users", on_delete: :cascade
+  add_foreign_key "ticket_meal_slots", "tickets"
   add_foreign_key "tickets_translations", "languages", column: "languages_code", primary_key: "code", on_update: :cascade, on_delete: :restrict
   add_foreign_key "tickets_translations", "tickets", column: "tickets_id", on_delete: :cascade
   add_foreign_key "user_identities", "users", on_delete: :cascade
