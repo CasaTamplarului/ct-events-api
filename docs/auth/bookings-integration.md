@@ -22,6 +22,8 @@ Content-Type: application/json
 | `POST` | `/api/v1/auth/me/bookings/check` | Check if user has bookings for given event slugs |
 | `DELETE` | `/api/v1/auth/me/bookings/:order_reference` | Cancel all cancellable attendees in an order |
 | `DELETE` | `/api/v1/auth/me/bookings/:order_reference/attendees/:id` | Cancel a single attendee |
+| `GET` | `/api/v1/auth/me/bookings/:order_reference/wallet/google` | Google Wallet pass for the user's attendee (order-level) |
+| `GET` | `/api/v1/auth/me/bookings/:order_reference/attendees/:id/wallet/google` | Google Wallet pass for a specific attendee |
 
 ---
 
@@ -51,8 +53,11 @@ Returns the authenticated user's bookings for events that haven't started yet, s
     },
     "attendees": [
       {
+        "id": 42,
+        "qr_code": "CT-2026-ABC123-42",
         "first_name": "Ion",
         "last_name": "Popescu",
+        "payment_status": "paid",
         "ticket_name": "General",
         "ticket_description": "Includes all sessions",
         "ticket_price": "150.0",
@@ -140,8 +145,11 @@ DELETE /api/v1/auth/me/bookings/:order_reference
   "event": { ... },
   "attendees": [
     {
+      "id": 42,
+      "qr_code": "CT-2026-ABC123-42",
       "first_name": "Ion",
       "last_name": "Popescu",
+      "payment_status": "attendee_cancelled",
       "ticket_name": "General",
       "ticket_description": "Includes all sessions",
       "ticket_price": "150.0",
@@ -209,8 +217,11 @@ interface BookingEvent {
 }
 
 interface BookingAttendee {
+  id: number;
+  qr_code: string;              // "CT-YYYY-XXXXX-<attendee_id>" — use for in-app QR display and wallet
   first_name: string;
   last_name: string;
+  payment_status: "payment_pending" | "paid" | "refunded" | "attendee_cancelled";
   ticket_name: string | null;
   ticket_description: string | null;
   ticket_price: string | null;  // decimal string, e.g. "150.0"
@@ -282,6 +293,24 @@ const status = await checkBookings(jwt, events.map((e) => e.slug));
 // status["conferinta-2026"].has_booking → true/false
 ```
 
+### Add to Google Wallet (per-attendee)
+
+```ts
+async function getAttendeeWalletUrl(
+  jwt: string,
+  orderRef: string,
+  attendeeId: number
+): Promise<string> {
+  const res = await fetch(
+    `${BASE}/api/v1/auth/me/bookings/${orderRef}/attendees/${attendeeId}/wallet/google`,
+    { headers: { Authorization: `Bearer ${jwt}` } }
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error);
+  return data.url; // open this URL in a browser tab
+}
+```
+
 ### Cancel order
 
 ```ts
@@ -319,7 +348,82 @@ async function cancelAttendee(
 
 ---
 
-## Cancellation rules
+## 6. Google Wallet pass (order-level)
+
+Returns a URL the user can open to save their ticket to Google Wallet. This finds the user's own attendee in the order; if the user is the order creator with no attendee row it falls back to the order's first attendee.
+
+```
+GET /api/v1/auth/me/bookings/:order_reference/wallet/google
+```
+
+**Response 200**
+
+```json
+{ "url": "https://pay.google.com/gp/v/save/<jwt>" }
+```
+
+**Error responses**
+
+| Scenario | Status | `error` |
+|----------|--------|---------|
+| Order not found or user has no access | 404 | `"Not found"` |
+| Google Wallet API error | 500 | `"Internal server error"` |
+
+---
+
+## 7. Google Wallet pass (per-attendee)
+
+Returns a wallet URL for a specific attendee. The attendee must belong to the authenticated user (`user_id` match). Use this when displaying individual tickets — each attendee gets their own pass with a unique QR code.
+
+```
+GET /api/v1/auth/me/bookings/:order_reference/attendees/:id/wallet/google
+```
+
+**Response 200** — same shape as the order-level endpoint.
+
+**Error responses**
+
+| Scenario | Status | `error` |
+|----------|--------|---------|
+| Order not found | 404 | `"Not found"` |
+| Attendee not found or belongs to another user | 404 | `"Not found"` |
+| Google Wallet API error | 500 | `"Internal server error"` |
+
+**Note:** Each wallet pass encodes the attendee's `qr_code` (`CT-YYYY-XXXXX-<attendee_id>`) as its barcode. See [QR codes](#qr-codes) below.
+
+---
+
+## QR codes
+
+Each attendee has a `qr_code` field in the booking response:
+
+```
+CT-2026-ABC123-42
+```
+
+Format: `<order_reference>-<attendee_id>`
+
+**Uses:**
+- Render as a QR image in the app for the attendee to show at the door
+- Passed as the barcode value in Google Wallet passes
+
+**Scanning:** The check-in scan API resolves by `order_reference` only. When parsing a scanned QR:
+```ts
+function parseQrCode(qr: string): { orderRef: string; attendeeId: number } {
+  const lastDash = qr.lastIndexOf("-");
+  return {
+    orderRef: qr.slice(0, lastDash),      // "CT-2026-ABC123"
+    attendeeId: parseInt(qr.slice(lastDash + 1), 10), // 42
+  };
+}
+```
+Use `orderRef` to call `GET /api/v1/scan/orders/:order_reference`, then use `attendeeId` to highlight the matching attendee row.
+
+---
+
+## Frontend implementation
+
+### Bookings page
 
 - Only **`payment_pending`** attendees can be cancelled. Already-paid spots cannot be self-cancelled.
 - **Cancel order** (`DELETE /:order_reference`) cancels all of the user's `payment_pending` attendees in the order at once.

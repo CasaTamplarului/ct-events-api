@@ -219,9 +219,21 @@ PATCH /api/v1/scan/orders/:order_reference
 1. GET  /api/v1/scan/events
        → pick event, get slug
 
-2. User scans QR code → extract order_reference string (format: CT-YYYY-NNNNN)
-   GET  /api/v1/scan/orders/:order_reference
+2. User scans QR code.
+
+   QR codes come in two formats:
+   - Order-level (email confirmation): "CT-2026-ABC123"
+   - Per-attendee (wallet pass / in-app): "CT-2026-ABC123-42"
+
+   Parse the scanned value before calling the API:
+     const lastDash = qr.lastIndexOf("-");
+     const isPerAttendee = lastDash > "CT-2026-".length + 5; // attendee_id suffix present
+     const orderRef  = isPerAttendee ? qr.slice(0, lastDash) : qr;
+     const attendeeId = isPerAttendee ? parseInt(qr.slice(lastDash + 1), 10) : null;
+
+   GET  /api/v1/scan/orders/:orderRef
        → show order + attendees
+       → if attendeeId is set, scroll to / highlight that attendee
 
    OR user types a name / email / phone:
    GET  /api/v1/scan/search?type=name&query=Ion&event_slug=conferinta-2026
