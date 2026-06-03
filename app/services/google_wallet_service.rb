@@ -72,6 +72,11 @@ class GoogleWalletService
         dateTime: { start: event.start_date.iso8601 }
       }
       body[:dateTime][:end] = event.end_date.iso8601 if event.end_date
+      if (frontend_url = ENV['FRONTEND_URL']).present?
+        body[:logo] = { sourceUri: { uri: "#{frontend_url}/images/ct-logo-white.svg" },
+                        contentDescription: { defaultValue: { language: 'ro', value: 'Casa Tâmplarului' } } }
+        body[:homepageUri] = { uri: frontend_url, description: 'Casa Tâmplarului' }
+      end
       hero_url = ApplicationSerializer.asset_url(event.hero_image)
       body[:heroImage] = { sourceUri: { uri: hero_url } } if hero_url
       upsert_resource('eventTicketClass', class_id, body)

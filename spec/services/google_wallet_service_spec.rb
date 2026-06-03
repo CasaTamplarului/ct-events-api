@@ -123,6 +123,30 @@ RSpec.describe GoogleWalletService do
       )
     end
 
+    context 'when FRONTEND_URL is set' do
+      around do |example|
+        orig = ENV['FRONTEND_URL']
+        ENV['FRONTEND_URL'] = 'https://ctevents.example.com'
+        example.run
+      ensure
+        ENV['FRONTEND_URL'] = orig
+      end
+
+      it 'includes logo and homepageUri on the class' do
+        service.save_url
+        expect(WebMock).to(
+          have_requested(:post,
+                         'https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass')
+            .with do |req|
+              body = JSON.parse(req.body)
+              body.dig('logo', 'sourceUri', 'uri') == 'https://ctevents.example.com/images/ct-logo-white.svg' &&
+                body.dig('homepageUri', 'uri') == 'https://ctevents.example.com' &&
+                body.dig('homepageUri', 'description') == 'Casa Tâmplarului'
+            end
+        )
+      end
+    end
+
     it 'sends the object request with the per-attendee QR token and holder name' do
       service.save_url
       expect(WebMock).to(
