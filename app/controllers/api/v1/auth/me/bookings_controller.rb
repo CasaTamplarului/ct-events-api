@@ -126,6 +126,47 @@ module Api
             render json: { error: 'Internal server error' }, status: :internal_server_error
           end
 
+          def wallet_apple
+            order = Order.find_by(order_reference: params[:order_reference])
+            return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless order
+
+            base     = order.attendees.includes(:order, event: :events_translations)
+            attendee = base.find_by(user_id: current_user.id)
+            attendee ||= base.order(:id).first if order.user_id == current_user.id
+
+            return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless attendee
+
+            lang = current_user.language || 'ro-RO'
+            data = AppleWalletService.new(attendee: attendee, language: lang).pass_data
+            send_data data,
+                      type: 'application/vnd.apple.pkpass',
+                      filename: "ticket-#{order.order_reference}.pkpass",
+                      disposition: 'attachment'
+          rescue AppleWalletService::PassGenerationError => e
+            Rails.logger.error("Apple Wallet error for #{order.order_reference}: #{e.message}")
+            render json: { error: 'Internal server error' }, status: :internal_server_error
+          end
+
+          def wallet_apple_attendee
+            order = Order.find_by(order_reference: params[:order_reference])
+            return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless order
+
+            attendee = order.attendees
+                            .includes(event: :events_translations)
+                            .find_by(id: params[:id], user_id: current_user.id)
+            return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless attendee
+
+            lang = current_user.language || 'ro-RO'
+            data = AppleWalletService.new(attendee: attendee, language: lang).pass_data
+            send_data data,
+                      type: 'application/vnd.apple.pkpass',
+                      filename: "ticket-#{order.order_reference}.pkpass",
+                      disposition: 'attachment'
+          rescue AppleWalletService::PassGenerationError => e
+            Rails.logger.error("Apple Wallet error for attendee #{attendee.id}: #{e.message}")
+            render json: { error: 'Internal server error' }, status: :internal_server_error
+          end
+
           private
 
             def attendees_for_response(order)
