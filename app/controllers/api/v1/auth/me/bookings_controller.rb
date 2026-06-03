@@ -168,7 +168,7 @@ module Api
                 payment_status: order.payment_status(attendees),
                 total_price: attendees.sum { |a| a.ticket&.price || 0 },
                 event: serialise_event(event, lang),
-                attendees: attendees.map { |a| serialise_attendee(a, lang) }
+                attendees: attendees.map { |a| serialise_attendee(a, lang, order.order_reference) }
               }
             end
 
@@ -185,9 +185,11 @@ module Api
               }
             end
 
-            def serialise_attendee(attendee, lang)
+            def serialise_attendee(attendee, lang, order_reference)
               translation = ticket_translation_for(attendee, lang)
               {
+                id: attendee.id,
+                qr_code: "#{order_reference}-#{attendee.id}",
                 first_name: attendee.first_name,
                 last_name: attendee.last_name,
                 payment_status: attendee.payment_status,

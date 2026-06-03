@@ -147,6 +147,16 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
         expect(a['dietary_preference']).to eq('no_preference')
       end
 
+      it 'includes id and qr_code for each attendee' do
+        booking = create_booking(user: user, start_date: 10.days.from_now, end_date: 13.days.from_now)
+
+        get '/api/v1/auth/me/bookings/upcoming', headers: auth_headers
+
+        a = json.first['attendees'].first
+        expect(a['id']).to eq(booking[:attendee].id)
+        expect(a['qr_code']).to eq("#{booking[:order].order_reference}-#{booking[:attendee].id}")
+      end
+
       it 'only returns the current user attendees when user did not create the order' do
         other_user = create(:user, email: 'other@example.com')
         event = create(:event, start_date: 10.days.from_now, end_date: 13.days.from_now)
