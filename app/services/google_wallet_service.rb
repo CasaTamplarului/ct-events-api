@@ -47,12 +47,8 @@ class GoogleWalletService
       "#{@issuer_id}.#{sanitize_id(event.slug)}"
     end
 
-    def qr_token
-      "#{@attendee.order.order_reference}-#{@attendee.id}"
-    end
-
     def wallet_object_id
-      "#{@issuer_id}.#{sanitize_id(qr_token)}"
+      "#{@issuer_id}.#{sanitize_id(@attendee.qr_code)}"
     end
 
     def sanitize_id(str)
@@ -86,7 +82,7 @@ class GoogleWalletService
         id: wallet_object_id,
         classId: class_id,
         state: 'ACTIVE',
-        barcode: { type: 'QR_CODE', value: qr_token }
+        barcode: { type: 'QR_CODE', value: @attendee.qr_code }
       }
       upsert_resource('eventTicketObject', wallet_object_id, body)
     end

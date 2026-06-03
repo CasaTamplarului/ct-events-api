@@ -115,6 +115,7 @@ module Api
             attendee = order.attendees
                             .includes(event: :events_translations)
                             .find_by(id: params[:id], user_id: current_user.id)
+            # No owner fallback — this endpoint targets a specific attendee by id.
             return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless attendee
 
             lang = current_user.language || 'ro-RO'
@@ -187,7 +188,7 @@ module Api
                 payment_status: order.payment_status(attendees),
                 total_price: attendees.sum { |a| a.ticket&.price || 0 },
                 event: serialise_event(event, lang),
-                attendees: attendees.map { |a| serialise_attendee(a, lang, order.order_reference) }
+                attendees: attendees.map { |a| serialise_attendee(a, lang) }
               }
             end
 
@@ -204,11 +205,11 @@ module Api
               }
             end
 
-            def serialise_attendee(attendee, lang, order_reference)
+            def serialise_attendee(attendee, lang)
               translation = ticket_translation_for(attendee, lang)
               {
                 id: attendee.id,
-                qr_code: "#{order_reference}-#{attendee.id}",
+                qr_code: attendee.qr_code,
                 first_name: attendee.first_name,
                 last_name: attendee.last_name,
                 payment_status: attendee.payment_status,
