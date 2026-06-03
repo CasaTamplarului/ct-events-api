@@ -46,10 +46,12 @@ Rails.application.routes.draw do
       end
 
       namespace :scan do
-        get 'events', to: 'events#index'
-        get 'search', to: 'search#index'
+        get  'events',      to: 'events#index'
+        get  'search',      to: 'search#index'
+        get  'meal_slots',  to: 'meal_slots#index'
+        post 'meal_stamps', to: 'meal_stamps#create'
         scope '/orders/:order_reference' do
-          get '/', to: 'orders#show', as: 'scan_order'
+          get   '/', to: 'orders#show',   as: 'scan_order'
           patch '/', to: 'orders#update', as: 'scan_order_update'
         end
       end
