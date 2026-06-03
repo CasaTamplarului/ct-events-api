@@ -24,6 +24,8 @@ Content-Type: application/json
 | `DELETE` | `/api/v1/auth/me/bookings/:order_reference/attendees/:id` | Cancel a single attendee |
 | `GET` | `/api/v1/auth/me/bookings/:order_reference/wallet/google` | Google Wallet pass for the user's attendee (order-level) |
 | `GET` | `/api/v1/auth/me/bookings/:order_reference/attendees/:id/wallet/google` | Google Wallet pass for a specific attendee |
+| `GET` | `/api/v1/auth/me/bookings/:order_reference/wallet/apple` | Apple Wallet pass for the user's attendee (order-level) |
+| `GET` | `/api/v1/auth/me/bookings/:order_reference/attendees/:id/wallet/apple` | Apple Wallet pass for a specific attendee |
 
 ---
 
