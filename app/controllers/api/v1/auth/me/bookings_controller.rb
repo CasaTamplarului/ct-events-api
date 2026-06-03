@@ -112,10 +112,10 @@ module Api
             order = Order.find_by(order_reference: params[:order_reference])
             return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless order
 
-            attendee = order.attendees
-                            .includes(event: :events_translations)
-                            .find_by(id: params[:id], user_id: current_user.id)
-            # No owner fallback — this endpoint targets a specific attendee by id.
+            base     = order.attendees.includes(event: :events_translations)
+            attendee = base.find_by(id: params[:id], user_id: current_user.id)
+            attendee ||= base.find_by(id: params[:id]) if order.user_id == current_user.id
+
             return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless attendee
 
             lang = current_user.language || 'ro-RO'
@@ -151,9 +151,10 @@ module Api
             order = Order.find_by(order_reference: params[:order_reference])
             return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless order
 
-            attendee = order.attendees
-                            .includes(event: :events_translations)
-                            .find_by(id: params[:id], user_id: current_user.id)
+            base     = order.attendees.includes(event: :events_translations)
+            attendee = base.find_by(id: params[:id], user_id: current_user.id)
+            attendee ||= base.find_by(id: params[:id]) if order.user_id == current_user.id
+
             return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless attendee
 
             lang = current_user.language || 'ro-RO'
