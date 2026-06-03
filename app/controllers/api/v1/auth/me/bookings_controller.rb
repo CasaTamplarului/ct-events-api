@@ -171,7 +171,7 @@ module Api
           private
 
             def attendees_for_response(order)
-              scope = order.attendees.includes({ ticket: :tickets_translations }, { event: :events_translations })
+              scope = order.attendees.includes({ ticket: [:tickets_translations, :ticket_meal_slots] }, { event: :events_translations })
               (order.user_id == current_user.id ? scope : scope.where(user_id: current_user.id)).to_a
             end
 
@@ -204,14 +204,14 @@ module Api
 
               if own_order_ids.any?
                 Attendee.where(order_id: own_order_ids)
-                        .includes({ ticket: :tickets_translations }, { event: :events_translations })
+                        .includes({ ticket: [:tickets_translations, :ticket_meal_slots] }, { event: :events_translations })
                         .group_by(&:order_id)
                         .each { |oid, atts| attendees_by_order[oid] = atts }
               end
 
               if other_order_ids.any?
                 Attendee.where(order_id: other_order_ids, user_id: current_user.id)
-                        .includes({ ticket: :tickets_translations }, { event: :events_translations })
+                        .includes({ ticket: [:tickets_translations, :ticket_meal_slots] }, { event: :events_translations })
                         .group_by(&:order_id)
                         .each { |oid, atts| attendees_by_order[oid] = atts }
               end
@@ -259,7 +259,10 @@ module Api
                 ticket_description: translation&.description,
                 ticket_price: attendee.ticket&.price,
                 food_included: attendee.ticket&.food_included,
-                dietary_preference: attendee.dietary_preference
+                dietary_preference: attendee.dietary_preference,
+                meal_slots: (attendee.ticket&.ticket_meal_slots || [])
+                              .sort_by { |s| [s.occurs_on, s.sort || 0] }
+                              .map { |s| { meal_type: s.meal_type, occurs_on: s.occurs_on } }
               }
             end
 

@@ -40,7 +40,7 @@ class SendgridService
     return unless emails_enabled?
 
     all_attendees = order.attendees
-                         .includes({ ticket: :tickets_translations }, { event: :events_translations })
+                         .includes({ ticket: [:tickets_translations, :ticket_meal_slots] }, { event: :events_translations })
                          .to_a
 
     attendees_with_email = all_attendees.reject { |a| a.email_address.blank? }
@@ -112,6 +112,13 @@ class SendgridService
         Rails.logger.error("SendGrid booking confirmation error: #{response.status_code} #{response.body}")
       end
 
+      MEAL_EMOJIS = { 'breakfast' => '☀️', 'lunch' => '🥗', 'dinner' => '🍽️', 'snack' => '🍎' }.freeze
+      MEAL_LABELS = {
+        'ro' => { 'breakfast' => 'Mic dejun', 'lunch' => 'Prânz', 'dinner' => 'Cină', 'snack' => 'Gustare' },
+        'en' => { 'breakfast' => 'Breakfast', 'lunch' => 'Lunch',  'dinner' => 'Dinner', 'snack' => 'Snack'    }
+      }.freeze
+      MONTH_ABBR_RO = %w[ian feb mar apr mai iun iul aug sep oct nov dec].freeze
+
       LOGO_PATH = Rails.root.join('public', 'images', 'ct_logo_qr.png').freeze
       QR_SIZE   = 300
       # Logo covers ~20% of QR area — safe with H-level error correction (30% recovery)
@@ -145,8 +152,23 @@ class SendgridService
           'ticket_description' => translation&.description,
           'ticket_price' => attendee.ticket&.price,
           'food_included' => attendee.ticket&.food_included,
-          'qr_content_id' => "qr_code_#{attendee.id}"
+          'qr_content_id' => "qr_code_#{attendee.id}",
+          'meal_slots' => format_meal_slots(attendee.ticket&.ticket_meal_slots || [], lang)
         }
+      end
+
+      def format_meal_slots(slots, lang)
+        locale  = lang.to_s.start_with?('ro') ? 'ro' : 'en'
+        labels  = MEAL_LABELS[locale]
+        sorted  = slots.sort_by { |s| [s.occurs_on, s.sort || 0] }
+        sorted.map do |s|
+          date_label = if locale == 'ro'
+                         "#{s.occurs_on.day} #{MONTH_ABBR_RO[s.occurs_on.month - 1]}"
+                       else
+                         s.occurs_on.strftime('%-d %b')
+                       end
+          { 'emoji' => MEAL_EMOJIS[s.meal_type], 'label' => labels[s.meal_type], 'date_label' => date_label }
+        end
       end
   end
 end
