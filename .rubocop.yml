@@ -24,6 +24,8 @@ Style/OneClassPerFile:
     - "spec/support/apipie_helper.rb"
 RSpec/MessageChain:
   Enabled: false
+RSpec/MultipleDescribes:
+  Enabled: false
 Style/OptionalBooleanParameter:
   Exclude:
     # Sidekiq does not support keyword arguments for its workers https://github.com/mperham/sidekiq/issues/2372

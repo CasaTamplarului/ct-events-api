@@ -108,6 +108,23 @@ module Api
             render json: { error: 'Internal server error' }, status: :internal_server_error
           end
 
+          def wallet_google_attendee
+            order = Order.find_by(order_reference: params[:order_reference])
+            return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless order
+
+            attendee = order.attendees
+                            .includes(event: :events_translations)
+                            .find_by(id: params[:id], user_id: current_user.id)
+            return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless attendee
+
+            lang = current_user.language || 'ro-RO'
+            url  = GoogleWalletService.new(attendee: attendee, language: lang).save_url
+            render json: { url: url }
+          rescue GoogleWalletService::ApiError => e
+            Rails.logger.error("Google Wallet error for attendee #{attendee.id}: #{e.message}")
+            render json: { error: 'Internal server error' }, status: :internal_server_error
+          end
+
           private
 
             def attendees_for_response(order)

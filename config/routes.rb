@@ -23,6 +23,8 @@ Rails.application.routes.draw do
           delete ':order_reference',                to: 'me/bookings#cancel_order',    as: 'cancel_booking'
           delete ':order_reference/attendees/:id',  to: 'me/bookings#cancel_attendee', as: 'cancel_booking_attendee'
           get ':order_reference/wallet/google',     to: 'me/bookings#wallet_google',   as: 'google_wallet_booking'
+          get ':order_reference/attendees/:id/wallet/google', to: 'me/bookings#wallet_google_attendee',
+                                                              as: 'google_wallet_attendee'
         end
         resource :registration, only: :create
         resource :session, only: :create
