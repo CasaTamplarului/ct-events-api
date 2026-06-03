@@ -177,8 +177,9 @@ RSpec.describe SendgridService do
         expect(dtd['is_pending']).to be(false)
       end
 
-      it 'includes attendee first_name, last_name, ticket_name, description, price, and food_included' do
+      it 'includes attendee fields and qr_content_id in template data' do
         described_class.send_booking_confirmation(order: order, language: language_code)
+        attendee = order.attendees.first
         attendees_data = JSON.parse(WebMock::RequestRegistry.instance.requested_signatures.hash.keys.last.body)
                              .dig('personalizations', 0, 'dynamic_template_data', 'attendees')
         expect(attendees_data.first).to include(
@@ -187,19 +188,20 @@ RSpec.describe SendgridService do
           'ticket_name' => 'Adult',
           'ticket_description' => 'Includes all meals',
           'ticket_price' => '150.0',
-          'food_included' => true
+          'food_included' => true,
+          'qr_content_id' => "qr_code_#{attendee.id}"
         )
       end
 
-      it 'attaches the QR code as an inline image with content_id qr_code' do
+      it 'attaches a per-attendee QR code as an inline image' do
         described_class.send_booking_confirmation(order: order, language: language_code)
+        attendee    = order.attendees.first
         attachments = JSON.parse(WebMock::RequestRegistry.instance.requested_signatures.hash.keys.last.body)['attachments']
-        expect(attachments).to be_present
-        qr_attachment = attachments.find { |a| a['content_id'] == 'qr_code' }
+        qr_attachment = attachments&.find { |a| a['content_id'] == "qr_code_#{attendee.id}" }
         expect(qr_attachment).to include(
           'type' => 'image/png',
           'disposition' => 'inline',
-          'filename' => 'booking-qr.png'
+          'filename' => "qr-#{attendee.id}.png"
         )
         expect(qr_attachment['content']).to be_present
       end

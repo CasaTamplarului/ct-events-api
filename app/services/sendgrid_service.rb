@@ -45,10 +45,6 @@ class SendgridService
     attendees_with_email = all_attendees.reject { |a| a.email_address.blank? }
     return if attendees_with_email.empty?
 
-    qr     = RQRCode::QRCode.new(order.order_reference)
-    png    = qr.as_png(size: 300, border_modules: 4)
-    qr_b64 = Base64.strict_encode64(png.to_s)
-
     from_email = Rails.application.credentials.dig(:sendgrid, :from_email) || 'noreply@example.com'
     client     = SendGrid::API.new(api_key: Rails.application.credentials.dig(:sendgrid, :api_key))
 
@@ -59,7 +55,6 @@ class SendgridService
         order: order,
         all_attendees: all_attendees,
         language: language.to_s,
-        qr_b64: qr_b64,
         from_email: from_email,
         client: client
       )
@@ -71,7 +66,7 @@ class SendgridService
   class << self
     private
 
-      def send_confirmation_to(email_address:, group:, order:, language:, qr_b64:, from_email:, client:, all_attendees:) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
+      def send_confirmation_to(email_address:, group:, order:, language:, from_email:, client:, all_attendees:) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
         event      = group.first.event
         event_name = event.events_translations.find { |t| t.languages_code == language }&.name ||
                      event.events_translations.find { |t| t.languages_code == 'ro-RO' }&.name
@@ -96,13 +91,16 @@ class SendgridService
         )
         mail.add_personalization(personalization)
 
-        attachment = SendGrid::Attachment.new
-        attachment.content     = qr_b64
-        attachment.type        = 'image/png'
-        attachment.filename    = 'booking-qr.png'
-        attachment.disposition = 'inline'
-        attachment.content_id  = 'qr_code'
-        mail.add_attachment(attachment)
+        group.each do |attendee|
+          png = RQRCode::QRCode.new(attendee.qr_code).as_png(size: 300, border_modules: 4)
+          attachment = SendGrid::Attachment.new
+          attachment.content     = Base64.strict_encode64(png.to_s)
+          attachment.type        = 'image/png'
+          attachment.filename    = "qr-#{attendee.id}.png"
+          attachment.disposition = 'inline'
+          attachment.content_id  = "qr_code_#{attendee.id}"
+          mail.add_attachment(attachment)
+        end
 
         response = client.client.mail._('send').post(request_body: mail.to_json)
         return if response.status_code.to_i.between?(200, 299)
@@ -119,7 +117,8 @@ class SendgridService
           'ticket_name' => translation&.name,
           'ticket_description' => translation&.description,
           'ticket_price' => attendee.ticket&.price,
-          'food_included' => attendee.ticket&.food_included
+          'food_included' => attendee.ticket&.food_included,
+          'qr_content_id' => "qr_code_#{attendee.id}"
         }
       end
   end
