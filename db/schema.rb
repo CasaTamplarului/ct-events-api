@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_03_153314) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_03_174950) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -525,12 +525,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_03_153314) do
   end
 
   create_table "ticket_meal_slots", force: :cascade do |t|
-    t.datetime "created_at", null: false
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.string "meal_type", null: false
     t.date "occurs_on", null: false
     t.integer "sort"
     t.bigint "ticket_id", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.index ["ticket_id", "occurs_on", "meal_type"], name: "idx_on_ticket_id_occurs_on_meal_type_c7e73ddfbf"
     t.index ["ticket_id"], name: "index_ticket_meal_slots_on_ticket_id"
   end
