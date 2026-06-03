@@ -27,13 +27,14 @@ GET /api/v1/scan/events
 
 ```json
 [
-  { "name": "Conferința 2026", "slug": "conferinta-2026" },
-  { "name": "Tabăra 2026",     "slug": "tabara-2026" }
+  { "name": "Conferința 2026", "slug": "conferinta-2026", "has_meal_tracking": false },
+  { "name": "Tabăra 2026",     "slug": "tabara-2026",     "has_meal_tracking": true  }
 ]
 ```
 
 - Sorted by start date ascending (soonest first).
 - Name is returned in the authenticated user's language, falling back to Romanian (`ro-RO`).
+- `has_meal_tracking` is `true` when at least one ticket on the event has meal slots configured. Use this to decide whether to show the food stamp UI.
 - Returns `[]` when there are no upcoming live events.
 
 ---
@@ -133,11 +134,19 @@ GET /api/v1/scan/orders/:order_reference
       "payment_status": "paid",
       "checked_in": false,
       "checked_in_at": null,
-      "checked_in_by": null
+      "checked_in_by": null,
+      "meal_slots": [
+        { "id": 12, "meal_type": "lunch",  "occurs_on": "2026-07-15", "sort": 1, "stamp_count": 1 },
+        { "id": 13, "meal_type": "dinner", "occurs_on": "2026-07-15", "sort": 2, "stamp_count": 0 }
+      ]
     }
   ]
 }
 ```
+
+- `meal_slots` is an array of all meal entitlements for that attendee's ticket, sorted by date then sort order.
+- `stamp_count: 0` — not yet received. `stamp_count: 1` — received once. `stamp_count: 2+` — had seconds.
+- Attendees on tickets with no meal slots receive `meal_slots: []`.
 
 **Error responses**
 
@@ -197,7 +206,10 @@ PATCH /api/v1/scan/orders/:order_reference
       "payment_status": "paid",
       "checked_in": true,
       "checked_in_at": "2026-06-01T10:00:00.000Z",
-      "checked_in_by": "Ana Ionescu"
+      "checked_in_by": "Ana Ionescu",
+      "meal_slots": [
+        { "id": 12, "meal_type": "lunch", "occurs_on": "2026-07-15", "sort": 1, "stamp_count": 0 }
+      ]
     }
   ]
 }
@@ -210,6 +222,105 @@ PATCH /api/v1/scan/orders/:order_reference
 | Order reference not found | 404 | `"Not found"` |
 | `attendees` key missing or empty | 422 | `"Nothing to update"` |
 | Authenticated user is an attendee in this order | 403 | `"Forbidden"` |
+
+---
+
+## 5. List meal slots for a date
+
+Used by the kitchen UI to show which meals are being served today and let staff select the current one before scanning.
+
+```
+GET /api/v1/scan/meal_slots?event_slug=tabara-2026&date=2026-07-15
+```
+
+**Query parameters**
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `event_slug` | Yes | Slug of the event |
+| `date` | Yes | `YYYY-MM-DD` — the date to list meals for |
+
+**Response 200**
+
+```json
+[
+  { "id": 12, "meal_type": "lunch",  "occurs_on": "2026-07-15", "sort": 1 },
+  { "id": 13, "meal_type": "dinner", "occurs_on": "2026-07-15", "sort": 2 }
+]
+```
+
+- Results are deduplicated by `meal_type` — if multiple ticket types share the same meal on a given date, only one entry appears. The kitchen selects a meal once, regardless of how many ticket types it applies to.
+- Sorted by `sort` then `id`.
+- Returns `[]` when no meals are configured for that date.
+
+**Error responses**
+
+| Scenario | Status | `error` |
+|----------|--------|---------|
+| Unknown `event_slug` | 404 | `"Not found"` |
+| Missing `date` | 422 | `"date is required"` |
+| Invalid `date` format | 422 | `"invalid date"` |
+
+---
+
+## 6. Stamp a meal
+
+Records that an attendee received a specific meal. Call this when the kitchen scans a QR code.
+
+```
+POST /api/v1/scan/meal_stamps
+Content-Type: application/json
+```
+
+**Request body**
+
+```json
+{
+  "qr_code":   "CT-2026-ABC123-42",
+  "meal_type": "lunch",
+  "occurs_on": "2026-07-15"
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `qr_code` | string | The scanned QR code value (attendee's `qr_code`) |
+| `meal_type` | string | One of `breakfast` \| `lunch` \| `dinner` \| `snack` |
+| `occurs_on` | string | `YYYY-MM-DD` — the date of the meal |
+
+**Response 200**
+
+```json
+{
+  "stamp": {
+    "id":         99,
+    "stamped_at": "2026-07-15T12:34:00.000Z",
+    "stamped_by": "Ana Ionescu"
+  },
+  "already_stamped": false,
+  "total_stamps":    1,
+  "attendee": { "id": 42, "first_name": "Ion", "last_name": "Popescu" }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `already_stamped` | `true` if the attendee had already received this meal today (seconds). Always stamp anyway — this is a warning, not a block. |
+| `total_stamps` | Total number of times this meal has been given to this attendee (1 = first time, 2+ = seconds). |
+
+**Behaviour**
+
+- Always succeeds if the attendee is entitled to the meal — even if they've already received it.
+- Show a warning in the UI when `already_stamped: true` so kitchen staff can decide whether to proceed.
+- `total_stamps` lets you display "2nd serving" or track daily consumption totals.
+
+**Error responses**
+
+| Scenario | Status | `error` |
+|----------|--------|---------|
+| QR code not found | 404 | `"Not found"` |
+| Attendee's ticket doesn't include this meal on this date | 422 | `"Not entitled"` |
+| Missing `qr_code`, `meal_type`, or `occurs_on` | 422 | `"qr_code, meal_type, and occurs_on are required"` |
 
 ---
 
@@ -247,6 +358,57 @@ PATCH /api/v1/scan/orders/:order_reference
 
 4. Response from PATCH is the refreshed order — no need for a separate GET.
 ```
+
+---
+
+## Typical food stamp flow
+
+Only relevant when `has_meal_tracking: true` for the event.
+
+```
+1. GET  /api/v1/scan/events
+       → pick event, note has_meal_tracking: true
+
+2. Kitchen selects today's meal:
+   GET  /api/v1/scan/meal_slots?event_slug=tabara-2026&date=2026-07-15
+       → show list of meals for today (e.g. Lunch, Dinner)
+       → kitchen taps the current meal — store selected { id, meal_type, occurs_on }
+
+3. Kitchen scans attendee QR code:
+   POST /api/v1/scan/meal_stamps
+        { "qr_code": "CT-2026-ABC123-42", "meal_type": "lunch", "occurs_on": "2026-07-15" }
+
+4. Handle response:
+   - already_stamped: false → show green ✓ "Ion Popescu — Lunch confirmed"
+   - already_stamped: true  → show yellow ⚠ "Already received (×2 total) — stamp again?"
+   - 422 Not entitled        → show red ✗ "Not entitled to this meal"
+   - 404                     → show red ✗ "QR code not recognised"
+
+5. Kitchen keeps the selected meal active and scans the next attendee (back to step 3).
+   No need to re-select the meal between scans — only change it when the meal service changes.
+```
+
+**Displaying `meal_slots` on the order detail screen:**
+
+When showing an order via `GET /scan/orders/:order_reference`, each attendee includes `meal_slots` with `stamp_count`. Use this to show a visual food status per attendee:
+
+```
+Ion Popescu
+  🍽 Lunch   Jul 15  ✓ (1)
+  🍽 Dinner  Jul 15  —
+  🍽 Lunch   Jul 16  —
+```
+
+---
+
+## meal_type values
+
+| Value | Label (translate in FE) |
+|-------|------------------------|
+| `"breakfast"` | Breakfast / Mic dejun |
+| `"lunch"` | Lunch / Prânz |
+| `"dinner"` | Dinner / Cină |
+| `"snack"` | Snack / Gustare |
 
 ---
 
