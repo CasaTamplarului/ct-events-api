@@ -57,7 +57,7 @@ RSpec.describe 'GET /api/v1/scan/events' do
     it 'returns name and slug only' do
       get '/api/v1/scan/events', headers: auth_header(admin)
       event_json = json.find { |e| e['slug'] == upcoming_event.slug }
-      expect(event_json.keys).to contain_exactly('name', 'slug')
+      expect(event_json.keys).to contain_exactly('name', 'slug', 'has_meal_tracking')
       expect(event_json['name']).to eq('Conferința 2026')
     end
 
@@ -96,6 +96,32 @@ RSpec.describe 'GET /api/v1/scan/events' do
       en_user = create(:user, role: 'admin', language: 'en-US')
       get '/api/v1/scan/events', headers: auth_header(en_user)
       expect(json.first['name']).to eq('Conferința RO')
+    end
+  end
+
+  describe 'has_meal_tracking field' do
+    let!(:tracked_event) do
+      create(:event, status: :live, start_date: 3.days.from_now, end_date: 5.days.from_now)
+    end
+    let!(:untracked_event) do
+      create(:event, status: :live, start_date: 4.days.from_now, end_date: 6.days.from_now)
+    end
+
+    before do
+      ticket_with_slots = create(:ticket, event: tracked_event)
+      create(:ticket_meal_slot, ticket: ticket_with_slots, occurs_on: 3.days.from_now, meal_type: 'lunch')
+    end
+
+    it 'returns has_meal_tracking: true for events with meal slots' do
+      get '/api/v1/scan/events', headers: auth_header(admin)
+      event_json = json.find { |e| e['slug'] == tracked_event.slug }
+      expect(event_json['has_meal_tracking']).to be(true)
+    end
+
+    it 'returns has_meal_tracking: false for events without meal slots' do
+      get '/api/v1/scan/events', headers: auth_header(admin)
+      event_json = json.find { |e| e['slug'] == untracked_event.slug }
+      expect(event_json['has_meal_tracking']).to be(false)
     end
   end
 end

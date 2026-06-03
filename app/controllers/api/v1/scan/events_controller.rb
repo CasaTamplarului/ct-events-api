@@ -11,7 +11,8 @@ module Api
 
         def index
           lang   = current_user.language || 'ro-RO'
-          events = Event.upcoming.order(:start_date).includes(:events_translations)
+          events = Event.upcoming.order(:start_date)
+                        .includes(:events_translations, tickets: :ticket_meal_slots)
           render json: events.map { |e| serialise_event(e, lang) }
         end
 
@@ -22,8 +23,9 @@ module Api
                           event.events_translations.find { |t| t.languages_code == 'ro-RO' } ||
                           event.events_translations.first
             {
-              name: translation&.name,
-              slug: event.slug
+              name:              translation&.name,
+              slug:              event.slug,
+              has_meal_tracking: event.tickets.any? { |t| t.ticket_meal_slots.any? }
             }
           end
       end
