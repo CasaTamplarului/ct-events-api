@@ -134,6 +134,56 @@ RSpec.describe 'Scan Orders API' do
         end
       end
     end
+
+    context 'meal slots' do
+      let(:ticket)    { create(:ticket, event: event) }
+      let(:slot_date) { 1.day.from_now.to_date }
+      let!(:slot)     { create(:ticket_meal_slot, ticket: ticket, occurs_on: slot_date, meal_type: 'lunch', sort: 1) }
+
+      before do
+        first_attendee.update!(ticket: ticket)
+      end
+
+      it 'includes meal_slots on each attendee' do
+        get_order(order.order_reference)
+        attendee_json = json['attendees'].find { |a| a['id'] == first_attendee.id }
+        expect(attendee_json['meal_slots']).to be_an(Array)
+      end
+
+      it 'includes slot fields and stamp_count: 0 when not yet stamped' do
+        get_order(order.order_reference)
+        attendee_json = json['attendees'].find { |a| a['id'] == first_attendee.id }
+        slot_json = attendee_json['meal_slots'].first
+        expect(slot_json).to include(
+          'id'          => slot.id,
+          'meal_type'   => 'lunch',
+          'occurs_on'   => slot_date.to_s,
+          'sort'        => 1,
+          'stamp_count' => 0
+        )
+      end
+
+      it 'returns stamp_count: 1 after one stamp' do
+        create(:meal_stamp, attendee: first_attendee, ticket_meal_slot: slot, stamped_by_user_id: admin.id)
+        get_order(order.order_reference)
+        attendee_json = json['attendees'].find { |a| a['id'] == first_attendee.id }
+        expect(attendee_json['meal_slots'].first['stamp_count']).to eq(1)
+      end
+
+      it 'returns stamp_count: 2 after seconds' do
+        create(:meal_stamp, attendee: first_attendee, ticket_meal_slot: slot, stamped_by_user_id: admin.id)
+        create(:meal_stamp, attendee: first_attendee, ticket_meal_slot: slot, stamped_by_user_id: admin.id)
+        get_order(order.order_reference)
+        attendee_json = json['attendees'].find { |a| a['id'] == first_attendee.id }
+        expect(attendee_json['meal_slots'].first['stamp_count']).to eq(2)
+      end
+
+      it 'returns meal_slots: [] for attendees with no meal slots on their ticket' do
+        get_order(order.order_reference)
+        attendee_json = json['attendees'].find { |a| a['id'] == second_attendee.id }
+        expect(attendee_json['meal_slots']).to eq([])
+      end
+    end
   end
 
   describe 'PATCH /api/v1/scan/orders/:order_reference' do
