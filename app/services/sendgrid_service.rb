@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'rqrcode'
+require 'chunky_png'
 
 class SendgridService
   RESET_PASSWORD_TEMPLATE_ID       = 'd-952a77f57d9f410597cfa1cf84260cef'
@@ -95,9 +96,9 @@ class SendgridService
         mail.add_personalization(personalization)
 
         group.each do |attendee|
-          png = RQRCode::QRCode.new(attendee.qr_code).as_png(size: 300, border_modules: 4)
+          png = qr_with_logo(attendee.qr_code)
           attachment = SendGrid::Attachment.new
-          attachment.content     = Base64.strict_encode64(png.to_s)
+          attachment.content     = Base64.strict_encode64(png)
           attachment.type        = 'image/png'
           attachment.filename    = "qr-#{attendee.id}.png"
           attachment.disposition = 'inline'
@@ -109,6 +110,29 @@ class SendgridService
         return if response.status_code.to_i.between?(200, 299)
 
         Rails.logger.error("SendGrid booking confirmation error: #{response.status_code} #{response.body}")
+      end
+
+      LOGO_PATH = Rails.root.join('public', 'images', 'ct_logo_qr.png').freeze
+      QR_SIZE   = 300
+      # Logo covers ~20% of QR area — safe with H-level error correction (30% recovery)
+      LOGO_SIZE = (QR_SIZE * 0.20).to_i
+      LOGO_PAD  = 5
+
+      def qr_with_logo(text)
+        qr_canvas = ChunkyPNG::Canvas.from_string(
+          RQRCode::QRCode.new(text, level: :h).as_png(size: QR_SIZE, border_modules: 4).to_s
+        )
+        return qr_canvas.to_blob unless File.exist?(LOGO_PATH)
+
+        logo = ChunkyPNG::Canvas.from_file(LOGO_PATH.to_s).resample_bilinear(LOGO_SIZE, LOGO_SIZE)
+
+        bg = LOGO_SIZE + (LOGO_PAD * 2)
+        bg_x = (QR_SIZE - bg) / 2
+        bg_y = (QR_SIZE - bg) / 2
+        bg.times { |dy| bg.times { |dx| qr_canvas[bg_x + dx, bg_y + dy] = ChunkyPNG::Color::WHITE } }
+
+        qr_canvas.compose!(logo, (QR_SIZE - LOGO_SIZE) / 2, (QR_SIZE - LOGO_SIZE) / 2)
+        qr_canvas.to_blob
       end
 
       def attendee_data(attendee, lang) # rubocop:disable Metrics/CyclomaticComplexity
