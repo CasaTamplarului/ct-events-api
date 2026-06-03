@@ -14,17 +14,18 @@ class AppleWalletService
   WWDR_CERT_PATH   = Rails.root.join('config', 'apple_wwdr.pem')
   ASSETS_PATH      = Rails.root.join('public', 'apple_wallet')
   IMAGE_NAMES      = %w[icon.png icon@2x.png icon@3x.png logo.png logo@2x.png logo@3x.png].freeze
+  WWDR_CERT        = OpenSSL::X509::Certificate.new(File.read(WWDR_CERT_PATH)).freeze
 
   def initialize(attendee:, language:)
     @attendee     = attendee
     @language     = language
     @pass_type_id = ENV.fetch('APPLE_WALLET_PASS_TYPE_ID') { raise ArgumentError, 'APPLE_WALLET_PASS_TYPE_ID is not set' }
     @team_id      = ENV.fetch('APPLE_WALLET_TEAM_ID')      { raise ArgumentError, 'APPLE_WALLET_TEAM_ID is not set' }
-    cert_pem      = Base64.decode64(ENV.fetch('APPLE_WALLET_CERTIFICATE') { raise ArgumentError, 'APPLE_WALLET_CERTIFICATE is not set' })
-    key_pem       = Base64.decode64(ENV.fetch('APPLE_WALLET_PRIVATE_KEY')  { raise ArgumentError, 'APPLE_WALLET_PRIVATE_KEY is not set' })
+    cert_pem      = Base64.strict_decode64(ENV.fetch('APPLE_WALLET_CERTIFICATE') { raise ArgumentError, 'APPLE_WALLET_CERTIFICATE is not set' })
+    key_pem       = Base64.strict_decode64(ENV.fetch('APPLE_WALLET_PRIVATE_KEY')  { raise ArgumentError, 'APPLE_WALLET_PRIVATE_KEY is not set' })
     @certificate  = OpenSSL::X509::Certificate.new(cert_pem)
     @private_key  = OpenSSL::PKey::RSA.new(key_pem)
-    @wwdr_cert    = OpenSSL::X509::Certificate.new(File.read(WWDR_CERT_PATH))
+    @wwdr_cert    = WWDR_CERT
   end
 
   def pass_data
@@ -83,7 +84,7 @@ class AppleWalletService
               value: "#{@attendee.first_name} #{@attendee.last_name}".strip }
           ],
           backFields: [
-            { key: 'order', label: 'REFERINȚĂ COMANDĂ', value: @attendee.order.order_reference }
+            { key: 'order', label: 'REFERINȚĂ COMANDĂ', value: @attendee.order&.order_reference.to_s }
           ]
         },
         barcodes: [
