@@ -77,6 +77,7 @@ class SendgridService
 
         personalization = SendGrid::Personalization.new
         personalization.add_to(SendGrid::Email.new(email: email_address))
+        single_attendee = group.size == 1
         personalization.add_dynamic_template_data(
           'is_romanian' => language.start_with?('ro'),
           'first_name' => group.first.first_name,
@@ -87,7 +88,9 @@ class SendgridService
           'attendees' => group.map { |a| attendee_data(a, language) },
           'total_price' => group.sum { |a| a.ticket&.price || 0 },
           'is_pending' => order.payment_pending?(all_attendees),
-          'year' => Time.current.year.to_s
+          'year' => Time.current.year.to_s,
+          'single_attendee' => single_attendee,
+          'qr_content_id' => single_attendee ? "qr_code_#{group.first.id}" : nil
         )
         mail.add_personalization(personalization)
 
