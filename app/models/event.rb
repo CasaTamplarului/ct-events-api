@@ -8,7 +8,9 @@ class Event < ApplicationRecord
   has_many :event_gallery_items, lambda {
     order(:sort)
   }, class_name: 'EventGallery', dependent: :destroy, inverse_of: :event
-  has_many :event_speakers, -> { order(:sort) }, dependent: :destroy, inverse_of: :event
+  has_many :event_speakers,      -> { order(:sort) }, dependent: :destroy, inverse_of: :event
+  has_many :event_template_docs, -> { order(:sort) }, dependent: :destroy, inverse_of: :event
+  has_many :event_boolean_fields, -> { order(:sort) }, dependent: :destroy, inverse_of: :event
 
   # Enums
   enum :status, { draft: 0, live: 1, cancelled: 2, deleted: 3 }

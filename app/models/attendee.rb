@@ -9,6 +9,7 @@ class Attendee < ApplicationRecord
                              inverse_of: false
   has_many :meal_stamps, dependent: :destroy
   has_many :attendee_template_doc_uploads, dependent: :destroy
+  has_many :attendee_boolean_field_responses, dependent: :destroy
 
   enum :payment_status, { payment_pending: 0, paid: 1, refunded: 2, attendee_cancelled: 3 }
   enum :dietary_preference, { no_preference: 0, vegetarian: 1, vegan: 2 }
