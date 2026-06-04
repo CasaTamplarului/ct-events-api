@@ -89,6 +89,8 @@ en:
       internal_error: "Internal server error"
       invalid_template_doc: "Invalid template document for this event"
       missing_required_docs: "Missing required document(s): %{docs}"
+      invalid_boolean_field: "Invalid question for this event"
+      missing_required_boolean_fields: "Missing required answer(s): %{fields}"
   bookings:
     errors:
       nothing_to_cancel: "No cancellable attendees found for this order"
