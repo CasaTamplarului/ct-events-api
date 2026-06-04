@@ -10,12 +10,24 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_03_174950) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_04_174731) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
 
+  create_table "attendee_template_doc_uploads", force: :cascade do |t|
+    t.bigint "attendee_id", null: false
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.uuid "directus_files_id", null: false
+    t.bigint "event_template_doc_id", null: false
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["attendee_id", "event_template_doc_id"], name: "idx_attendee_template_doc_uploads_unique", unique: true
+    t.index ["attendee_id"], name: "index_attendee_template_doc_uploads_on_attendee_id"
+    t.index ["event_template_doc_id"], name: "index_attendee_template_doc_uploads_on_event_template_doc_id"
+  end
+
   create_table "attendees", force: :cascade do |t|
+    t.integer "age"
     t.boolean "checked_in", default: false, null: false
     t.datetime "checked_in_at"
     t.bigint "checked_in_by_user_id"
@@ -457,6 +469,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_03_174950) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "event_template_doc_translations", force: :cascade do |t|
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.bigint "event_template_doc_id", null: false
+    t.string "label", null: false
+    t.string "languages_code", null: false
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["event_template_doc_id", "languages_code"], name: "index_event_template_doc_translations_unique", unique: true
+    t.index ["event_template_doc_id"], name: "index_event_template_doc_translations_on_event_template_doc_id"
+  end
+
+  create_table "event_template_docs", force: :cascade do |t|
+    t.integer "age_from"
+    t.integer "age_to"
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.uuid "directus_files_id", null: false
+    t.bigint "event_id", null: false
+    t.boolean "required", default: false, null: false
+    t.integer "sort", default: 0, null: false
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["event_id", "sort"], name: "index_event_template_docs_on_event_id_and_sort"
+    t.index ["event_id"], name: "index_event_template_docs_on_event_id"
+  end
+
   create_table "events", force: :cascade do |t|
     t.string "address"
     t.datetime "created_at", default: -> { "now()" }, null: false
@@ -524,6 +559,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_03_174950) do
     t.index ["user_id"], name: "index_passkeys_on_user_id"
   end
 
+  create_table "push_notifications", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id", null: false
+    t.string "directus_file_id"
+    t.bigint "event_id"
+    t.string "link"
+    t.integer "sent_to", default: 0, null: false
+    t.jsonb "translations", default: {}, null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_push_notifications_on_created_by_id"
+    t.index ["event_id"], name: "index_push_notifications_on_event_id"
+  end
+
+  create_table "push_subscriptions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "device_name"
+    t.string "platform", null: false
+    t.string "token", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["token"], name: "index_push_subscriptions_on_token", unique: true
+    t.index ["user_id"], name: "index_push_subscriptions_on_user_id"
+  end
+
   create_table "ticket_meal_slots", force: :cascade do |t|
     t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.string "meal_type", null: false
@@ -573,16 +632,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_03_174950) do
     t.datetime "deleted_at"
     t.string "email"
     t.boolean "event_reminder_emails", default: false, null: false
+    t.boolean "event_reminder_push", default: true, null: false
     t.boolean "event_update_emails", default: false, null: false
+    t.boolean "event_update_push", default: true, null: false
     t.string "first_name", null: false
     t.string "language"
     t.string "last_name"
     t.boolean "marketing_emails", default: false, null: false
+    t.boolean "marketing_push", default: true, null: false
     t.string "password_digest"
     t.string "password_reset_token"
     t.datetime "password_reset_token_expires_at"
-    t.boolean "payment_receipt_emails", default: false, null: false
     t.boolean "payment_reminder_emails", default: false, null: false
+    t.boolean "payment_reminder_push", default: true, null: false
     t.string "phone_number"
     t.string "role", default: "attendee", null: false
     t.datetime "updated_at", default: -> { "now()" }, null: false
@@ -591,6 +653,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_03_174950) do
     t.index ["password_reset_token"], name: "index_users_on_password_reset_token", unique: true
   end
 
+  add_foreign_key "attendee_template_doc_uploads", "attendees", on_delete: :cascade
+  add_foreign_key "attendee_template_doc_uploads", "directus_files", column: "directus_files_id", name: "attendee_template_doc_uploads_directus_files_id_fk"
+  add_foreign_key "attendee_template_doc_uploads", "event_template_docs", on_delete: :cascade
   add_foreign_key "attendees", "events", on_delete: :cascade
   add_foreign_key "attendees", "orders"
   add_foreign_key "attendees", "tickets"
@@ -644,15 +709,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_03_174950) do
   add_foreign_key "event_gallery", "events", on_delete: :cascade
   add_foreign_key "event_speakers_translations", "event_speakers", name: "fk_rails_event_speakers_translations_speaker", on_delete: :cascade
   add_foreign_key "event_speakers_translations", "languages", column: "languages_code", primary_key: "code", name: "fk_rails_event_speakers_translations_language", on_update: :cascade, on_delete: :restrict
+  add_foreign_key "event_template_doc_translations", "event_template_docs", on_delete: :cascade
+  add_foreign_key "event_template_doc_translations", "languages", column: "languages_code", primary_key: "code"
+  add_foreign_key "event_template_docs", "directus_files", column: "directus_files_id", name: "event_template_docs_directus_files_id_foreign"
+  add_foreign_key "event_template_docs", "events", on_delete: :cascade
   add_foreign_key "events", "directus_files", column: "hero_image", name: "events_hero_image_foreign"
   add_foreign_key "events", "directus_files", column: "hero_portrait", name: "events_hero_portrait_foreign", on_delete: :nullify
   add_foreign_key "events_translations", "events", on_delete: :cascade
   add_foreign_key "events_translations", "languages", column: "languages_code", primary_key: "code", on_update: :cascade, on_delete: :restrict
   add_foreign_key "meal_stamps", "attendees"
-  add_foreign_key "meal_stamps", "ticket_meal_slots"
+  add_foreign_key "meal_stamps", "ticket_meal_slots", on_delete: :cascade
   add_foreign_key "meal_stamps", "users", column: "stamped_by_user_id"
   add_foreign_key "orders", "users"
   add_foreign_key "passkeys", "users", on_delete: :cascade
+  add_foreign_key "push_notifications", "events"
+  add_foreign_key "push_notifications", "users", column: "created_by_id"
+  add_foreign_key "push_subscriptions", "users"
   add_foreign_key "ticket_meal_slots", "tickets"
   add_foreign_key "tickets_translations", "languages", column: "languages_code", primary_key: "code", on_update: :cascade, on_delete: :restrict
   add_foreign_key "tickets_translations", "tickets", column: "tickets_id", on_delete: :cascade
