@@ -22,7 +22,8 @@ RSpec.describe 'POST /api/v1/uploads' do
     it 'calls DirectusUploadService.upload with the uploaded file' do
       post '/api/v1/uploads', params: { file: pdf_file }
 
-      expect(DirectusUploadService).to have_received(:upload).once
+      expect(DirectusUploadService).to have_received(:upload)
+        .with(an_instance_of(ActionDispatch::Http::UploadedFile)).once
     end
   end
 
