@@ -56,12 +56,15 @@ module Api
               break
             end
 
-            attrs   = attendee_attrs(item[:attendee])
-            uploads = parse_template_doc_uploads(item[:attendee])
+            attrs     = attendee_attrs(item[:attendee])
+            uploads   = parse_template_doc_uploads(item[:attendee])
+            responses = parse_boolean_field_responses(item[:attendee])
 
             break unless template_doc_uploads_valid?(event: event, attendee_attrs: attrs, uploads: uploads)
+            break unless boolean_field_responses_valid?(event: event, responses: responses)
 
-            result << { event: event, ticket: ticket, attendee_attrs: attrs, template_doc_uploads: uploads }
+            result << { event: event, ticket: ticket, attendee_attrs: attrs,
+                        template_doc_uploads: uploads, boolean_field_responses: responses }
           end
         end
 
@@ -97,6 +100,14 @@ module Api
                   directus_files_id: upload[:directus_files_id]
                 )
               end
+
+              item[:boolean_field_responses].each do |response|
+                AttendeeBooleanFieldResponse.create!(
+                  attendee: attendee,
+                  event_boolean_field_id: response[:event_boolean_field_id],
+                  value: response[:value]
+                )
+              end
             end
           end
           order
@@ -109,6 +120,17 @@ module Api
             {
               event_template_doc_id: u[:event_template_doc_id].to_i,
               directus_files_id: u[:directus_files_id].to_s
+            }
+          end
+        end
+
+        def parse_boolean_field_responses(raw_attendee)
+          return [] if raw_attendee.blank?
+
+          Array(raw_attendee[:boolean_field_responses]).map do |r|
+            {
+              event_boolean_field_id: r[:event_boolean_field_id].to_i,
+              value: r[:value]
             }
           end
         end
@@ -158,6 +180,41 @@ module Api
 
           (doc.age_from.nil? || attendee_age >= doc.age_from) &&
             (doc.age_to.nil? || attendee_age <= doc.age_to)
+        end
+
+        def boolean_field_responses_valid?(event:, responses:)
+          return false unless boolean_fields_belong_to_event?(event, responses)
+
+          missing = missing_required_boolean_field_labels(event, responses)
+          if missing.any?
+            render json: { error: t('orders.errors.missing_required_boolean_fields', fields: missing.join(', ')) },
+                   status: :bad_request
+            return false
+          end
+
+          true
+        end
+
+        def boolean_fields_belong_to_event?(event, responses)
+          event_field_ids = event.event_boolean_fields.map(&:id)
+          responses.each do |response|
+            next if event_field_ids.include?(response[:event_boolean_field_id])
+
+            render json: { error: t('orders.errors.invalid_boolean_field') }, status: :bad_request
+            return false
+          end
+          true
+        end
+
+        def missing_required_boolean_field_labels(event, responses)
+          responded_ids = responses.pluck(:event_boolean_field_id)
+
+          event.event_boolean_fields.filter_map do |field|
+            next unless field.required
+            next if responded_ids.include?(field.id)
+
+            field.label_for(params[:languages_code]) || field.id.to_s
+          end
         end
 
         def attendee_attrs(raw)

@@ -244,4 +244,87 @@ RSpec.describe 'POST /api/v1/:lang/orders' do
       end
     end
   end
+
+  describe 'boolean field responses' do
+    let!(:boolean_field) { create(:event_boolean_field, event: event, required: false) }
+    let!(:boolean_field_translation) do
+      EventBooleanFieldTranslation.create!(
+        event_boolean_field: boolean_field,
+        languages_code: language_code,
+        label: 'Ești de acord?',
+        true_label: 'Da',
+        false_label: 'Nu'
+      )
+    end
+
+    let(:item_with_response) do
+      valid_item.deep_merge(attendee: {
+        boolean_field_responses: [
+          { event_boolean_field_id: boolean_field.id, value: true }
+        ]
+      })
+    end
+
+    it 'creates AttendeeBooleanFieldResponse records' do
+      post_order([item_with_response])
+
+      expect(response).to have_http_status(:created)
+      expect(AttendeeBooleanFieldResponse.count).to eq(1)
+      expect(AttendeeBooleanFieldResponse.last.event_boolean_field).to eq(boolean_field)
+      expect(AttendeeBooleanFieldResponse.last.value).to be true
+    end
+
+    it 'accepts false as a valid response value' do
+      item = valid_item.deep_merge(attendee: {
+        boolean_field_responses: [{ event_boolean_field_id: boolean_field.id, value: false }]
+      })
+      post_order([item])
+
+      expect(response).to have_http_status(:created)
+      expect(AttendeeBooleanFieldResponse.last.value).to be false
+    end
+
+    it 'ignores boolean_field_responses when none are provided' do
+      post_order([valid_item])
+
+      expect(response).to have_http_status(:created)
+      expect(AttendeeBooleanFieldResponse.count).to eq(0)
+    end
+
+    context 'when event_boolean_field_id belongs to a different event' do
+      let!(:other_event) { create(:event, status: :live) }
+      let!(:other_field)  { create(:event_boolean_field, event: other_event) }
+
+      it 'returns 400' do
+        item = valid_item.deep_merge(attendee: {
+          boolean_field_responses: [{ event_boolean_field_id: other_field.id, value: true }]
+        })
+        post_order([item])
+
+        expect(response).to have_http_status(:bad_request)
+        expect(json['error']).to be_present
+      end
+    end
+
+    context 'when a required boolean field has no response' do
+      let!(:boolean_field) { create(:event_boolean_field, event: event, required: true) }
+      # Override outer translation so only one translation exists for boolean_field + language_code
+      let!(:boolean_field_translation) do
+        EventBooleanFieldTranslation.create!(
+          event_boolean_field: boolean_field,
+          languages_code: language_code,
+          label: 'Ești de acord?',
+          true_label: 'Da',
+          false_label: 'Nu'
+        )
+      end
+
+      it 'returns 400 and includes the missing field label in the error' do
+        post_order([valid_item])
+
+        expect(response).to have_http_status(:bad_request)
+        expect(json['error']).to include('Ești de acord?')
+      end
+    end
+  end
 end
