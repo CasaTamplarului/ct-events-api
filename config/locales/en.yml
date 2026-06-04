@@ -87,6 +87,8 @@ en:
       fully_booked: "This event is fully booked"
       already_registered: "%{email} is already registered for this event"
       internal_error: "Internal server error"
+      invalid_template_doc: "Invalid template document for this event"
+      missing_required_docs: "Missing required document(s): %{docs}"
   bookings:
     errors:
       nothing_to_cancel: "No cancellable attendees found for this order"

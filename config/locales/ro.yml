@@ -56,6 +56,8 @@ ro:
       fully_booked: "Acest eveniment este complet rezervat"
       already_registered: "%{email} este deja înregistrat la acest eveniment"
       internal_error: "Eroare internă de server"
+      invalid_template_doc: "Document template invalid pentru acest eveniment"
+      missing_required_docs: "Documente obligatorii lipsă: %{docs}"
   bookings:
     errors:
       nothing_to_cancel: "Nu există participanți care pot fi anulați pentru această comandă"
