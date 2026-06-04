@@ -3,7 +3,7 @@
 class DirectusUploadService
   DIRECTUS_URL = ENV.fetch('DIRECTUS_URL', 'http://localhost:8091')
 
-  UploadError = Class.new(StandardError)
+  class UploadError < StandardError; end
 
   def self.upload(file)
     new(file).upload

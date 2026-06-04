@@ -16,6 +16,7 @@ RSpec.describe DirectusUploadService do
   describe '.upload' do
     context 'when Directus responds successfully' do
       before do
+        allow(Rails.application.credentials).to receive(:dig).with(:directus, :admin_token).and_return('test-token')
         stub_request(:post, "#{directus_url}/files")
           .to_return(
             status: 200,
@@ -32,7 +33,13 @@ RSpec.describe DirectusUploadService do
       it 'sends a multipart POST to the Directus /files endpoint' do
         described_class.upload(file)
         expect(WebMock).to have_requested(:post, "#{directus_url}/files")
-          .with(headers: { 'Content-Type' => /multipart\/form-data/ })
+          .with(headers: { 'Content-Type' => %r{multipart/form-data} })
+      end
+
+      it 'sends the Authorization header' do
+        described_class.upload(file)
+        expect(WebMock).to have_requested(:post, "#{directus_url}/files")
+          .with(headers: { 'Authorization' => 'Bearer test-token' })
       end
     end
 
