@@ -71,6 +71,19 @@ RSpec.describe 'POST /api/v1/:lang/orders' do
 
       expect(Attendee.last.ticket).to eq(ticket)
     end
+
+    it 'persists age when provided' do
+      item_with_age = valid_item.deep_merge(attendee: { age: 25 })
+      post_order([item_with_age])
+
+      expect(Attendee.last.age).to eq(25)
+    end
+
+    it 'ignores age when not provided' do
+      post_order([valid_item])
+
+      expect(Attendee.last.age).to be_nil
+    end
   end
 
   describe 'missing items' do
@@ -143,6 +156,92 @@ RSpec.describe 'POST /api/v1/:lang/orders' do
       stub_request(:post, 'https://api.sendgrid.com/v3/mail/send').to_raise(SocketError)
       expect { post_order([valid_item]) }.to change(Order, :count).by(1)
       expect(response).to have_http_status(:created)
+    end
+  end
+
+  describe 'template doc uploads' do
+    let!(:directus_file) { create(:directus_file) }
+    let!(:template_doc) { create(:event_template_doc, event: event) }
+
+    let(:item_with_upload) do
+      valid_item.deep_merge(attendee: {
+        template_doc_uploads: [
+          { event_template_doc_id: template_doc.id, directus_files_id: directus_file.id }
+        ]
+      })
+    end
+
+    it 'creates AttendeeTemplateDocUpload records' do
+      post_order([item_with_upload])
+
+      expect(response).to have_http_status(:created)
+      expect(AttendeeTemplateDocUpload.count).to eq(1)
+      expect(AttendeeTemplateDocUpload.last.event_template_doc).to eq(template_doc)
+      expect(AttendeeTemplateDocUpload.last.directus_files_id).to eq(directus_file.id)
+    end
+
+    it 'ignores template_doc_uploads when none provided' do
+      post_order([valid_item])
+
+      expect(response).to have_http_status(:created)
+      expect(AttendeeTemplateDocUpload.count).to eq(0)
+    end
+
+    context 'when event_template_doc_id belongs to a different event' do
+      let!(:other_event) { create(:event, status: :live) }
+      let!(:other_doc) { create(:event_template_doc, event: other_event) }
+
+      it 'returns 400' do
+        item = valid_item.deep_merge(attendee: {
+          template_doc_uploads: [
+            { event_template_doc_id: other_doc.id, directus_files_id: directus_file.id }
+          ]
+        })
+        post_order([item])
+
+        expect(response).to have_http_status(:bad_request)
+        expect(json['error']).to be_present
+      end
+    end
+
+    context 'when a required template doc has no upload' do
+      let!(:template_doc) { create(:event_template_doc, event: event, required: true, age_from: nil, age_to: nil) }
+      let!(:doc_translation) do
+        EventTemplateDocTranslation.create!(
+          event_template_doc: template_doc,
+          languages_code: language_code,
+          label: 'Formular de consimțământ'
+        )
+      end
+
+      it 'returns 400 and mentions the missing doc label' do
+        post_order([valid_item])
+
+        expect(response).to have_http_status(:bad_request)
+        expect(json['error']).to include('Formular de consimțământ')
+      end
+    end
+
+    context 'when a required template doc has an age range' do
+      let!(:template_doc) { create(:event_template_doc, event: event, required: true, age_from: 13, age_to: 17) }
+
+      it 'does not require upload for attendee outside the age range' do
+        post_order([valid_item.deep_merge(attendee: { age: 25 })])
+
+        expect(response).to have_http_status(:created)
+      end
+
+      it 'requires upload for attendee within the age range' do
+        post_order([valid_item.deep_merge(attendee: { age: 15 })])
+
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it 'does not require upload when attendee has no age set' do
+        post_order([valid_item])
+
+        expect(response).to have_http_status(:created)
+      end
     end
   end
 end

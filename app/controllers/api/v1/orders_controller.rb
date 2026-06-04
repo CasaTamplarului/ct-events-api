@@ -4,7 +4,7 @@ module Api
   module V1
     class OrdersController < ActionController::API
       PERMITTED_ATTENDEE_FIELDS = %w[first_name last_name email_address phone_number dietary_preference church_name
-                                     city].freeze
+                                     city age].freeze
 
       before_action :set_locale
       before_action :set_current_user
@@ -56,7 +56,12 @@ module Api
               break
             end
 
-            result << { event: event, ticket: ticket, attendee_attrs: attendee_attrs(item[:attendee]) }
+            attrs   = attendee_attrs(item[:attendee])
+            uploads = parse_template_doc_uploads(item[:attendee])
+
+            break unless template_doc_uploads_valid?(event: event, attendee_attrs: attrs, uploads: uploads)
+
+            result << { event: event, ticket: ticket, attendee_attrs: attrs, template_doc_uploads: uploads }
           end
         end
 
@@ -78,15 +83,81 @@ module Api
             resolved.each do |item|
               email = item[:attendee_attrs][:email_address]
               linked_user = email.present? ? User.active.find_by('LOWER(email) = LOWER(?)', email) : nil
-              order.attendees.create!(
+              attendee = order.attendees.create!(
                 event: item[:event],
                 ticket: item[:ticket],
                 user: linked_user,
                 **item[:attendee_attrs]
               )
+
+              item[:template_doc_uploads].each do |upload|
+                AttendeeTemplateDocUpload.create!(
+                  attendee: attendee,
+                  event_template_doc_id: upload[:event_template_doc_id],
+                  directus_files_id: upload[:directus_files_id]
+                )
+              end
             end
           end
           order
+        end
+
+        def parse_template_doc_uploads(raw_attendee)
+          return [] if raw_attendee.blank?
+
+          Array(raw_attendee[:template_doc_uploads]).map do |u|
+            {
+              event_template_doc_id: u[:event_template_doc_id].to_i,
+              directus_files_id: u[:directus_files_id].to_s
+            }
+          end
+        end
+
+        def template_doc_uploads_valid?(event:, attendee_attrs:, uploads:)
+          return false unless uploads_belong_to_event?(event, uploads)
+
+          missing = missing_required_doc_labels(event, attendee_attrs, uploads)
+          if missing.any?
+            render json: { error: t('orders.errors.missing_required_docs', docs: missing.join(', ')) },
+                   status: :bad_request
+            return false
+          end
+
+          true
+        end
+
+        def uploads_belong_to_event?(event, uploads)
+          event_doc_ids = event.event_template_docs.map(&:id)
+          uploads.each do |upload|
+            next if event_doc_ids.include?(upload[:event_template_doc_id])
+
+            render json: { error: t('orders.errors.invalid_template_doc') }, status: :bad_request
+            return false
+          end
+          true
+        end
+
+        def missing_required_doc_labels(event, attendee_attrs, uploads)
+          uploaded_ids = uploads.pluck(:event_template_doc_id)
+          attendee_age = attendee_attrs[:age]&.to_i
+
+          event.event_template_docs.filter_map do |doc|
+            next unless required_upload_missing?(doc, attendee_age, uploaded_ids)
+
+            doc.label_for(params[:languages_code]) || doc.id.to_s
+          end
+        end
+
+        def required_upload_missing?(doc, attendee_age, uploaded_ids)
+          doc.required && doc_applies_to_age?(doc, attendee_age) && uploaded_ids.exclude?(doc.id)
+        end
+
+        def doc_applies_to_age?(doc, attendee_age)
+          return true if doc.age_from.nil? && doc.age_to.nil?
+          return false if attendee_age.nil?
+
+          (doc.age_from.nil? || attendee_age >= doc.age_from) &&
+            (doc.age_to.nil? || attendee_age <= doc.age_to)
         end
 
         def attendee_attrs(raw)
