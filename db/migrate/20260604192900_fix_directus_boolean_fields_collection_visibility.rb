@@ -11,18 +11,20 @@ class FixDirectusBooleanFieldsCollectionVisibility < ActiveRecord::Migration[8.1
 
     # Hide sub-collections and set icons
     [
-      { collection: 'event_boolean_fields',             icon: 'toggle_on',   display_template: '{{translations.label}}' },
-      { collection: 'event_boolean_field_translations', icon: 'translate',    display_template: nil },
-      { collection: 'attendee_boolean_field_responses', icon: 'how_to_vote',  display_template: nil }
+      { collection: 'event_boolean_fields',             icon: 'toggle_on',   display_template: '{{translations.label}}', sort_field: 'sort' },
+      { collection: 'event_boolean_field_translations', icon: 'translate',    display_template: nil, sort_field: nil },
+      { collection: 'attendee_boolean_field_responses', icon: 'how_to_vote',  display_template: nil, sort_field: nil }
     ].each do |c|
       dt = c[:display_template] ? conn.quote(c[:display_template]) : 'NULL'
+      sf = c[:sort_field] ? conn.quote(c[:sort_field]) : 'NULL'
       execute(<<~SQL)
-        INSERT INTO directus_collections (collection, hidden, icon, display_template)
-        VALUES (#{conn.quote(c[:collection])}, true, #{conn.quote(c[:icon])}, #{dt})
+        INSERT INTO directus_collections (collection, hidden, icon, display_template, sort_field)
+        VALUES (#{conn.quote(c[:collection])}, true, #{conn.quote(c[:icon])}, #{dt}, #{sf})
         ON CONFLICT (collection) DO UPDATE
           SET hidden = true,
               icon   = EXCLUDED.icon,
-              display_template = EXCLUDED.display_template
+              display_template = EXCLUDED.display_template,
+              sort_field = EXCLUDED.sort_field
       SQL
     end
 
