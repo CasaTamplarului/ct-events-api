@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_04_193106) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_04_194217) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -689,7 +689,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_04_193106) do
 
   add_foreign_key "attendee_boolean_field_responses", "attendees", on_delete: :cascade
   add_foreign_key "attendee_boolean_field_responses", "event_boolean_fields", on_delete: :cascade
-  add_foreign_key "attendee_template_doc_uploads", "attendees", on_delete: :cascade
+  add_foreign_key "attendee_template_doc_uploads", "attendees", name: "attendee_template_doc_uploads_attendee_id_foreign"
   add_foreign_key "attendee_template_doc_uploads", "directus_files", column: "directus_files_id", name: "attendee_template_doc_uploads_directus_files_id_fk"
   add_foreign_key "attendee_template_doc_uploads", "event_template_docs", on_delete: :cascade
   add_foreign_key "attendees", "events", on_delete: :cascade
