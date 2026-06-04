@@ -15,6 +15,8 @@ Rails.application.routes.draw do
         resource :me, only: %i[show update destroy], controller: 'me' do
           patch :password, on: :member
           resource :email_preferences, only: :update, controller: 'me/email_preferences'
+          resource :push_preferences,  only: :update, controller: 'me/push_preferences'
+          resources :push_subscriptions, only: %i[create destroy], controller: 'me/push_subscriptions'
         end
         scope '/me/bookings' do
           get  :upcoming, to: 'me/bookings#upcoming'
@@ -25,7 +27,7 @@ Rails.application.routes.draw do
           get ':order_reference/wallet/google',     to: 'me/bookings#wallet_google',   as: 'google_wallet_booking'
           get ':order_reference/attendees/:id/wallet/google', to: 'me/bookings#wallet_google_attendee',
                                                               as: 'google_wallet_attendee'
-          get ':order_reference/wallet/apple',      to: 'me/bookings#wallet_apple',    as: 'apple_wallet_booking'
+          get ':order_reference/wallet/apple', to: 'me/bookings#wallet_apple', as: 'apple_wallet_booking'
           get ':order_reference/attendees/:id/wallet/apple',  to: 'me/bookings#wallet_apple_attendee',
                                                               as: 'apple_wallet_attendee'
         end
@@ -44,6 +46,12 @@ Rails.application.routes.draw do
           delete ':id',                to: 'passkeys#destroy', as: 'passkey'
         end
       end
+
+      namespace :admin do
+        resources :push_notifications, only: :create
+      end
+
+      resources :uploads, only: :create
 
       namespace :scan do
         get  'events',      to: 'events#index'
