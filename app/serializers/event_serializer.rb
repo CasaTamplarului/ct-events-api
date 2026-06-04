@@ -46,9 +46,38 @@ class EventSerializer < ApplicationSerializer
     end
   end
 
+  attribute :template_docs do |object|
+    docs = object.event_template_docs.includes(:event_template_doc_translations)
+    docs.map do |doc|
+      { label: doc.label_for(params[:languages_code]),
+        url: ApplicationSerializer.asset_url(doc.directus_files_id),
+        required: doc.required,
+        age_from: doc.age_from,
+        age_to: doc.age_to }
+    end
+  end
+
+  attribute :boolean_fields do |object|
+    fields = object.event_boolean_fields.includes(:event_boolean_field_translations)
+    fields.map do |f|
+      {
+        id: f.id,
+        required: f.required,
+        display_as: f.display_as,
+        label: f.label_for(params[:languages_code]),
+        true_label: f.true_label_for(params[:languages_code]),
+        false_label: f.false_label_for(params[:languages_code])
+      }
+    end
+  end
+
   attribute :attendee_fields do |object|
     object.event_attendee_fields.map do |f|
-      { field: f.field_name, required: f.required }
+      validation = if f.field_name == 'age'
+                     min_max = { min: object.min_age, max: object.max_age }.compact
+                     min_max.empty? ? nil : min_max
+                   end
+      { field: f.field_name, required: f.required, validation: validation }
     end
   end
 end
