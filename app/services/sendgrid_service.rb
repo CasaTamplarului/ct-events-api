@@ -40,7 +40,8 @@ class SendgridService
     return unless emails_enabled?
 
     all_attendees = order.attendees
-                         .includes({ ticket: [:tickets_translations, :ticket_meal_slots] }, { event: :events_translations })
+                         .includes({ ticket: %i[tickets_translations
+                                                ticket_meal_slots] }, { event: :events_translations })
                          .to_a
 
     attendees_with_email = all_attendees.reject { |a| a.email_address.blank? }
@@ -115,11 +116,9 @@ class SendgridService
       MEAL_EMOJIS = { 'breakfast' => '☀️', 'lunch' => '🥗', 'dinner' => '🍽️', 'snack' => '🍎' }.freeze
       MEAL_LABELS = {
         'ro' => { 'breakfast' => 'Mic dejun', 'lunch' => 'Prânz', 'dinner' => 'Cină', 'snack' => 'Gustare' },
-        'en' => { 'breakfast' => 'Breakfast', 'lunch' => 'Lunch',  'dinner' => 'Dinner', 'snack' => 'Snack'    }
+        'en' => { 'breakfast' => 'Breakfast', 'lunch' => 'Lunch', 'dinner' => 'Dinner', 'snack' => 'Snack' }
       }.freeze
-      MONTH_ABBR_RO = %w[ian feb mar apr mai iun iul aug sep oct nov dec].freeze
-
-      LOGO_PATH = Rails.root.join('public', 'images', 'ct_logo_qr.png').freeze
+      LOGO_PATH = Rails.public_path.join('images/ct_logo_qr.png').freeze
       QR_SIZE   = 300
       # Logo covers ~20% of QR area — safe with H-level error correction (30% recovery)
       LOGO_SIZE = (QR_SIZE * 0.20).to_i
@@ -158,16 +157,15 @@ class SendgridService
       end
 
       def format_meal_slots(slots, lang)
-        locale  = lang.to_s.start_with?('ro') ? 'ro' : 'en'
-        labels  = MEAL_LABELS[locale]
-        sorted  = slots.sort_by { |s| [s.occurs_on, s.sort || 0] }
-        sorted.map do |s|
-          date_label = if locale == 'ro'
-                         "#{s.occurs_on.day} #{MONTH_ABBR_RO[s.occurs_on.month - 1]}"
-                       else
-                         s.occurs_on.strftime('%-d %b')
-                       end
-          { 'emoji' => MEAL_EMOJIS[s.meal_type], 'label' => labels[s.meal_type], 'date_label' => date_label }
+        locale = lang.to_s.start_with?('ro') ? 'ro' : 'en'
+        labels = MEAL_LABELS[locale]
+
+        slots.sort_by { |s| [s.occurs_on, s.sort || 0] }
+             .group_by(&:meal_type)
+             .map do |meal_type, grouped|
+          count = grouped.size
+          { 'emoji' => MEAL_EMOJIS[meal_type], 'label' => labels[meal_type],
+            'count' => count, 'show_count' => count > 1 }
         end
       end
   end
