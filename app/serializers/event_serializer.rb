@@ -49,7 +49,8 @@ class EventSerializer < ApplicationSerializer
   attribute :template_docs do |object|
     docs = object.event_template_docs.includes(:event_template_doc_translations)
     docs.map do |doc|
-      { label: doc.label_for(params[:languages_code]),
+      { id: doc.id,
+        label: doc.label_for(params[:languages_code]),
         url: ApplicationSerializer.asset_url(doc.directus_files_id),
         required: doc.required,
         age_from: doc.age_from,
