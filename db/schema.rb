@@ -10,10 +10,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_04_174731) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_04_183618) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
+
+  create_table "attendee_boolean_field_responses", force: :cascade do |t|
+    t.bigint "attendee_id", null: false
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.bigint "event_boolean_field_id", null: false
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.boolean "value", null: false
+    t.index ["attendee_id", "event_boolean_field_id"], name: "idx_attendee_boolean_field_responses_unique", unique: true
+    t.index ["attendee_id"], name: "index_attendee_boolean_field_responses_on_attendee_id"
+    t.index ["event_boolean_field_id"], name: "idx_on_event_boolean_field_id_2bf7aed83e"
+  end
 
   create_table "attendee_template_doc_uploads", force: :cascade do |t|
     t.bigint "attendee_id", null: false
@@ -437,6 +448,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_04_174731) do
     t.index ["event_id"], name: "index_event_attendee_fields_on_event_id"
   end
 
+  create_table "event_boolean_field_translations", force: :cascade do |t|
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.bigint "event_boolean_field_id", null: false
+    t.string "false_label", null: false
+    t.string "label", null: false
+    t.string "languages_code", null: false
+    t.string "true_label", null: false
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["event_boolean_field_id", "languages_code"], name: "idx_event_boolean_field_translations_unique", unique: true
+    t.index ["event_boolean_field_id"], name: "idx_on_event_boolean_field_id_f232b231a8"
+  end
+
+  create_table "event_boolean_fields", force: :cascade do |t|
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.string "display_as", null: false
+    t.bigint "event_id", null: false
+    t.boolean "required", default: false, null: false
+    t.integer "sort", default: 0, null: false
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["event_id", "sort"], name: "index_event_boolean_fields_on_event_id_and_sort"
+    t.index ["event_id"], name: "index_event_boolean_fields_on_event_id"
+  end
+
   create_table "event_gallery", force: :cascade do |t|
     t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.uuid "directus_files_id", null: false
@@ -653,6 +687,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_04_174731) do
     t.index ["password_reset_token"], name: "index_users_on_password_reset_token", unique: true
   end
 
+  add_foreign_key "attendee_boolean_field_responses", "attendees", on_delete: :cascade
+  add_foreign_key "attendee_boolean_field_responses", "event_boolean_fields", on_delete: :cascade
   add_foreign_key "attendee_template_doc_uploads", "attendees", on_delete: :cascade
   add_foreign_key "attendee_template_doc_uploads", "directus_files", column: "directus_files_id", name: "attendee_template_doc_uploads_directus_files_id_fk"
   add_foreign_key "attendee_template_doc_uploads", "event_template_docs", on_delete: :cascade
@@ -705,6 +741,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_04_174731) do
   add_foreign_key "directus_versions", "directus_users", column: "user_updated", name: "directus_versions_user_updated_foreign"
   add_foreign_key "directus_webhooks", "directus_flows", column: "migrated_flow", name: "directus_webhooks_migrated_flow_foreign", on_delete: :nullify
   add_foreign_key "event_attendee_fields", "events", on_delete: :cascade
+  add_foreign_key "event_boolean_field_translations", "event_boolean_fields", on_delete: :cascade
+  add_foreign_key "event_boolean_field_translations", "languages", column: "languages_code", primary_key: "code", name: "event_boolean_field_translations_languages_code_fk"
+  add_foreign_key "event_boolean_fields", "events", on_delete: :cascade
   add_foreign_key "event_gallery", "directus_files", column: "directus_files_id", name: "event_gallery_directus_files_id_foreign"
   add_foreign_key "event_gallery", "events", on_delete: :cascade
   add_foreign_key "event_speakers_translations", "event_speakers", name: "fk_rails_event_speakers_translations_speaker", on_delete: :cascade
