@@ -72,7 +72,7 @@ class GoogleWalletService
         dateTime: { start: event.start_date.iso8601 }
       }
       body[:dateTime][:end] = event.end_date.iso8601 if event.end_date
-      if (frontend_url = ENV['FRONTEND_URL']).present?
+      if (frontend_url = ENV['FRONTEND_URL']&.chomp('/')).present?
         body[:logo] = { sourceUri: { uri: "#{frontend_url}/images/ct-logo-white.svg" },
                         contentDescription: { defaultValue: { language: 'ro', value: 'Casa Tâmplarului' } } }
         body[:homepageUri] = { uri: frontend_url, description: 'Casa Tâmplarului' }
@@ -104,13 +104,13 @@ class GoogleWalletService
       if post_response.code == '409'
         put_response = wallet_request(:put, "#{collection}/#{id}", body, token)
         unless put_response.code.to_i.between?(200, 299)
-          raise ApiError, "PUT to #{collection}/#{id} failed with status #{put_response.code}"
+          raise ApiError, "PUT to #{collection}/#{id} failed #{put_response.code}: #{put_response.body}"
         end
 
         return
       end
 
-      raise ApiError, "POST to #{collection} failed with status #{post_response.code}"
+      raise ApiError, "POST to #{collection} failed #{post_response.code}: #{post_response.body}"
     end
 
     def wallet_request(method, path, body, token)

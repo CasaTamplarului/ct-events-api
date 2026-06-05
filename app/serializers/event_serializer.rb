@@ -76,6 +76,7 @@ class EventSerializer < ApplicationSerializer
     object.event_attendee_fields.map do |f|
       validation = if f.field_name == 'age'
                      min_max = { min: object.min_age, max: object.max_age }.compact
+                     min_max[:allow_over_max] = true if object.max_age && object.allow_over_max_age
                      min_max.empty? ? nil : min_max
                    end
       { field: f.field_name, required: f.required, validation: validation }

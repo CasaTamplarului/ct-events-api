@@ -103,8 +103,8 @@ module Api
             lang = current_user.language || 'ro-RO'
             url  = GoogleWalletService.new(attendee: attendee, language: lang).save_url
             render json: { url: url }
-          rescue GoogleWalletService::ApiError => e
-            Rails.logger.error("Google Wallet error for #{order.order_reference}: #{e.message}")
+          rescue GoogleWalletService::ApiError, StandardError => e
+            Rails.logger.error("Google Wallet error for #{order&.order_reference}: #{e.class}: #{e.message}")
             render json: { error: 'Internal server error' }, status: :internal_server_error
           end
 
@@ -121,8 +121,8 @@ module Api
             lang = current_user.language || 'ro-RO'
             url  = GoogleWalletService.new(attendee: attendee, language: lang).save_url
             render json: { url: url }
-          rescue GoogleWalletService::ApiError => e
-            Rails.logger.error("Google Wallet error for attendee #{attendee.id}: #{e.message}")
+          rescue GoogleWalletService::ApiError, StandardError => e
+            Rails.logger.error("Google Wallet error for attendee #{attendee&.id}: #{e.class}: #{e.message}")
             render json: { error: 'Internal server error' }, status: :internal_server_error
           end
 
@@ -260,6 +260,8 @@ module Api
                 ticket_price: attendee.ticket&.price,
                 food_included: attendee.ticket&.food_included,
                 dietary_preference: attendee.dietary_preference,
+                allergies: attendee.allergies,
+                age: attendee.age,
                 meal_slots: (attendee.ticket&.ticket_meal_slots || [])
                               .sort_by { |s| [s.occurs_on, s.sort || 0] }
                               .map { |s| { meal_type: s.meal_type, occurs_on: s.occurs_on } }

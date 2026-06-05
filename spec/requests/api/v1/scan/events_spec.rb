@@ -54,10 +54,11 @@ RSpec.describe 'GET /api/v1/scan/events' do
       expect(slugs).not_to include(past_event.slug, draft_event.slug)
     end
 
-    it 'returns name and slug only' do
+    it 'returns id, name, slug and has_meal_tracking' do
       get '/api/v1/scan/events', headers: auth_header(admin)
       event_json = json.find { |e| e['slug'] == upcoming_event.slug }
-      expect(event_json.keys).to contain_exactly('name', 'slug', 'has_meal_tracking')
+      expect(event_json.keys).to contain_exactly('id', 'name', 'slug', 'has_meal_tracking')
+      expect(event_json['id']).to eq(upcoming_event.id)
       expect(event_json['name']).to eq('Conferința 2026')
     end
 

@@ -40,7 +40,13 @@ module Api
             },
             already_stamped: total > 1,
             total_stamps:    total,
-            attendee: { id: attendee.id, first_name: attendee.first_name, last_name: attendee.last_name }
+            attendee: {
+              id:                 attendee.id,
+              first_name:         attendee.first_name,
+              last_name:          attendee.last_name,
+              dietary_preference: attendee.dietary_preference,
+              allergies:          attendee.allergies
+            }
           }
         end
 

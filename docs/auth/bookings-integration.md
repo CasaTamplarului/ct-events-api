@@ -64,7 +64,8 @@ Returns the authenticated user's bookings for events that haven't started yet, s
         "ticket_description": "Includes all sessions",
         "ticket_price": "150.0",
         "food_included": true,
-        "dietary_preference": "no_preference"
+        "dietary_preference": "no_preference",
+        "allergies": []
       }
     ]
   }
@@ -156,7 +157,8 @@ DELETE /api/v1/auth/me/bookings/:order_reference
       "ticket_description": "Includes all sessions",
       "ticket_price": "150.0",
       "food_included": true,
-      "dietary_preference": "no_preference"
+      "dietary_preference": "no_preference",
+      "allergies": []
     }
   ]
 }
@@ -229,6 +231,7 @@ interface BookingAttendee {
   ticket_price: string | null;  // decimal string, e.g. "150.0"
   food_included: boolean | null;
   dietary_preference: "no_preference" | "vegetarian" | "vegan";
+  allergies: Array<"gluten" | "lactose" | "nuts" | "eggs" | "soy" | "fish" | "shellfish">;
 }
 
 interface Booking {

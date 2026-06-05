@@ -26,14 +26,17 @@ module ScanSerialisable
         first_name:     attendee.first_name,
         last_name:      attendee.last_name,
         email_address:  attendee.email_address,
+        age:            attendee.age,
         ticket_name:    attendee.ticket
                         &.tickets_translations
                                 &.find { |t| t.languages_code == 'ro-RO' }
                                 &.name,
-        payment_status: attendee.payment_status,
-        checked_in:     attendee.checked_in,
-        checked_in_at:  attendee.checked_in_at,
-        checked_in_by:  by ? "#{by.first_name} #{by.last_name}".strip : nil,
+        payment_status:     attendee.payment_status,
+        checked_in:         attendee.checked_in,
+        checked_in_at:      attendee.checked_in_at,
+        checked_in_by:      by ? "#{by.first_name} #{by.last_name}".strip : nil,
+        dietary_preference: attendee.dietary_preference,
+        allergies:          attendee.allergies,
         meal_slots:     serialise_meal_slots(attendee)
       }
     end

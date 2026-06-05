@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_04_194217) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_05_092503) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -39,6 +39,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_04_194217) do
 
   create_table "attendees", force: :cascade do |t|
     t.integer "age"
+    t.jsonb "allergies", default: [], null: false
     t.boolean "checked_in", default: false, null: false
     t.datetime "checked_in_at"
     t.bigint "checked_in_by_user_id"
@@ -528,6 +529,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_04_194217) do
 
   create_table "events", force: :cascade do |t|
     t.string "address"
+    t.boolean "allow_over_max_age", default: false, null: false
     t.datetime "created_at", default: -> { "now()" }, null: false
     t.string "embed_url"
     t.datetime "end_date", precision: nil, default: -> { "CURRENT_TIMESTAMP" }, null: false
@@ -632,6 +634,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_04_194217) do
     t.datetime "created_at", default: -> { "now()" }, null: false
     t.bigint "event_id", null: false
     t.boolean "food_included", default: false, null: false
+    t.boolean "for_leaders", default: false, null: false
     t.decimal "price"
     t.integer "sort"
     t.datetime "updated_at", default: -> { "now()" }, null: false
@@ -689,7 +692,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_04_194217) do
 
   add_foreign_key "attendee_boolean_field_responses", "attendees", on_delete: :cascade
   add_foreign_key "attendee_boolean_field_responses", "event_boolean_fields", on_delete: :cascade
-  add_foreign_key "attendee_template_doc_uploads", "attendees", name: "attendee_template_doc_uploads_attendee_id_foreign"
+  add_foreign_key "attendee_template_doc_uploads", "attendees", name: "attendee_template_doc_uploads_attendee_id_fk", on_delete: :cascade
   add_foreign_key "attendee_template_doc_uploads", "directus_files", column: "directus_files_id", name: "attendee_template_doc_uploads_directus_files_id_fk"
   add_foreign_key "attendee_template_doc_uploads", "event_template_docs", on_delete: :cascade
   add_foreign_key "attendees", "events", on_delete: :cascade
@@ -756,7 +759,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_04_194217) do
   add_foreign_key "events", "directus_files", column: "hero_portrait", name: "events_hero_portrait_foreign", on_delete: :nullify
   add_foreign_key "events_translations", "events", on_delete: :cascade
   add_foreign_key "events_translations", "languages", column: "languages_code", primary_key: "code", on_update: :cascade, on_delete: :restrict
-  add_foreign_key "meal_stamps", "attendees"
+  add_foreign_key "meal_stamps", "attendees", on_delete: :cascade
   add_foreign_key "meal_stamps", "ticket_meal_slots", on_delete: :cascade
   add_foreign_key "meal_stamps", "users", column: "stamped_by_user_id"
   add_foreign_key "orders", "users"

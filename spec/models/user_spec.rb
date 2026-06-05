@@ -58,9 +58,18 @@ RSpec.describe User do
       user = create(:user)
       expect(user.marketing_emails).to be false
       expect(user.payment_reminder_emails).to be false
-      expect(user.payment_receipt_emails).to be false
       expect(user.event_reminder_emails).to be false
       expect(user.event_update_emails).to be false
+    end
+  end
+
+  describe 'push preferences' do
+    it 'defaults all push preference columns to true' do
+      user = create(:user)
+      expect(user.marketing_push).to be true
+      expect(user.payment_reminder_push).to be true
+      expect(user.event_reminder_push).to be true
+      expect(user.event_update_push).to be true
     end
   end
 

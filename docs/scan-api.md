@@ -81,7 +81,9 @@ GET /api/v1/scan/search?type=phone&query=0722&event_slug=conferinta-2026
         "payment_status": "paid",
         "checked_in": false,
         "checked_in_at": null,
-        "checked_in_by": null
+        "checked_in_by": null,
+        "dietary_preference": "no_preference",
+        "allergies": []
       }
     ]
   }
@@ -135,6 +137,8 @@ GET /api/v1/scan/orders/:order_reference
       "checked_in": false,
       "checked_in_at": null,
       "checked_in_by": null,
+      "dietary_preference": "vegetarian",
+      "allergies": ["nuts", "gluten"],
       "meal_slots": [
         { "id": 12, "meal_type": "lunch",  "occurs_on": "2026-07-15", "sort": 1, "stamp_count": 1 },
         { "id": 13, "meal_type": "dinner", "occurs_on": "2026-07-15", "sort": 2, "stamp_count": 0 }
@@ -144,6 +148,8 @@ GET /api/v1/scan/orders/:order_reference
 }
 ```
 
+- `dietary_preference` — `"no_preference"` | `"vegetarian"` | `"vegan"`. Show a warning badge when not `"no_preference"`.
+- `allergies` — array of strings, empty when none. Show a warning badge when non-empty so kitchen staff know before stamping. Valid values: `"gluten"` `"lactose"` `"nuts"` `"eggs"` `"soy"` `"fish"` `"shellfish"`.
 - `meal_slots` is an array of all meal entitlements for that attendee's ticket, sorted by date then sort order.
 - `stamp_count: 0` — not yet received. `stamp_count: 1` — received once. `stamp_count: 2+` — had seconds.
 - Attendees on tickets with no meal slots receive `meal_slots: []`.
@@ -207,6 +213,8 @@ PATCH /api/v1/scan/orders/:order_reference
       "checked_in": true,
       "checked_in_at": "2026-06-01T10:00:00.000Z",
       "checked_in_by": "Ana Ionescu",
+      "dietary_preference": "no_preference",
+      "allergies": [],
       "meal_slots": [
         { "id": 12, "meal_type": "lunch", "occurs_on": "2026-07-15", "sort": 1, "stamp_count": 0 }
       ]
@@ -383,6 +391,11 @@ Only relevant when `has_meal_tracking: true` for the event.
    - already_stamped: true  → show yellow ⚠ "Already received (×2 total) — stamp again?"
    - 422 Not entitled        → show red ✗ "Not entitled to this meal"
    - 404                     → show red ✗ "QR code not recognised"
+
+   After a successful stamp, check the attendee's dietary/allergy data from the prior
+   GET /scan/orders response and show a kitchen warning if needed:
+   - dietary_preference is "vegetarian" or "vegan" → show badge
+   - allergies is non-empty → show badge listing each allergy
 
 5. Kitchen keeps the selected meal active and scans the next attendee (back to step 3).
    No need to re-select the meal between scans — only change it when the meal service changes.

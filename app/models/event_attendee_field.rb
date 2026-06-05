@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class EventAttendeeField < ApplicationRecord
-  ALLOWED_FIELDS = %w[first_name last_name email_address phone_number dietary_preference church_name city].freeze
+  ALLOWED_FIELDS = %w[first_name last_name email_address phone_number dietary_preference allergies church_name city age].freeze
 
   belongs_to :event
 

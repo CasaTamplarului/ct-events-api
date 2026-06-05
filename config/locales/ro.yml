@@ -60,6 +60,7 @@ ro:
       missing_required_docs: "Documente obligatorii lipsă: %{docs}"
       invalid_boolean_field: "Întrebare invalidă pentru acest eveniment"
       missing_required_boolean_fields: "Răspunsuri obligatorii lipsă: %{fields}"
+      leader_ticket_required: "Acest bilet este disponibil doar pentru lideri"
   bookings:
     errors:
       nothing_to_cancel: "Nu există participanți care pot fi anulați pentru această comandă"

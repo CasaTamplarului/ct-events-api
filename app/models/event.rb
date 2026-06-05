@@ -20,7 +20,7 @@ class Event < ApplicationRecord
   scope :upcoming, -> { where(start_date: Time.zone.now..).where(status: 'live') }
   scope :past, -> { where(start_date: ...Time.zone.now).where(status: 'live') }
   scope :hero, lambda {
-    where(hero: true)
+    where(hero: true, status: 'live')
       .where('start_date > ?', Time.zone.now)
       .order(start_date: :asc)
       .limit(1)

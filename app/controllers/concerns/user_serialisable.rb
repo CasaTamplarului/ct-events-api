@@ -17,11 +17,21 @@ module UserSerialisable
         role: user.role,
         permissions: User::ROLE_PERMISSIONS[user.role],
         can_change_email: user.user_identities.exists?(provider: 'email'),
-        email_preferences: email_preferences_json(user)
+        email_preferences: email_preferences_json(user),
+        push_preferences: push_preferences_json(user),
+        push_subscriptions: push_subscriptions_json(user)
       }
     end
 
     def email_preferences_json(user)
       EmailUnsubscribeTokenService::PREFERENCE_COLUMNS.index_with { |col| user.public_send(col) }
+    end
+
+    def push_preferences_json(user)
+      EmailUnsubscribeTokenService::PUSH_PREFERENCE_COLUMNS.index_with { |col| user.public_send(col) }
+    end
+
+    def push_subscriptions_json(user)
+      user.push_subscriptions.map { |s| { id: s.id, platform: s.platform, device_name: s.device_name } }
     end
 end

@@ -8,7 +8,7 @@ class SendgridService
   BOOKING_CONFIRMATION_TEMPLATE_ID = 'd-0276cfb6a8b54df996962912bb01cd71'
 
   def self.emails_enabled?
-    ENV['DISABLE_EMAILS'].blank?
+    ENV['DISABLE_EMAILS'].to_s.downcase != 'true'
   end
 
   def self.send_password_reset(user:, reset_url:)
@@ -92,7 +92,8 @@ class SendgridService
           'is_pending' => order.payment_pending?(all_attendees),
           'year' => Time.current.year.to_s,
           'single_attendee' => single_attendee,
-          'qr_content_id' => single_attendee ? "qr_code_#{group.first.id}" : nil
+          'qr_content_id' => single_attendee ? "qr_code_#{group.first.id}" : nil,
+          'qr_id_content_id' => single_attendee ? "qr_id_#{group.first.id}" : nil
         )
         mail.add_personalization(personalization)
 
@@ -104,6 +105,18 @@ class SendgridService
           attachment.filename    = "qr-#{attendee.id}.png"
           attachment.disposition = 'inline'
           attachment.content_id  = "qr_code_#{attendee.id}"
+          mail.add_attachment(attachment)
+        end
+
+        if single_attendee
+          attendee = group.first
+          png = qr_with_logo(attendee.id.to_s)
+          attachment = SendGrid::Attachment.new
+          attachment.content     = Base64.strict_encode64(png)
+          attachment.type        = 'image/png'
+          attachment.filename    = "qr-id-#{attendee.id}.png"
+          attachment.disposition = 'inline'
+          attachment.content_id  = "qr_id_#{attendee.id}"
           mail.add_attachment(attachment)
         end
 
@@ -152,21 +165,45 @@ class SendgridService
           'ticket_price' => attendee.ticket&.price,
           'food_included' => attendee.ticket&.food_included,
           'qr_content_id' => "qr_code_#{attendee.id}",
-          'meal_slots' => format_meal_slots(attendee.ticket&.ticket_meal_slots || [], lang)
+          'meals_html' => meals_html(attendee.ticket&.ticket_meal_slots || [], lang),
+          'google_wallet_url' => google_wallet_url(attendee, lang),
+          'apple_wallet_url' => public_wallet_url(attendee, lang, 'apple')
         }
       end
 
-      def format_meal_slots(slots, lang)
+      def google_wallet_url(attendee, lang)
+        GoogleWalletService.new(attendee: attendee, language: lang).save_url
+      rescue Exception => e # rubocop:disable Lint/RescueException
+        Rails.logger.error("Google Wallet URL generation failed for attendee #{attendee.id}: #{e.message}")
+        nil
+      end
+
+      def public_wallet_url(attendee, lang, provider)
+        base = ENV['API_BASE_URL']&.chomp('/')
+        return nil if base.blank?
+
+        order_ref = attendee.order&.order_reference
+        return nil if order_ref.blank?
+
+        "#{base}/api/v1/orders/#{order_ref}/attendees/#{attendee.id}/wallet/#{provider}?lang=#{lang}"
+      end
+
+      MEAL_P_STYLE = 'margin: 0 0 2px; font-size: 12px; color: #888; line-height: 1.4;'
+
+      def meals_html(slots, lang)
         locale = lang.to_s.start_with?('ro') ? 'ro' : 'en'
         labels = MEAL_LABELS[locale]
 
         slots.sort_by { |s| [s.occurs_on, s.sort || 0] }
              .group_by(&:meal_type)
              .map do |meal_type, grouped|
+          emoji = MEAL_EMOJIS[meal_type]
+          label = labels[meal_type]
           count = grouped.size
-          { 'emoji' => MEAL_EMOJIS[meal_type], 'label' => labels[meal_type],
-            'count' => count, 'show_count' => count > 1 }
+          text  = count > 1 ? "#{emoji}&nbsp;#{label} × #{count}" : "#{emoji}&nbsp;#{label}"
+          "<p style=\"#{MEAL_P_STYLE}\">#{text}</p>"
         end
+             .join
       end
   end
 end

@@ -6,9 +6,15 @@ class EmailUnsubscribeTokenService
   PREFERENCE_COLUMNS = %w[
     marketing_emails
     payment_reminder_emails
-    payment_receipt_emails
     event_reminder_emails
     event_update_emails
+  ].freeze
+
+  PUSH_PREFERENCE_COLUMNS = %w[
+    marketing_push
+    payment_reminder_push
+    event_reminder_push
+    event_update_push
   ].freeze
 
   def self.generate(user:, type:)

@@ -3,8 +3,8 @@
 module Api
   module V1
     class OrdersController < ActionController::API
-      PERMITTED_ATTENDEE_FIELDS = %w[first_name last_name email_address phone_number dietary_preference church_name
-                                     city age].freeze
+      PERMITTED_ATTENDEE_FIELDS = %w[first_name last_name email_address phone_number dietary_preference allergies
+                                     church_name city age].freeze
 
       before_action :set_locale
       before_action :set_current_user
@@ -21,7 +21,10 @@ module Api
 
         order = persist_order(resolved)
         SendgridService.send_booking_confirmation(order: order, language: params[:languages_code])
-        render json: { order_reference: order.order_reference }, status: :created
+        render json: {
+          order_reference: order.order_reference,
+          attendees: order.attendees.map { |a| { id: a.id, qr_code: "#{order.order_reference}-#{a.id}" } }
+        }, status: :created
       rescue StandardError
         render json: { error: t('orders.errors.internal_error') }, status: :internal_server_error
       end
@@ -53,6 +56,11 @@ module Api
                           .first
             unless ticket
               render json: { error: t('orders.errors.unknown_ticket', name: item[:ticket_name]) }, status: :bad_request
+              break
+            end
+
+            if ticket.for_leaders && !%w[leader admin volunteer].include?(@current_user&.role)
+              render json: { error: t('orders.errors.leader_ticket_required') }, status: :forbidden
               break
             end
 

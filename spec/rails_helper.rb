@@ -34,7 +34,7 @@ RSpec.configure do |config|
   end
 
   config.before do
-    WebMock.globally_stub_request do |request|
+    WebMock.globally_stub_request(:after_local_stubs) do |request|
       { status: 200, body: '{}', headers: {} } if /fonts.googleapis.com|fcm.googleapis.com/.match?(request.uri.to_s)
     end
     DatabaseCleaner.start

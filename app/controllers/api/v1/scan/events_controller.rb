@@ -23,6 +23,7 @@ module Api
                           event.events_translations.find { |t| t.languages_code == 'ro-RO' } ||
                           event.events_translations.first
             {
+              id:                event.id,
               name:              translation&.name,
               slug:              event.slug,
               has_meal_tracking: event.tickets.any? { |t| t.ticket_meal_slots.any? }

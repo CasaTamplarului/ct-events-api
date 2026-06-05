@@ -44,7 +44,8 @@ module Api
           return unless create_passkey!(webauthn_credential)
 
           render json: { verified: true }
-        rescue WebAuthn::Error
+        rescue WebAuthn::Error => e
+          Rails.logger.error("Passkey registration failed for user #{current_user&.id}: #{e.class}: #{e.message}")
           render json: { error: I18n.t('auth.errors.passkey_verification_failed') },
                  status: :unprocessable_content
         end

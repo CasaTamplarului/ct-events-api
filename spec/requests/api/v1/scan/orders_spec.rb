@@ -64,7 +64,7 @@ RSpec.describe 'Scan Orders API' do
     it 'includes required fields on each attendee' do
       get_order(order.order_reference)
       a = json['attendees'].first
-      expect(a.keys).to include('id', 'first_name', 'last_name', 'email_address',
+      expect(a.keys).to include('id', 'first_name', 'last_name', 'email_address', 'age',
                                 'ticket_name', 'payment_status', 'checked_in', 'checked_in_at', 'checked_in_by')
     end
 

@@ -35,11 +35,11 @@ RSpec.describe 'PATCH /api/v1/auth/me/email_preferences' do
       expect(user.reload.marketing_emails).to be true
     end
 
-    it 'returns all five preference fields in the response' do
+    it 'returns all four preference fields in the response' do
       patch_preferences({ marketing_emails: false })
 
       expect(json['email_preferences'].keys).to match_array(%w[
-                                                              marketing_emails payment_reminder_emails payment_receipt_emails
+                                                              marketing_emails payment_reminder_emails
                                                               event_reminder_emails event_update_emails
                                                             ])
     end
@@ -49,7 +49,7 @@ RSpec.describe 'PATCH /api/v1/auth/me/email_preferences' do
 
       expect(response).to have_http_status(:ok)
       expect(json['email_preferences'].keys).to match_array(%w[
-                                                              marketing_emails payment_reminder_emails payment_receipt_emails
+                                                              marketing_emails payment_reminder_emails
                                                               event_reminder_emails event_update_emails
                                                             ])
     end

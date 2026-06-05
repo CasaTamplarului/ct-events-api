@@ -145,6 +145,7 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
         expect(a['ticket_price']).to eq('150.0')
         expect(a['food_included']).to be(true)
         expect(a['dietary_preference']).to eq('no_preference')
+        expect(a).to have_key('age')
       end
 
       it 'includes id and qr_code for each attendee' do

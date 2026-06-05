@@ -66,6 +66,11 @@ Rails.application.routes.draw do
 
       get '/unsubscribe', to: 'unsubscribe#show'
 
+      scope '/orders/:order_reference/attendees/:id/wallet' do
+        get 'google', to: 'wallet#google', as: 'public_google_wallet'
+        get 'apple',  to: 'wallet#apple',  as: 'public_apple_wallet'
+      end
+
       scope '/:languages_code', constraints: { languages_code: /[a-zA-Z]{2}-[a-zA-Z]{2}/ } do
         # Events
         namespace :events do
