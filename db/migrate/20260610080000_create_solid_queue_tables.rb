@@ -55,6 +55,13 @@ class CreateSolidQueueTables < ActiveRecord::Migration[8.0]
       t.index [ :concurrency_key ],              name: "index_solid_queue_blocked_executions_on_concurrency_key"
     end
 
+    create_table :solid_queue_claimed_executions do |t|
+      t.references :job, null: false, index: { unique: true },
+                         foreign_key: { to_table: :solid_queue_jobs, on_delete: :cascade }
+      t.references :process, foreign_key: { to_table: :solid_queue_processes, on_delete: :restrict }
+      t.datetime :created_at, null: false
+    end
+
     create_table :solid_queue_failed_executions do |t|
       t.references :job, null: false, index: { unique: true },
                          foreign_key: { to_table: :solid_queue_jobs, on_delete: :cascade }
