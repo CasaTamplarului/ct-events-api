@@ -87,6 +87,11 @@ module Api
               return render json: { error: I18n.t('errors.not_found') }, status: :not_found
             end
 
+            if attendee.event.end_date <= Time.current
+              return render json: { error: I18n.t('bookings.errors.event_already_past') },
+                            status: :unprocessable_content
+            end
+
             attrs = params.permit(*ATTENDEE_UPDATE_FIELDS).to_h.symbolize_keys
             unless attendee.update(attrs)
               return render json: { error: attendee.errors.full_messages.first },
