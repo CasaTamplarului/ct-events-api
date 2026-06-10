@@ -23,6 +23,7 @@ Rails.application.routes.draw do
           get  :past,     to: 'me/bookings#past'
           post :check,    to: 'me/bookings#check'
           delete ':order_reference',                to: 'me/bookings#cancel_order',    as: 'cancel_booking'
+          patch  ':order_reference/attendees/:id',  to: 'me/bookings#update_attendee', as: 'update_booking_attendee'
           delete ':order_reference/attendees/:id',  to: 'me/bookings#cancel_attendee', as: 'cancel_booking_attendee'
           get ':order_reference/wallet/google',     to: 'me/bookings#wallet_google',   as: 'google_wallet_booking'
           get ':order_reference/attendees/:id/wallet/google', to: 'me/bookings#wallet_google_attendee',
