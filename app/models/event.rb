@@ -17,17 +17,18 @@ class Event < ApplicationRecord
 
   # Scopes
 
-  scope :upcoming, -> { where(start_date: Time.zone.now..).where(status: 'live') }
-  scope :past, -> { where(start_date: ...Time.zone.now).where(status: 'live') }
+  scope :public_only, -> { where(is_private: false) }
+  scope :upcoming, -> { public_only.where(start_date: Time.zone.now..).where(status: 'live') }
+  scope :past, -> { public_only.where(start_date: ...Time.zone.now).where(status: 'live') }
   scope :hero, lambda {
-    where(hero: true, status: 'live')
-      .where('start_date > ?', Time.zone.now)
-      .order(start_date: :asc)
-      .limit(1)
+    public_only.where(hero: true, status: 'live')
+               .where('start_date > ?', Time.zone.now)
+               .order(start_date: :asc)
+               .limit(1)
   }
 
   scope :by_filter, lambda { |filter|
-    base = where(status: 'live')
+    base = public_only.where(status: 'live')
     case filter.to_s
     when 'upcoming' then base.where(start_date: Time.zone.now..)
     when 'past'     then base.where(start_date: ...Time.zone.now)

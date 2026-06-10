@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_05_092503) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_05_122332) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -523,11 +523,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_05_092503) do
     t.boolean "required", default: false, null: false
     t.integer "sort", default: 0, null: false
     t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.boolean "upload_enabled", default: true, null: false
     t.index ["event_id", "sort"], name: "index_event_template_docs_on_event_id_and_sort"
     t.index ["event_id"], name: "index_event_template_docs_on_event_id"
   end
 
   create_table "events", force: :cascade do |t|
+    t.uuid "access_token", default: -> { "gen_random_uuid()" }, null: false
     t.string "address"
     t.boolean "allow_over_max_age", default: false, null: false
     t.datetime "created_at", default: -> { "now()" }, null: false
@@ -536,6 +538,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_05_092503) do
     t.boolean "hero", default: false, null: false
     t.uuid "hero_image"
     t.uuid "hero_portrait"
+    t.boolean "is_private", default: false, null: false
     t.string "location_name"
     t.integer "max_age"
     t.integer "max_number_of_people"

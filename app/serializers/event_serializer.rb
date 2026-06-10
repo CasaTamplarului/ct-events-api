@@ -53,6 +53,7 @@ class EventSerializer < ApplicationSerializer
         label: doc.label_for(params[:languages_code]),
         url: ApplicationSerializer.asset_url(doc.directus_files_id),
         required: doc.required,
+        upload_enabled: doc.upload_enabled,
         age_from: doc.age_from,
         age_to: doc.age_to }
     end

@@ -14,7 +14,7 @@ RSpec.describe 'POST /api/v1/:lang/orders' do
   let(:valid_item) do
     {
       event_slug: 'tabara-impact-2026',
-      ticket_name: 'Standard',
+      ticket_id: ticket.id,
       attendee: {
         first_name: 'Ion',
         last_name: 'Popescu',
@@ -113,9 +113,9 @@ RSpec.describe 'POST /api/v1/:lang/orders' do
     end
   end
 
-  describe 'unknown ticket name' do
+  describe 'unknown ticket id' do
     it 'returns 400' do
-      post_order([valid_item.merge(ticket_name: 'VIP')])
+      post_order([valid_item.merge(ticket_id: 999999)])
 
       expect(response).to have_http_status(:bad_request)
       expect(json['error']).to be_present

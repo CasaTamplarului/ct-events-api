@@ -20,7 +20,7 @@ module Api
         return if performed?
 
         order = persist_order(resolved)
-        SendgridService.send_booking_confirmation(order: order, language: params[:languages_code])
+        SendBookingConfirmationJob.perform_later(order.id, params[:languages_code])
         render json: {
           order_reference: order.order_reference,
           attendees: order.attendees.map { |a| { id: a.id, qr_code: "#{order.order_reference}-#{a.id}" } }
@@ -49,13 +49,18 @@ module Api
               break
             end
 
-            ticket = event.tickets
-                          .joins(:tickets_translations)
-                          .where(tickets_translations: { name: item[:ticket_name],
-                                                         languages_code: params[:languages_code] })
-                          .first
+            ticket = if item[:ticket_id].present?
+                       event.tickets.find_by(id: item[:ticket_id])
+                     else
+                       event.tickets
+                            .joins(:tickets_translations)
+                            .where(tickets_translations: { name: item[:ticket_name],
+                                                           languages_code: params[:languages_code] })
+                            .first
+                     end
             unless ticket
-              render json: { error: t('orders.errors.unknown_ticket', name: item[:ticket_name]) }, status: :bad_request
+              render json: { error: t('orders.errors.unknown_ticket', name: item[:ticket_id] || item[:ticket_name]) },
+                     status: :bad_request
               break
             end
 
@@ -179,7 +184,7 @@ module Api
         end
 
         def required_upload_missing?(doc, attendee_age, uploaded_ids)
-          doc.required && doc_applies_to_age?(doc, attendee_age) && uploaded_ids.exclude?(doc.id)
+          doc.upload_enabled && doc.required && doc_applies_to_age?(doc, attendee_age) && uploaded_ids.exclude?(doc.id)
         end
 
         def doc_applies_to_age?(doc, attendee_age)

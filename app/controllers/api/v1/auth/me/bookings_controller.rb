@@ -204,14 +204,16 @@ module Api
 
               if own_order_ids.any?
                 Attendee.where(order_id: own_order_ids)
-                        .includes({ ticket: [:tickets_translations, :ticket_meal_slots] }, { event: :events_translations })
+                        .includes({ ticket: [:tickets_translations, :ticket_meal_slots] },
+                                  { event: [:events_translations, { event_template_docs: :event_template_doc_translations }] })
                         .group_by(&:order_id)
                         .each { |oid, atts| attendees_by_order[oid] = atts }
               end
 
               if other_order_ids.any?
                 Attendee.where(order_id: other_order_ids, user_id: current_user.id)
-                        .includes({ ticket: [:tickets_translations, :ticket_meal_slots] }, { event: :events_translations })
+                        .includes({ ticket: [:tickets_translations, :ticket_meal_slots] },
+                                  { event: [:events_translations, { event_template_docs: :event_template_doc_translations }] })
                         .group_by(&:order_id)
                         .each { |oid, atts| attendees_by_order[oid] = atts }
               end
@@ -229,12 +231,12 @@ module Api
                 order_reference: order.order_reference,
                 payment_status: order.payment_status(attendees),
                 total_price: attendees.sum { |a| a.ticket&.price || 0 },
-                event: serialise_event(event, lang),
+                event: serialise_event(event, lang, attendees),
                 attendees: attendees.map { |a| serialise_attendee(a, lang) }
               }
             end
 
-            def serialise_event(event, lang)
+            def serialise_event(event, lang, attendees = [])
               name = event.events_translations.find { |t| t.languages_code == lang }&.name ||
                      event.events_translations.find { |t| t.languages_code == 'ro-RO' }&.name
               {
@@ -243,8 +245,36 @@ module Api
                 start_date: event.start_date,
                 end_date: event.end_date,
                 location_name: event.location_name,
-                address: event.address
+                address: event.address,
+                template_docs: serialise_template_docs(event.event_template_docs, lang, attendees)
               }
+            end
+
+            def serialise_template_docs(docs, lang, attendees)
+              attendee_ages = attendees.map(&:age)
+              docs.select { |doc| doc_applies_to_any_attendee?(doc, attendee_ages) }
+                  .map do |doc|
+                    label = doc.event_template_doc_translations.find { |t| t.languages_code == lang }&.label ||
+                            doc.event_template_doc_translations.find { |t| t.languages_code == 'ro-RO' }&.label
+                    {
+                      id: doc.id,
+                      label: label,
+                      url: ApplicationSerializer.asset_url(doc.directus_files_id),
+                      required: doc.required,
+                      upload_enabled: doc.upload_enabled
+                    }
+                  end
+            end
+
+            def doc_applies_to_any_attendee?(doc, ages)
+              return true if doc.age_from.nil? && doc.age_to.nil?
+
+              ages.any? do |age|
+                next false if age.nil?
+
+                (doc.age_from.nil? || age >= doc.age_from) &&
+                  (doc.age_to.nil? || age <= doc.age_to)
+              end
             end
 
             def serialise_attendee(attendee, lang)

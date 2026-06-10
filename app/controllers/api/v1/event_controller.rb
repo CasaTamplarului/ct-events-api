@@ -10,6 +10,10 @@ module Api
                     event_speakers: :event_speakers_translations)
           .find_by!(slug: params[:slug])
 
+        if event.is_private && params[:token] != event.access_token.to_s
+          return render json: { error: I18n.t('errors.not_found') }, status: :not_found
+        end
+
         render json:
           EventSerializer.new(event, params: { languages_code: params[:languages_code] }).serialize,
                status: :ok

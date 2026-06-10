@@ -40,8 +40,9 @@ class SendgridService
     return unless emails_enabled?
 
     all_attendees = order.attendees
-                         .includes({ ticket: %i[tickets_translations
-                                                ticket_meal_slots] }, { event: :events_translations })
+                         .includes({ ticket: %i[tickets_translations ticket_meal_slots] },
+                                   { event: [:events_translations,
+                                             { event_template_docs: :event_template_doc_translations }] })
                          .to_a
 
     attendees_with_email = all_attendees.reject { |a| a.email_address.blank? }
@@ -91,6 +92,7 @@ class SendgridService
           'total_price' => group.sum { |a| a.ticket&.price || 0 },
           'is_pending' => order.payment_pending?(all_attendees),
           'year' => Time.current.year.to_s,
+          'template_docs' => template_docs_data(event, language, group),
           'single_attendee' => single_attendee,
           'qr_content_id' => single_attendee ? "qr_code_#{group.first.id}" : nil,
           'qr_id_content_id' => single_attendee ? "qr_id_#{group.first.id}" : nil
@@ -176,6 +178,28 @@ class SendgridService
       rescue Exception => e # rubocop:disable Lint/RescueException
         Rails.logger.error("Google Wallet URL generation failed for attendee #{attendee.id}: #{e.message}")
         nil
+      end
+
+      def template_docs_data(event, lang, attendees)
+        ages = attendees.map(&:age)
+        event.event_template_docs
+             .select { |doc| doc_applies_to_any_attendee?(doc, ages) }
+             .map do |doc|
+               label = doc.event_template_doc_translations.find { |t| t.languages_code == lang }&.label ||
+                       doc.event_template_doc_translations.find { |t| t.languages_code == 'ro-RO' }&.label
+               { 'label' => label, 'url' => ApplicationSerializer.asset_url(doc.directus_files_id) }
+             end
+      end
+
+      def doc_applies_to_any_attendee?(doc, ages)
+        return true if doc.age_from.nil? && doc.age_to.nil?
+
+        ages.any? do |age|
+          next false if age.nil?
+
+          (doc.age_from.nil? || age >= doc.age_from) &&
+            (doc.age_to.nil? || age <= doc.age_to)
+        end
       end
 
       def public_wallet_url(attendee, lang, provider)

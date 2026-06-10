@@ -26,24 +26,8 @@ module Api
           targets = resolve_targets
           return render json: { error: 'Event not found' }, status: :not_found if targets.nil?
 
-          link       = push_notification.link || default_link
-          preference = @event ? :event_update_push : :marketing_push
-
-          targets.each do |user|
-            t = push_notification.translation_for(user.language)
-            FcmService.send_to_user(
-              user:       user,
-              title:      t['title'],
-              body:       t['body'],
-              image:      push_notification.image_url,
-              link:       link,
-              actions:    t['actions'] || [],
-              preference: preference
-            )
-          end
-
-          push_notification.update!(sent_to: targets.size)
           push_notification.save!
+          SendPushNotificationsJob.perform_later(push_notification.id, targets.map(&:id))
 
           render json: { sent_to: targets.size }, status: :ok
         end

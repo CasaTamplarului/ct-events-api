@@ -26,7 +26,7 @@ module Api
             )
             # rubocop:enable Rails/SkipsModelValidations
             reset_url = "#{ENV.fetch('FRONTEND_URL', nil)}/reset-password?token=#{token}"
-            SendgridService.send_password_reset(user: user, reset_url: reset_url)
+            SendPasswordResetJob.perform_later(user.id, reset_url)
           end
 
           render json: { message: I18n.t('auth.messages.reset_link_sent') }, status: :ok
