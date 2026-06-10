@@ -73,8 +73,8 @@ module Api
             render json: serialise_order(order, attendees_for_response(order))
           end
 
-          ATTENDEE_UPDATE_FIELDS = %w[first_name last_name phone_number dietary_preference allergies
-                                      church_name city age].freeze
+          ATTENDEE_UPDATE_SCALAR_FIELDS = %w[first_name last_name phone_number dietary_preference
+                                             church_name city age].freeze
 
           def update_attendee
             order = Order.find_by(order_reference: params[:order_reference])
@@ -92,7 +92,7 @@ module Api
                             status: :unprocessable_content
             end
 
-            attrs = params.permit(*ATTENDEE_UPDATE_FIELDS).to_h.symbolize_keys
+            attrs = params.permit(*ATTENDEE_UPDATE_SCALAR_FIELDS, allergies: []).to_h.symbolize_keys
             unless attendee.update(attrs)
               return render json: { error: attendee.errors.full_messages.first },
                             status: :unprocessable_entity
