@@ -73,6 +73,36 @@ module Api
             render json: serialise_order(order, attendees_for_response(order))
           end
 
+          ATTENDEE_UPDATE_FIELDS = %w[first_name last_name phone_number dietary_preference allergies
+                                      church_name city age].freeze
+
+          def update_attendee
+            order = Order.find_by(order_reference: params[:order_reference])
+            return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless order
+
+            attendee = order.attendees.find_by(id: params[:id])
+            return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless attendee
+
+            unless attendee.user_id == current_user.id || order.user_id == current_user.id
+              return render json: { error: I18n.t('errors.not_found') }, status: :not_found
+            end
+
+            if attendee.event.end_date <= Time.current
+              return render json: { error: I18n.t('bookings.errors.event_already_past') },
+                            status: :unprocessable_content
+            end
+
+            attrs = params.permit(*ATTENDEE_UPDATE_FIELDS).to_h.symbolize_keys
+            unless attendee.update(attrs)
+              return render json: { error: attendee.errors.full_messages.first },
+                            status: :unprocessable_entity
+            end
+
+            update_boolean_responses(attendee) if params[:boolean_field_responses].present?
+
+            render json: serialise_order(order, attendees_for_response(order))
+          end
+
           def cancel_attendee
             order = Order.find_by(order_reference: params[:order_reference])
             return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless order
@@ -171,8 +201,26 @@ module Api
           private
 
             def attendees_for_response(order)
-              scope = order.attendees.includes({ ticket: [:tickets_translations, :ticket_meal_slots] }, { event: :events_translations })
+              scope = order.attendees.includes(
+                { ticket: [:tickets_translations, :ticket_meal_slots] },
+                { event: :events_translations },
+                attendee_boolean_field_responses: { event_boolean_field: :event_boolean_field_translations }
+              )
               (order.user_id == current_user.id ? scope : scope.where(user_id: current_user.id)).to_a
+            end
+
+            def update_boolean_responses(attendee)
+              event_field_ids = attendee.event.event_boolean_fields.pluck(:id)
+              Array(params[:boolean_field_responses]).each do |r|
+                field_id = r[:event_boolean_field_id].to_i
+                next unless event_field_ids.include?(field_id)
+
+                response = attendee.attendee_boolean_field_responses.find_or_initialize_by(
+                  event_boolean_field_id: field_id
+                )
+                response.value = r[:value]
+                response.save!
+              end
             end
 
             def orders_for_user_scoped_to(where_clause:, sort:)
@@ -202,18 +250,22 @@ module Api
 
               attendees_by_order = {}
 
+              attendee_includes = [
+                { ticket: [:tickets_translations, :ticket_meal_slots] },
+                { event: [:events_translations, { event_template_docs: :event_template_doc_translations }] },
+                { attendee_boolean_field_responses: { event_boolean_field: :event_boolean_field_translations } }
+              ]
+
               if own_order_ids.any?
                 Attendee.where(order_id: own_order_ids)
-                        .includes({ ticket: [:tickets_translations, :ticket_meal_slots] },
-                                  { event: [:events_translations, { event_template_docs: :event_template_doc_translations }] })
+                        .includes(*attendee_includes)
                         .group_by(&:order_id)
                         .each { |oid, atts| attendees_by_order[oid] = atts }
               end
 
               if other_order_ids.any?
                 Attendee.where(order_id: other_order_ids, user_id: current_user.id)
-                        .includes({ ticket: [:tickets_translations, :ticket_meal_slots] },
-                                  { event: [:events_translations, { event_template_docs: :event_template_doc_translations }] })
+                        .includes(*attendee_includes)
                         .group_by(&:order_id)
                         .each { |oid, atts| attendees_by_order[oid] = atts }
               end
@@ -294,7 +346,22 @@ module Api
                 age: attendee.age,
                 meal_slots: (attendee.ticket&.ticket_meal_slots || [])
                               .sort_by { |s| [s.occurs_on, s.sort || 0] }
-                              .map { |s| { meal_type: s.meal_type, occurs_on: s.occurs_on } }
+                              .map { |s| { meal_type: s.meal_type, occurs_on: s.occurs_on } },
+                boolean_field_responses: attendee.attendee_boolean_field_responses
+                                                 .map { |r| serialise_boolean_response(r, lang) }
+              }
+            end
+
+            def serialise_boolean_response(response, lang)
+              field = response.event_boolean_field
+              t = field.event_boolean_field_translations.find { |tr| tr.languages_code == lang } ||
+                  field.event_boolean_field_translations.find { |tr| tr.languages_code == 'ro-RO' }
+              {
+                event_boolean_field_id: response.event_boolean_field_id,
+                label: t&.label,
+                value: response.value,
+                true_label: t&.true_label,
+                false_label: t&.false_label
               }
             end
 

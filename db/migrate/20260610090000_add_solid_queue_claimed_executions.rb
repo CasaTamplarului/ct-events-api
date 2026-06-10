@@ -2,7 +2,8 @@
 
 class AddSolidQueueClaimedExecutions < ActiveRecord::Migration[8.0]
   def change
-    create_table :solid_queue_claimed_executions do |t|
+    # solid_queue_claimed_executions is now created in 20260610080000
+    create_table :solid_queue_claimed_executions, if_not_exists: true do |t|
       t.references :job, null: false, index: { unique: true },
                          foreign_key: { to_table: :solid_queue_jobs, on_delete: :cascade }
       t.references :process, foreign_key: { to_table: :solid_queue_processes, on_delete: :restrict }
