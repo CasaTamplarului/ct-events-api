@@ -13,6 +13,26 @@ module Api
         MAX_QUANTITY = 500
         VALID_LENGTHS = [4, 5, 6].freeze
 
+        def index
+          event = Event.find_by(id: params[:event_id])
+          return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless event
+
+          bracelets = Bracelet.where(event: event)
+                              .includes(attendee: :order)
+                              .order(:created_at)
+
+          render json: {
+            codes: bracelets.map { |b|
+              {
+                code:            b.code,
+                attendee_id:     b.attendee_id,
+                attendee_name:   b.attendee ? "#{b.attendee.first_name} #{b.attendee.last_name}".strip : nil,
+                order_reference: b.attendee&.order&.order_reference
+              }
+            }
+          }
+        end
+
         def generate
           event = Event.find_by(id: params[:event_id])
           return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless event

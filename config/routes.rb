@@ -64,6 +64,7 @@ Rails.application.routes.draw do
           patch '/', to: 'orders#update', as: 'scan_order_update'
         end
         scope '/bracelets' do
+          get  '/',        to: 'bracelets#index',    as: 'scan_bracelets'
           post 'generate', to: 'bracelets#generate', as: 'scan_bracelets_generate'
           post 'assign',   to: 'bracelets#assign',   as: 'scan_bracelets_assign'
           get  ':code',    to: 'bracelets#show',     as: 'scan_bracelet'
