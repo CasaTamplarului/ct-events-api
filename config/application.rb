@@ -23,5 +23,6 @@ module CtEventsApi
 
     config.middleware.use Rack::Attack
     config.active_job.queue_adapter = :solid_queue
+    config.active_storage.variant_processor = :disabled
   end
 end
