@@ -53,12 +53,18 @@ module Api
         private
 
           def resolve_attendee(qr_code)
-            attendee_id = qr_code.split('-').last.to_i
-            attendee    = Attendee.includes(ticket: :ticket_meal_slots).find_by(id: attendee_id)
-            return nil unless attendee
-            return nil unless attendee.qr_code == qr_code
+            # Native CT format: CT-YYYY-XXXXXX-{id}
+            if qr_code.match?(/\ACT-\d{4}-[A-Z0-9]+-\d+\z/)
+              attendee_id = qr_code.split('-').last.to_i
+              attendee    = Attendee.includes(ticket: :ticket_meal_slots).find_by(id: attendee_id)
+              return attendee if attendee&.qr_code == qr_code
+            end
 
-            attendee
+            # Bracelet fallback
+            bracelet = Bracelet.find_by(code: qr_code)
+            return nil unless bracelet&.attendee_id
+
+            Attendee.includes(ticket: :ticket_meal_slots).find_by(id: bracelet.attendee_id)
           end
       end
     end
