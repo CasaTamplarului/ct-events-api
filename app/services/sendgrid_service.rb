@@ -95,7 +95,8 @@ class SendgridService
           'template_docs' => template_docs_data(event, language, group),
           'single_attendee' => single_attendee,
           'qr_content_id' => single_attendee ? "qr_code_#{group.first.id}" : nil,
-          'qr_id_content_id' => single_attendee ? "qr_id_#{group.first.id}" : nil
+          'qr_id_content_id' => single_attendee ? "qr_id_#{group.first.id}" : nil,
+          'booking_url' => "#{ENV.fetch('FRONTEND_URL', nil)}/bookings/#{order.order_reference}"
         )
         mail.add_personalization(personalization)
 
