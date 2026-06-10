@@ -7,7 +7,8 @@ module Api
         include Authenticatable
 
         before_action :authenticate_user!
-        before_action { require_permission!(:can_check_in_attendees) }
+        before_action(only: %i[index generate]) { require_permission!(:can_manage_bracelets) }
+        before_action(only: %i[assign show])    { require_permission!(:can_check_in_attendees) }
 
         ALPHABET     = (('A'..'Z').to_a + ('0'..'9').to_a).freeze
         MAX_QUANTITY = 500
