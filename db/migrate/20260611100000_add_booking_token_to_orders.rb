@@ -16,7 +16,6 @@ class AddBookingTokenToOrders < ActiveRecord::Migration[8.1]
       end
     end
 
-    change_column_null :orders, :booking_token, false
   end
 
   def down
