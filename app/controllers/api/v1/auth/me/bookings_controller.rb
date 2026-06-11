@@ -171,7 +171,7 @@ module Api
             send_data data,
                       type: 'application/vnd.apple.pkpass',
                       filename: "ticket-#{order.order_reference}.pkpass",
-                      disposition: 'attachment'
+                      disposition: 'inline'
           rescue AppleWalletService::PassGenerationError => e
             Rails.logger.error("Apple Wallet error for #{order.order_reference}: #{e.message}")
             render json: { error: 'Internal server error' }, status: :internal_server_error
@@ -192,7 +192,7 @@ module Api
             send_data data,
                       type: 'application/vnd.apple.pkpass',
                       filename: "ticket-#{order.order_reference}.pkpass",
-                      disposition: 'attachment'
+                      disposition: 'inline'
           rescue AppleWalletService::PassGenerationError => e
             Rails.logger.error("Apple Wallet error for attendee #{attendee.id}: #{e.message}")
             render json: { error: 'Internal server error' }, status: :internal_server_error

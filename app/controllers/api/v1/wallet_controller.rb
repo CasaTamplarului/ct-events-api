@@ -22,7 +22,7 @@ module Api
         send_data data,
                   type: 'application/vnd.apple.pkpass',
                   filename: "ticket-#{attendee.order.order_reference}.pkpass",
-                  disposition: 'attachment'
+                  disposition: 'inline'
       rescue AppleWalletService::PassGenerationError, StandardError => e
         Rails.logger.error("Public Apple Wallet error for attendee #{attendee&.id}: #{e.class}: #{e.message}")
         render json: { error: 'Internal server error' }, status: :internal_server_error
