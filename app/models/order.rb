@@ -5,6 +5,7 @@ class Order < ApplicationRecord
   has_many :attendees, dependent: :destroy
 
   after_create :generate_order_reference
+  after_create :generate_booking_token
 
   def payment_status(attendees_collection = nil)
     collection = attendees_collection || attendees
@@ -30,6 +31,18 @@ class Order < ApplicationRecord
 
         # rubocop:disable Rails/SkipsModelValidations
         update_column(:order_reference, ref)
+        # rubocop:enable Rails/SkipsModelValidations
+        break
+      end
+    end
+
+    def generate_booking_token
+      loop do
+        token = SecureRandom.urlsafe_base64(32)
+        next if Order.exists?(booking_token: token)
+
+        # rubocop:disable Rails/SkipsModelValidations
+        update_column(:booking_token, token)
         # rubocop:enable Rails/SkipsModelValidations
         break
       end
