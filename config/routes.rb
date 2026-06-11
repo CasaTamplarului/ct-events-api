@@ -72,6 +72,7 @@ Rails.application.routes.draw do
       end
 
       get '/unsubscribe', to: 'unsubscribe#show'
+      get '/orders/booking/:token', to: 'booking_token#show', as: 'booking_by_token'
 
       scope '/orders/:order_reference/attendees/:id/wallet' do
         get 'google', to: 'wallet#google', as: 'public_google_wallet'
