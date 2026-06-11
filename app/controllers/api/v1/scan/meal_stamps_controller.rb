@@ -5,9 +5,11 @@ module Api
     module Scan
       class MealStampsController < ActionController::API
         include Authenticatable
+        include LocaleSetter
 
         before_action :authenticate_user!
         before_action { require_permission!(:can_check_in_attendees) }
+        before_action :set_locale
 
         def create
           qr_code   = params[:qr_code]
@@ -24,6 +26,11 @@ module Api
 
           slot = attendee.ticket&.ticket_meal_slots&.find do |s|
             s.meal_type == meal_type && s.occurs_on.to_s == occurs_on.to_s
+          end
+
+          if attendee.refunded? || attendee.attendee_cancelled?
+            return render json: { error: I18n.t('scan.errors.attendee_not_eligible') },
+                          status: :unprocessable_content
           end
 
           return render json: { error: 'Not entitled' }, status: :unprocessable_content unless slot
