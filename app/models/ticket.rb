@@ -6,7 +6,16 @@ class Ticket < ApplicationRecord
 
   belongs_to :event
 
+  validate :valid_to_not_before_valid_from
+
   def translations(language_code)
     tickets_translations.find_by(languages_code: language_code)
   end
+
+  private
+
+    def valid_to_not_before_valid_from
+      return unless valid_from && valid_to
+      errors.add(:valid_to, 'must be on or after valid_from') if valid_to < valid_from
+    end
 end
