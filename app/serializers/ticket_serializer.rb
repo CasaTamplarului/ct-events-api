@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class TicketSerializer < ApplicationSerializer
-  attributes :id, :food_included, :for_leaders
+  attributes :id, :food_included, :for_leaders, :valid_from, :valid_to
 
   attribute :price do |object|
     params[:show_price] == false ? nil : object.price

@@ -167,6 +167,8 @@ class SendgridService
           'ticket_name' => translation&.name,
           'ticket_description' => translation&.description,
           'ticket_price' => attendee.ticket&.price,
+          'valid_from' => attendee.ticket&.valid_from,
+          'valid_to'   => attendee.ticket&.valid_to,
           'food_included' => attendee.ticket&.food_included,
           'qr_content_id' => "qr_code_#{attendee.id}",
           'meals_html' => meals_html(attendee.ticket&.ticket_meal_slots || [], lang),
