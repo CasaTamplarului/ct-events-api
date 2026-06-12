@@ -79,7 +79,7 @@ module Api
             return false unless ticket
             return false if ticket.valid_from.nil? && ticket.valid_to.nil?
 
-            today = Date.current
+            today = Time.current.in_time_zone('Europe/Bucharest').to_date
             (ticket.valid_from && today < ticket.valid_from) ||
               (ticket.valid_to  && today > ticket.valid_to)
           end
