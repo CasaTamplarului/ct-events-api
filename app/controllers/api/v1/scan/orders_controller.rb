@@ -6,9 +6,11 @@ module Api
       class OrdersController < ActionController::API
         include Authenticatable
         include ScanSerialisable
+        include LocaleSetter
 
         before_action :authenticate_user!
         before_action { require_permission!(:can_check_in_attendees) }
+        before_action :set_locale
         before_action :set_order
         before_action :prevent_self_checkin!, only: :update
 
@@ -23,7 +25,9 @@ module Api
             return render json: { error: 'Nothing to update' }, status: :unprocessable_content
           end
 
-          update_attendee_checkins(update_params)
+          error = update_attendee_checkins(update_params)
+          return render json: error, status: :unprocessable_content if error
+
           render json: serialise_order(@order)
         end
 
@@ -41,7 +45,7 @@ module Api
           end
 
           def update_attendee_checkins(update_params) # rubocop:disable Metrics/CyclomaticComplexity
-            order_attendees = @order.attendees.index_by(&:id)
+            order_attendees = @order.attendees.includes(:ticket).index_by(&:id)
             Array(update_params[:attendees]).each do |entry|
               attendee = order_attendees[entry[:id].to_i]
               next unless attendee
@@ -50,6 +54,10 @@ module Api
 
               if entry.key?(:checked_in)
                 if ActiveModel::Type::Boolean.new.cast(entry[:checked_in])
+                  if date_restricted?(attendee.ticket)
+                    return { error: I18n.t('scan.errors.invalid_checkin_date') }
+                  end
+
                   attrs.merge!(checked_in: true, checked_in_at: Time.current,
                                checked_in_by_user_id: current_user.id)
                   attrs[:payment_status] = :payment_pending if attendee.attendee_cancelled? || attendee.refunded?
@@ -64,6 +72,16 @@ module Api
 
               attendee.update!(attrs) if attrs.any?
             end
+            nil
+          end
+
+          def date_restricted?(ticket)
+            return false unless ticket
+            return false if ticket.valid_from.nil? && ticket.valid_to.nil?
+
+            today = Time.current.in_time_zone('Europe/Bucharest').to_date
+            (ticket.valid_from && today < ticket.valid_from) ||
+              (ticket.valid_to  && today > ticket.valid_to)
           end
       end
     end

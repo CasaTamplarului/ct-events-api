@@ -70,3 +70,4 @@ ro:
     errors:
       self_checkin_forbidden: "Nu poți efectua check-in pentru o comandă la care ești participant"
       attendee_not_eligible: "Biletul acestui participant a fost anulat sau rambursat"
+      invalid_checkin_date: "Acest bilet nu este valabil pentru data de astăzi"

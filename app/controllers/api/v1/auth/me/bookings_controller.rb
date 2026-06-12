@@ -343,6 +343,8 @@ module Api
                 ticket_name: translation&.name,
                 ticket_description: translation&.description,
                 ticket_price: attendee.ticket&.price,
+                valid_from: attendee.ticket&.valid_from,
+                valid_to:   attendee.ticket&.valid_to,
                 food_included: attendee.ticket&.food_included,
                 dietary_preference: attendee.dietary_preference,
                 allergies: attendee.allergies,
