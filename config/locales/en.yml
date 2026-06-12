@@ -101,3 +101,4 @@ en:
     errors:
       self_checkin_forbidden: "You cannot check in an order you are part of"
       attendee_not_eligible: "This attendee's ticket has been cancelled or refunded"
+      invalid_checkin_date: "This ticket is not valid for today's date"
