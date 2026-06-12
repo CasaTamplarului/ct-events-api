@@ -6,6 +6,7 @@ class Ticket < ApplicationRecord
 
   belongs_to :event
 
+  before_validation :fill_valid_date_range
   validate :valid_to_not_before_valid_from
 
   def translations(language_code)
@@ -13,6 +14,11 @@ class Ticket < ApplicationRecord
   end
 
   private
+
+    def fill_valid_date_range
+      self.valid_to   = valid_from if valid_from && valid_to.nil?
+      self.valid_from = valid_to   if valid_to   && valid_from.nil?
+    end
 
     def valid_to_not_before_valid_from
       return unless valid_from && valid_to
