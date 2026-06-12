@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_10_090000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_11_110000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -62,6 +62,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_090000) do
     t.index ["order_id"], name: "index_attendees_on_order_id"
     t.index ["ticket_id"], name: "index_attendees_on_ticket_id"
     t.index ["user_id"], name: "index_attendees_on_user_id"
+  end
+
+  create_table "bracelets", force: :cascade do |t|
+    t.bigint "attendee_id"
+    t.string "code", null: false
+    t.datetime "created_at", null: false
+    t.bigint "event_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["attendee_id"], name: "index_bracelets_on_attendee_id"
+    t.index ["code"], name: "index_bracelets_on_code", unique: true
+    t.index ["event_id"], name: "index_bracelets_on_event_id"
   end
 
   create_table "directus_access", id: :uuid, default: nil, force: :cascade do |t|
@@ -578,10 +589,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_090000) do
   end
 
   create_table "orders", force: :cascade do |t|
+    t.string "booking_token"
     t.datetime "created_at", default: -> { "now()" }, null: false
     t.string "order_reference"
     t.datetime "updated_at", default: -> { "now()" }, null: false
     t.bigint "user_id"
+    t.index ["booking_token"], name: "index_orders_on_booking_token", unique: true
     t.index ["order_reference"], name: "index_orders_on_order_reference", unique: true
     t.index ["user_id"], name: "index_orders_on_user_id"
   end
@@ -831,6 +844,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_090000) do
   add_foreign_key "attendees", "tickets"
   add_foreign_key "attendees", "users"
   add_foreign_key "attendees", "users", column: "checked_in_by_user_id"
+  add_foreign_key "bracelets", "attendees", on_delete: :nullify
+  add_foreign_key "bracelets", "events", on_delete: :cascade
   add_foreign_key "directus_access", "directus_policies", column: "policy", name: "directus_access_policy_foreign", on_delete: :cascade
   add_foreign_key "directus_access", "directus_roles", column: "role", name: "directus_access_role_foreign", on_delete: :cascade
   add_foreign_key "directus_access", "directus_users", column: "user", name: "directus_access_user_foreign", on_delete: :cascade

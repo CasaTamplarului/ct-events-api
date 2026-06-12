@@ -17,6 +17,8 @@ class Attendee < ApplicationRecord
   ALLERGY_OPTIONS = %w[gluten lactose nuts eggs soy fish shellfish].freeze
   validate :allergies_are_valid
 
+  before_save :set_participant_key
+
   def qr_code
     "#{order.order_reference}-#{id}"
   end
@@ -32,5 +34,13 @@ class Attendee < ApplicationRecord
     def allergies_are_valid
       invalid = Array(allergies) - ALLERGY_OPTIONS
       errors.add(:allergies, :invalid) if invalid.any?
+    end
+
+    def set_participant_key
+      self.participant_key = [
+        first_name.to_s.downcase.strip,
+        last_name.to_s.downcase.strip,
+        email_address.to_s.downcase.strip
+      ].join('|')
     end
 end
