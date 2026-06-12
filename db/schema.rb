@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_12_160000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_12_190000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -485,6 +485,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_160000) do
     t.index ["event_id"], name: "index_event_boolean_fields_on_event_id"
   end
 
+  create_table "event_description_section_translations", force: :cascade do |t|
+    t.text "content"
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.bigint "event_description_section_id", null: false
+    t.string "label"
+    t.string "languages_code", null: false
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["event_description_section_id", "languages_code"], name: "idx_event_desc_section_translations_unique", unique: true
+    t.index ["event_description_section_id"], name: "idx_on_event_description_section_id_3c1c75919d"
+  end
+
+  create_table "event_description_sections", force: :cascade do |t|
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.bigint "event_id", null: false
+    t.integer "sort", default: 0, null: false
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["event_id", "sort"], name: "index_event_description_sections_on_event_id_and_sort"
+    t.index ["event_id"], name: "index_event_description_sections_on_event_id"
+  end
+
   create_table "event_gallery", force: :cascade do |t|
     t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.uuid "directus_files_id", null: false
@@ -651,11 +671,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_160000) do
   end
 
   create_table "solid_queue_claimed_executions", force: :cascade do |t|
-    t.datetime "created_at", null: false
+    t.datetime "created_at", precision: nil, null: false
     t.bigint "job_id", null: false
     t.bigint "process_id"
     t.index ["job_id"], name: "index_solid_queue_claimed_executions_on_job_id", unique: true
-    t.index ["process_id"], name: "index_solid_queue_claimed_executions_on_process_id"
   end
 
   create_table "solid_queue_failed_executions", force: :cascade do |t|
@@ -898,6 +917,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_160000) do
   add_foreign_key "event_boolean_field_translations", "event_boolean_fields", on_delete: :cascade
   add_foreign_key "event_boolean_field_translations", "languages", column: "languages_code", primary_key: "code", name: "event_boolean_field_translations_languages_code_fk"
   add_foreign_key "event_boolean_fields", "events", on_delete: :cascade
+  add_foreign_key "event_description_section_translations", "event_description_sections", on_delete: :cascade
+  add_foreign_key "event_description_section_translations", "languages", column: "languages_code", primary_key: "code", name: "event_desc_section_translations_languages_code_fk"
+  add_foreign_key "event_description_sections", "events", on_delete: :cascade
   add_foreign_key "event_gallery", "directus_files", column: "directus_files_id", name: "event_gallery_directus_files_id_foreign"
   add_foreign_key "event_gallery", "events", on_delete: :cascade
   add_foreign_key "event_speakers_translations", "event_speakers", name: "fk_rails_event_speakers_translations_speaker", on_delete: :cascade
@@ -919,8 +941,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_160000) do
   add_foreign_key "push_notifications", "users", column: "created_by_id"
   add_foreign_key "push_subscriptions", "users"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
-  add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
-  add_foreign_key "solid_queue_claimed_executions", "solid_queue_processes", column: "process_id", on_delete: :restrict
+  add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", name: "solid_queue_claimed_executions_job_id_fkey", on_delete: :cascade
+  add_foreign_key "solid_queue_claimed_executions", "solid_queue_processes", column: "process_id", name: "solid_queue_claimed_executions_process_id_fkey", on_delete: :restrict
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_processes", "solid_queue_processes", column: "supervisor_id", on_delete: :nullify
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
