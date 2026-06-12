@@ -124,6 +124,34 @@ RSpec.describe 'Scan Orders API' do
       end
     end
 
+    context 'when an attendee has a ticket with valid dates' do
+      before do
+        ticket = create(:ticket, event: event, valid_from: Date.new(2026, 6, 18), valid_to: Date.new(2026, 6, 20))
+        first_attendee.update!(ticket: ticket)
+      end
+
+      it 'includes valid_from and valid_to on the attendee' do
+        get_order(order.order_reference)
+        a = json['attendees'].find { |x| x['id'] == first_attendee.id }
+        expect(a['valid_from']).to eq('2026-06-18')
+        expect(a['valid_to']).to eq('2026-06-20')
+      end
+    end
+
+    context 'when an attendee has a ticket with no valid dates' do
+      before do
+        ticket = create(:ticket, event: event)
+        first_attendee.update!(ticket: ticket)
+      end
+
+      it 'returns valid_from and valid_to as nil' do
+        get_order(order.order_reference)
+        a = json['attendees'].find { |x| x['id'] == first_attendee.id }
+        expect(a['valid_from']).to be_nil
+        expect(a['valid_to']).to be_nil
+      end
+    end
+
     describe 'self-check-in prevention' do
       context 'when the current user is an attendee in the order' do
         before { create(:attendee, event: event, order: order, user: admin) }

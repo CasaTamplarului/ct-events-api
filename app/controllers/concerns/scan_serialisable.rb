@@ -32,6 +32,8 @@ module ScanSerialisable
                                 &.find { |t| t.languages_code == 'ro-RO' }
                                 &.name,
         ticket_price:   attendee.ticket&.price,
+        valid_from:     attendee.ticket&.valid_from,
+        valid_to:       attendee.ticket&.valid_to,
         payment_status:     attendee.payment_status,
         checked_in:         attendee.checked_in,
         checked_in_at:      attendee.checked_in_at,
