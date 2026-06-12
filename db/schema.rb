@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_11_110000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_12_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -52,6 +52,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_11_110000) do
     t.string "first_name"
     t.string "last_name"
     t.bigint "order_id"
+    t.string "participant_key"
     t.integer "payment_status", default: 0, null: false
     t.string "phone_number"
     t.bigint "ticket_id"
@@ -60,6 +61,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_11_110000) do
     t.index ["checked_in_by_user_id"], name: "index_attendees_on_checked_in_by_user_id"
     t.index ["event_id"], name: "index_attendees_on_event_id"
     t.index ["order_id"], name: "index_attendees_on_order_id"
+    t.index ["participant_key"], name: "index_attendees_on_participant_key"
     t.index ["ticket_id"], name: "index_attendees_on_ticket_id"
     t.index ["user_id"], name: "index_attendees_on_user_id"
   end
@@ -782,6 +784,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_11_110000) do
     t.decimal "price"
     t.integer "sort"
     t.datetime "updated_at", default: -> { "now()" }, null: false
+    t.date "valid_from"
+    t.date "valid_to"
     t.index ["event_id", "sort"], name: "index_tickets_on_event_id_and_sort"
     t.index ["event_id"], name: "index_tickets_on_event_id"
   end
