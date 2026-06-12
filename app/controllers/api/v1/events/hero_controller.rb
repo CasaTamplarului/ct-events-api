@@ -5,7 +5,7 @@ module Api
     module Events
       class HeroController < ActionController::API
         def index
-          event = Event.hero.first
+          event = Event.hero.includes(event_description_sections: :event_description_section_translations).first
 
           return head :no_content if event.nil?
 
