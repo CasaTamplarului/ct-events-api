@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_12_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_12_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -788,6 +788,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_120000) do
     t.date "valid_to"
     t.index ["event_id", "sort"], name: "index_tickets_on_event_id_and_sort"
     t.index ["event_id"], name: "index_tickets_on_event_id"
+    t.check_constraint "valid_from IS NULL OR valid_to IS NULL OR valid_to >= valid_from", name: "check_tickets_valid_dates_order"
   end
 
   create_table "tickets_translations", force: :cascade do |t|
