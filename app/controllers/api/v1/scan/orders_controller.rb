@@ -6,9 +6,11 @@ module Api
       class OrdersController < ActionController::API
         include Authenticatable
         include ScanSerialisable
+        include LocaleSetter
 
         before_action :authenticate_user!
         before_action { require_permission!(:can_check_in_attendees) }
+        before_action :set_locale
         before_action :set_order
         before_action :prevent_self_checkin!, only: :update
 
