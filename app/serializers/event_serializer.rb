@@ -73,6 +73,14 @@ class EventSerializer < ApplicationSerializer
     end
   end
 
+  attribute :description_sections do |object|
+    sections = object.event_description_sections.includes(:event_description_section_translations)
+    sections.map do |s|
+      { label: s.label_for(params[:languages_code]),
+        content: s.content_for(params[:languages_code]) }
+    end
+  end
+
   attribute :attendee_fields do |object|
     object.event_attendee_fields.map do |f|
       validation = if f.field_name == 'age'
