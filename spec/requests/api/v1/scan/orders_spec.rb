@@ -377,5 +377,101 @@ RSpec.describe 'Scan Orders API' do
         end
       end
     end
+
+    context 'ticket valid date range' do
+      let(:ticket) { create(:ticket, event: event) }
+
+      before { first_attendee.update!(ticket: ticket) }
+
+      context 'when ticket has no valid dates' do
+        it 'allows check-in on any day' do
+          patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, checked_in: true }] })
+          expect(response).to have_http_status(:ok)
+          expect(first_attendee.reload.checked_in).to be true
+        end
+      end
+
+      context 'when today is within the valid range' do
+        before { ticket.update!(valid_from: Date.current - 1, valid_to: Date.current + 1) }
+
+        it 'allows check-in' do
+          patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, checked_in: true }] })
+          expect(response).to have_http_status(:ok)
+          expect(first_attendee.reload.checked_in).to be true
+        end
+      end
+
+      context 'when today is before valid_from' do
+        before { ticket.update!(valid_from: Date.current + 1, valid_to: Date.current + 2) }
+
+        it 'returns 422 and does not check in the attendee' do
+          patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, checked_in: true }] })
+          expect(response).to have_http_status(:unprocessable_content)
+          expect(json['error']).to eq("This ticket is not valid for today's date")
+          expect(first_attendee.reload.checked_in).to be false
+        end
+      end
+
+      context 'when today is after valid_to' do
+        before { ticket.update!(valid_from: Date.current - 2, valid_to: Date.current - 1) }
+
+        it 'returns 422 and does not check in the attendee' do
+          patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, checked_in: true }] })
+          expect(response).to have_http_status(:unprocessable_content)
+          expect(json['error']).to eq("This ticket is not valid for today's date")
+          expect(first_attendee.reload.checked_in).to be false
+        end
+      end
+
+      context 'when today equals valid_from (first day)' do
+        before { ticket.update!(valid_from: Date.current, valid_to: Date.current + 1) }
+
+        it 'allows check-in' do
+          patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, checked_in: true }] })
+          expect(response).to have_http_status(:ok)
+        end
+      end
+
+      context 'when today equals valid_to (last day)' do
+        before { ticket.update!(valid_from: Date.current - 1, valid_to: Date.current) }
+
+        it 'allows check-in' do
+          patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, checked_in: true }] })
+          expect(response).to have_http_status(:ok)
+        end
+      end
+
+      context 'when only valid_from is set and today is before it' do
+        before { ticket.update!(valid_from: Date.current + 1, valid_to: nil) }
+
+        it 'returns 422' do
+          patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, checked_in: true }] })
+          expect(response).to have_http_status(:unprocessable_content)
+        end
+      end
+
+      context 'when only valid_to is set and today is after it' do
+        before { ticket.update!(valid_from: nil, valid_to: Date.current - 1) }
+
+        it 'returns 422' do
+          patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, checked_in: true }] })
+          expect(response).to have_http_status(:unprocessable_content)
+        end
+      end
+
+      context 'when unchecking an attendee with an invalid date ticket' do
+        before do
+          ticket.update!(valid_from: Date.current + 1, valid_to: Date.current + 2)
+          first_attendee.update!(checked_in: true, checked_in_at: Time.current,
+                                 checked_in_by_user_id: admin.id)
+        end
+
+        it 'allows unchecking regardless of date' do
+          patch_order(order.order_reference, { attendees: [{ id: first_attendee.id, checked_in: false }] })
+          expect(response).to have_http_status(:ok)
+          expect(first_attendee.reload.checked_in).to be false
+        end
+      end
+    end
   end
 end
