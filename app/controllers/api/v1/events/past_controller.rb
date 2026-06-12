@@ -5,7 +5,9 @@ module Api
     module Events
       class PastController < ActionController::API
         def index
-          events = Event.past.order(start_date: :desc).limit(10)
+          events = Event.past
+                        .includes(event_description_sections: :event_description_section_translations)
+                        .order(start_date: :desc).limit(10)
 
           render json:
             ThumbnailEventSerializer.new(events,

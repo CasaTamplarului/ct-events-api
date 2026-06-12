@@ -23,7 +23,8 @@ module Api
           page        = page_param
           total_pages = [(total_count.to_f / per_page).ceil, 1].max
 
-          events = scope.limit(per_page).offset((page - 1) * per_page)
+          events = scope.includes(event_description_sections: :event_description_section_translations)
+                        .limit(per_page).offset((page - 1) * per_page)
 
           render json: {
             events: ThumbnailEventSerializer.new(

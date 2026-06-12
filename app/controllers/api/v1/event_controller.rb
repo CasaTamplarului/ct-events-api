@@ -7,7 +7,8 @@ module Api
         event = Event
           .includes(:events_translations, :attendees, :event_attendee_fields, :event_gallery_items,
                     tickets: [:tickets_translations, :ticket_meal_slots],
-                    event_speakers: :event_speakers_translations)
+                    event_speakers: :event_speakers_translations,
+                    event_description_sections: :event_description_section_translations)
           .find_by!(slug: params[:slug])
 
         if event.is_private && params[:token] != event.access_token.to_s
