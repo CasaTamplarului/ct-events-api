@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_13_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_13_110000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -812,6 +812,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_13_100000) do
     t.check_constraint "valid_from IS NULL OR valid_to IS NULL OR valid_to >= valid_from", name: "check_tickets_valid_dates_order"
   end
 
+  create_table "tickets_allowed_users", force: :cascade do |t|
+    t.bigint "ticket_id", null: false
+    t.bigint "user_id", null: false
+    t.index ["ticket_id", "user_id"], name: "index_tickets_allowed_users_on_ticket_id_and_user_id", unique: true
+    t.index ["ticket_id"], name: "index_tickets_allowed_users_on_ticket_id"
+    t.index ["user_id"], name: "index_tickets_allowed_users_on_user_id"
+  end
+
   create_table "tickets_translations", force: :cascade do |t|
     t.datetime "created_at", default: -> { "now()" }, null: false
     t.text "description"
@@ -951,6 +959,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_13_100000) do
   add_foreign_key "solid_queue_recurring_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "ticket_meal_slots", "tickets"
+  add_foreign_key "tickets_allowed_users", "tickets"
+  add_foreign_key "tickets_allowed_users", "users"
   add_foreign_key "tickets_translations", "languages", column: "languages_code", primary_key: "code", on_update: :cascade, on_delete: :restrict
   add_foreign_key "tickets_translations", "tickets", column: "tickets_id", on_delete: :cascade
   add_foreign_key "user_identities", "users", on_delete: :cascade
