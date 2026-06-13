@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_13_110000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_13_111000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -959,8 +959,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_13_110000) do
   add_foreign_key "solid_queue_recurring_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "ticket_meal_slots", "tickets"
-  add_foreign_key "tickets_allowed_users", "tickets"
-  add_foreign_key "tickets_allowed_users", "users"
+  add_foreign_key "tickets_allowed_users", "tickets", on_delete: :cascade
+  add_foreign_key "tickets_allowed_users", "users", on_delete: :cascade
   add_foreign_key "tickets_translations", "languages", column: "languages_code", primary_key: "code", on_update: :cascade, on_delete: :restrict
   add_foreign_key "tickets_translations", "tickets", column: "tickets_id", on_delete: :cascade
   add_foreign_key "user_identities", "users", on_delete: :cascade
