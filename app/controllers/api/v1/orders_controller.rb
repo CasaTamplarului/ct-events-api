@@ -50,9 +50,10 @@ module Api
             end
 
             ticket = if item[:ticket_id].present?
-                       event.tickets.find_by(id: item[:ticket_id])
+                       event.tickets.includes(:ticket_allowed_users).find_by(id: item[:ticket_id])
                      else
                        event.tickets
+                            .includes(:ticket_allowed_users)
                             .joins(:tickets_translations)
                             .where(tickets_translations: { name: item[:ticket_name],
                                                            languages_code: params[:languages_code] })
@@ -64,9 +65,17 @@ module Api
               break
             end
 
-            if ticket.for_leaders && !%w[leader admin volunteer].include?(@current_user&.role)
-              render json: { error: t('orders.errors.leader_ticket_required') }, status: :forbidden
-              break
+            if ticket.for_leaders
+              unless %w[leader admin volunteer].include?(@current_user&.role)
+                render json: { error: t('orders.errors.leader_ticket_required') }, status: :forbidden
+                break
+              end
+
+              if ticket.ticket_allowed_users.any? &&
+                 ticket.ticket_allowed_users.none? { |tau| tau.user_id == @current_user.id }
+                render json: { error: t('orders.errors.not_allowed_for_ticket') }, status: :forbidden
+                break
+              end
             end
 
             attrs     = attendee_attrs(item[:attendee])

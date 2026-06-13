@@ -245,6 +245,62 @@ RSpec.describe 'POST /api/v1/:lang/orders' do
     end
   end
 
+  context 'for_leaders ticket with allowed_users list' do
+    let(:leader_user) { create(:user, role: 'leader') }
+    let(:other_leader) { create(:user, role: 'leader') }
+    let(:leader_ticket) { create(:ticket, event: event, for_leaders: true) }
+    let!(:leader_ticket_translation) do
+      create(:tickets_translation, tickets_id: leader_ticket.id, languages_code: language_code, name: 'Leader')
+    end
+
+    def leader_item(user_id: leader_user.id)
+      {
+        event_slug: event.slug,
+        ticket_id: leader_ticket.id,
+        attendee: {
+          first_name: 'Ion',
+          last_name: 'Popescu',
+          email_address: "leader#{user_id}@example.com",
+          phone_number: '0722000000'
+        }
+      }
+    end
+
+    def post_order_as(user, item)
+      post "/api/v1/#{language_code}/orders",
+           params: { items: [item] }.to_json,
+           headers: {
+             'Content-Type' => 'application/json',
+             'Authorization' => "Bearer #{JwtService.encode(user.id)}"
+           }
+    end
+
+    context 'when no allowed_users are assigned' do
+      it 'allows any non-attendee role to create an order' do
+        post_order_as(leader_user, leader_item)
+
+        expect(response).to have_http_status(:created)
+      end
+    end
+
+    context 'when allowed_users list is non-empty' do
+      before { create(:ticket_allowed_user, ticket: leader_ticket, user: leader_user) }
+
+      it 'allows the user who is in the list to create an order' do
+        post_order_as(leader_user, leader_item)
+
+        expect(response).to have_http_status(:created)
+      end
+
+      it 'returns 403 for a user who is not in the list' do
+        post_order_as(other_leader, leader_item(user_id: other_leader.id))
+
+        expect(response).to have_http_status(:forbidden)
+        expect(json['error']).to eq(I18n.t('orders.errors.not_allowed_for_ticket', locale: :ro))
+      end
+    end
+  end
+
   describe 'boolean field responses' do
     let!(:boolean_field) { create(:event_boolean_field, event: event, required: false) }
     let!(:boolean_field_translation) do
