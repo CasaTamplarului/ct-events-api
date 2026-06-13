@@ -4,7 +4,7 @@ class AddAllowOverMaxAgeToEvents < ActiveRecord::Migration[8.1]
   def up
     add_column :events, :allow_over_max_age, :boolean, default: false, null: false
 
-    conn = ActiveRecord::Base.connection
+    ActiveRecord::Base.connection
     execute("DELETE FROM directus_fields WHERE collection = 'events' AND field = 'allow_over_max_age'")
     execute(<<~SQL)
       INSERT INTO directus_fields (collection, field, interface, hidden, readonly, special, options, width)

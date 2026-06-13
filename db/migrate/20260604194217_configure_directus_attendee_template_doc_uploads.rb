@@ -27,8 +27,8 @@ class ConfigureDirectusAttendeeTemplateDocUploads < ActiveRecord::Migration[8.1]
       { field: 'attendee_id',           hidden: true,  interface: nil,                    readonly: false, options: nil },
       { field: 'created_at',            hidden: true,  interface: nil,                    readonly: false, options: nil },
       { field: 'updated_at',            hidden: true,  interface: nil,                    readonly: false, options: nil },
-      { field: 'event_template_doc_id', hidden: false, interface: 'select-dropdown-m2o', readonly: true,  options: '{"template":"{{translations.label}}"}' },
-      { field: 'directus_files_id',     hidden: false, interface: 'file',                 readonly: true,  options: nil }
+      { field: 'event_template_doc_id', hidden: false, interface: 'select-dropdown-m2o', readonly: true, options: '{"template":"{{translations.label}}"}' },
+      { field: 'directus_files_id',     hidden: false, interface: 'file', readonly: true, options: nil }
     ]
 
     fields.each do |f|

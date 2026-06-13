@@ -6,7 +6,7 @@ class AddPrivateAndAccessTokenToEvents < ActiveRecord::Migration[8.1]
     # gen_random_uuid() auto-assigns a UUID to every existing and future event row
     add_column :events, :access_token, :uuid, default: -> { 'gen_random_uuid()' }, null: false
 
-    conn = ActiveRecord::Base.connection
+    ActiveRecord::Base.connection
 
     execute("DELETE FROM directus_fields WHERE collection = 'events' AND field IN ('is_private','access_token')")
 

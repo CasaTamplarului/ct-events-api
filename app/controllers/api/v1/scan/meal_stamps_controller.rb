@@ -41,18 +41,18 @@ module Api
 
           render json: {
             stamp: {
-              id:         stamp.id,
+              id: stamp.id,
               stamped_at: stamp.created_at,
               stamped_by: "#{current_user.first_name} #{current_user.last_name}".strip
             },
             already_stamped: total > 1,
-            total_stamps:    total,
+            total_stamps: total,
             attendee: {
-              id:                 attendee.id,
-              first_name:         attendee.first_name,
-              last_name:          attendee.last_name,
+              id: attendee.id,
+              first_name: attendee.first_name,
+              last_name: attendee.last_name,
               dietary_preference: attendee.dietary_preference,
-              allergies:          attendee.allergies
+              allergies: attendee.allergies
             }
           }
         end

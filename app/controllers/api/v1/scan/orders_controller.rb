@@ -54,9 +54,7 @@ module Api
 
               if entry.key?(:checked_in)
                 if ActiveModel::Type::Boolean.new.cast(entry[:checked_in])
-                  if date_restricted?(attendee.ticket)
-                    return { error: I18n.t('scan.errors.invalid_checkin_date') }
-                  end
+                  return { error: I18n.t('scan.errors.invalid_checkin_date') } if date_restricted?(attendee.ticket)
 
                   attrs.merge!(checked_in: true, checked_in_at: Time.current,
                                checked_in_by_user_id: current_user.id)
@@ -81,7 +79,7 @@ module Api
 
             today = Time.current.in_time_zone('Europe/Bucharest').to_date
             (ticket.valid_from && today < ticket.valid_from) ||
-              (ticket.valid_to  && today > ticket.valid_to)
+              (ticket.valid_to && today > ticket.valid_to)
           end
       end
     end

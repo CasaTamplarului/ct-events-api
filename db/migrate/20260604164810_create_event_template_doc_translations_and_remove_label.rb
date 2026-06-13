@@ -10,10 +10,10 @@ class CreateEventTemplateDocTranslationsAndRemoveLabel < ActiveRecord::Migration
       t.timestamps default: -> { 'CURRENT_TIMESTAMP' }
     end
 
-    add_index :event_template_doc_translations, [:event_template_doc_id, :languages_code], unique: true,
-              name: 'index_event_template_doc_translations_unique'
+    add_index :event_template_doc_translations, %i[event_template_doc_id languages_code], unique: true,
+                                                                                          name: 'index_event_template_doc_translations_unique'
     add_foreign_key :event_template_doc_translations, :languages, column: :languages_code,
-                    primary_key: :code
+                                                                  primary_key: :code
 
     remove_column :event_template_docs, :label, :string
   end

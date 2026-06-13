@@ -14,12 +14,12 @@ class SendPushNotificationsJob < ApplicationJob
     users.each do |user|
       t = push_notification.translation_for(user.language)
       FcmService.send_to_user(
-        user:       user,
-        title:      t['title'],
-        body:       t['body'],
-        image:      push_notification.image_url,
-        link:       link,
-        actions:    t['actions'] || [],
+        user: user,
+        title: t['title'],
+        body: t['body'],
+        image: push_notification.image_url,
+        link: link,
+        actions: t['actions'] || [],
         preference: preference
       )
     end

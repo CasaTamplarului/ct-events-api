@@ -35,7 +35,7 @@ RSpec.describe 'Bracelets scan API' do
     end
 
     it 'returns 404 for unknown event' do
-      post_generate(event_id: 999999)
+      post_generate(event_id: 999_999)
       expect(response).to have_http_status(:not_found)
     end
 
@@ -99,7 +99,7 @@ RSpec.describe 'Bracelets scan API' do
     end
 
     it 'returns 404 for unknown attendee' do
-      post_assign(attendee_id: 999999)
+      post_assign(attendee_id: 999_999)
       expect(response).to have_http_status(:not_found)
     end
 

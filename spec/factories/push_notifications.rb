@@ -9,8 +9,8 @@ FactoryBot.define do
         'en' => { 'title' => 'Hello!', 'body' => 'Good day' }
       }
     end
-    link            { nil }
+    link { nil }
     directus_file_id { nil }
-    sent_to         { 0 }
+    sent_to { 0 }
   end
 end

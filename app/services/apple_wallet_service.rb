@@ -12,18 +12,24 @@ class AppleWalletService
   BACKGROUND_COLOR = 'rgb(20, 20, 20)'
   FOREGROUND_COLOR = 'rgb(255, 255, 255)'
   LABEL_COLOR      = 'rgb(180, 180, 180)'
-  WWDR_CERT_PATH   = Rails.root.join('config', 'apple_wwdr.pem')
-  ASSETS_PATH      = Rails.root.join('public', 'apple_wallet')
+  WWDR_CERT_PATH   = Rails.root.join('config/apple_wwdr.pem')
+  ASSETS_PATH      = Rails.public_path.join('apple_wallet')
   IMAGE_NAMES      = %w[icon.png icon@2x.png icon@3x.png logo.png logo@2x.png logo@3x.png].freeze
   WWDR_CERT        = OpenSSL::X509::Certificate.new(File.read(WWDR_CERT_PATH)).freeze
 
   def initialize(attendee:, language:)
     @attendee     = attendee
     @language     = language
-    @pass_type_id = ENV.fetch('APPLE_WALLET_PASS_TYPE_ID') { raise ArgumentError, 'APPLE_WALLET_PASS_TYPE_ID is not set' }
-    @team_id      = ENV.fetch('APPLE_WALLET_TEAM_ID')      { raise ArgumentError, 'APPLE_WALLET_TEAM_ID is not set' }
-    cert_pem      = Base64.strict_decode64(ENV.fetch('APPLE_WALLET_CERTIFICATE') { raise ArgumentError, 'APPLE_WALLET_CERTIFICATE is not set' })
-    key_pem       = Base64.strict_decode64(ENV.fetch('APPLE_WALLET_PRIVATE_KEY')  { raise ArgumentError, 'APPLE_WALLET_PRIVATE_KEY is not set' })
+    @pass_type_id = ENV.fetch('APPLE_WALLET_PASS_TYPE_ID') do
+      raise ArgumentError, 'APPLE_WALLET_PASS_TYPE_ID is not set'
+    end
+    @team_id      = ENV.fetch('APPLE_WALLET_TEAM_ID') { raise ArgumentError, 'APPLE_WALLET_TEAM_ID is not set' }
+    cert_pem      = Base64.strict_decode64(ENV.fetch('APPLE_WALLET_CERTIFICATE') do
+      raise ArgumentError, 'APPLE_WALLET_CERTIFICATE is not set'
+    end)
+    key_pem = Base64.strict_decode64(ENV.fetch('APPLE_WALLET_PRIVATE_KEY') do
+      raise ArgumentError, 'APPLE_WALLET_PRIVATE_KEY is not set'
+    end)
     @certificate  = OpenSSL::X509::Certificate.new(cert_pem)
     @private_key  = OpenSSL::PKey::RSA.new(key_pem)
     @wwdr_cert    = WWDR_CERT
@@ -80,15 +86,15 @@ class AppleWalletService
 
     def build_pass_json
       {
-        formatVersion:      1,
+        formatVersion: 1,
         passTypeIdentifier: @pass_type_id,
-        serialNumber:       @attendee.qr_code,
-        teamIdentifier:     @team_id,
-        organizationName:   'Casa Tâmplarului',
-        description:        event_name,
-        backgroundColor:    BACKGROUND_COLOR,
-        foregroundColor:    FOREGROUND_COLOR,
-        labelColor:         LABEL_COLOR,
+        serialNumber: @attendee.qr_code,
+        teamIdentifier: @team_id,
+        organizationName: 'Casa Tâmplarului',
+        description: event_name,
+        backgroundColor: BACKGROUND_COLOR,
+        foregroundColor: FOREGROUND_COLOR,
+        labelColor: LABEL_COLOR,
         eventTicket: {
           primaryFields: [
             { key: 'event', label: 'EVENIMENT', value: event_name }

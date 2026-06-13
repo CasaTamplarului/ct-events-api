@@ -11,7 +11,7 @@ class FixDirectusBooleanFieldsCollectionVisibility < ActiveRecord::Migration[8.1
 
     # Hide sub-collections and set icons
     [
-      { collection: 'event_boolean_fields',             icon: 'toggle_on',   display_template: '{{translations.label}}', sort_field: 'sort' },
+      { collection: 'event_boolean_fields',             icon: 'toggle_on', display_template: '{{translations.label}}', sort_field: 'sort' },
       { collection: 'event_boolean_field_translations', icon: 'translate',    display_template: nil, sort_field: nil },
       { collection: 'attendee_boolean_field_responses', icon: 'how_to_vote',  display_template: nil, sort_field: nil }
     ].each do |c|

@@ -14,6 +14,6 @@ class CreateEventSpeakers < ActiveRecord::Migration[8.1]
 
     add_index :event_speakers, %i[event_id sort]
     add_foreign_key :event_speakers, :directus_files, column: :image,
-                    name: :event_speakers_image_foreign, on_delete: :nullify
+                                                      name: :event_speakers_image_foreign, on_delete: :nullify
   end
 end

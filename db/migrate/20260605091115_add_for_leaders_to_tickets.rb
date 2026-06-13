@@ -4,7 +4,7 @@ class AddForLeadersToTickets < ActiveRecord::Migration[8.1]
   def up
     add_column :tickets, :for_leaders, :boolean, default: false, null: false
 
-    conn = ActiveRecord::Base.connection
+    ActiveRecord::Base.connection
     execute("DELETE FROM directus_fields WHERE collection = 'tickets' AND field = 'for_leaders'")
     execute(<<~SQL)
       INSERT INTO directus_fields (collection, field, interface, hidden, readonly, special, options, width)

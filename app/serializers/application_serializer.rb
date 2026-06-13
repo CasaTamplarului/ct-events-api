@@ -13,8 +13,8 @@ class ApplicationSerializer
     return nil if uuid.blank?
 
     result = ActiveRecord::Base.connection.execute(
-      ActiveRecord::Base.sanitize_sql(["SELECT type FROM directus_files WHERE id = ?", uuid])
+      ActiveRecord::Base.sanitize_sql(['SELECT type FROM directus_files WHERE id = ?', uuid])
     ).first
-    result&.fetch("type", nil)
+    result&.fetch('type', nil)
   end
 end

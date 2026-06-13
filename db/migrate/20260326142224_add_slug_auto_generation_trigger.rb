@@ -72,9 +72,9 @@ class AddSlugAutoGenerationTrigger < ActiveRecord::Migration[8.1]
   end
 
   def down
-    execute "DROP TRIGGER IF EXISTS set_events_translations_slug ON events_translations;"
-    execute "DROP FUNCTION IF EXISTS trg_events_translations_slug();"
-    execute "DROP FUNCTION IF EXISTS unique_slug_for_event_translation(text, bigint);"
-    execute "DROP FUNCTION IF EXISTS slugify(text);"
+    execute 'DROP TRIGGER IF EXISTS set_events_translations_slug ON events_translations;'
+    execute 'DROP FUNCTION IF EXISTS trg_events_translations_slug();'
+    execute 'DROP FUNCTION IF EXISTS unique_slug_for_event_translation(text, bigint);'
+    execute 'DROP FUNCTION IF EXISTS slugify(text);'
   end
 end

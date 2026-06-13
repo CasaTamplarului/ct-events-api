@@ -95,7 +95,7 @@ module Api
             attrs = params.permit(*ATTENDEE_UPDATE_SCALAR_FIELDS, allergies: []).to_h.symbolize_keys
             unless attendee.update(attrs)
               return render json: { error: attendee.errors.full_messages.first },
-                            status: :unprocessable_entity
+                            status: :unprocessable_content
             end
 
             update_boolean_responses(attendee) if params[:boolean_field_responses].present?
@@ -202,7 +202,7 @@ module Api
 
             def attendees_for_response(order)
               scope = order.attendees.includes(
-                { ticket: [:tickets_translations, :ticket_meal_slots] },
+                { ticket: %i[tickets_translations ticket_meal_slots] },
                 { event: :events_translations },
                 attendee_boolean_field_responses: { event_boolean_field: :event_boolean_field_translations }
               )
@@ -251,7 +251,7 @@ module Api
               attendees_by_order = {}
 
               attendee_includes = [
-                { ticket: [:tickets_translations, :ticket_meal_slots] },
+                { ticket: %i[tickets_translations ticket_meal_slots] },
                 { event: [:events_translations, { event_template_docs: :event_template_doc_translations }] },
                 { attendee_boolean_field_responses: { event_boolean_field: :event_boolean_field_translations } }
               ]
@@ -344,16 +344,16 @@ module Api
                 ticket_description: translation&.description,
                 ticket_price: attendee.ticket&.price,
                 valid_from: attendee.ticket&.valid_from,
-                valid_to:   attendee.ticket&.valid_to,
+                valid_to: attendee.ticket&.valid_to,
                 food_included: attendee.ticket&.food_included,
                 dietary_preference: attendee.dietary_preference,
                 allergies: attendee.allergies,
                 age: attendee.age,
                 meal_slots: (attendee.ticket&.ticket_meal_slots || [])
-                              .sort_by { |s| [s.occurs_on, s.sort || 0] }
-                              .map { |s| { meal_type: s.meal_type, occurs_on: s.occurs_on } },
+                            .sort_by { |s| [s.occurs_on, s.sort || 0] }
+                            .map { |s| { meal_type: s.meal_type, occurs_on: s.occurs_on } },
                 boolean_field_responses: attendee.attendee_boolean_field_responses
-                                                 .map { |r| serialise_boolean_response(r, lang) }
+                                         .map { |r| serialise_boolean_response(r, lang) }
               }
             end
 

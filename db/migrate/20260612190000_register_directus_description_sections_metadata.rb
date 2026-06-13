@@ -34,17 +34,17 @@ class RegisterDirectusDescriptionSectionsMetadata < ActiveRecord::Migration[8.1]
 
     [
       # O2M repeater on events
-      { collection: 'events',                                  field: 'description_sections', interface: 'list-o2m',            hidden: false, options: '{"enableCreate":true,"enableSelect":false}',                                    special: 'o2m'          },
+      { collection: 'events', field: 'description_sections', interface: 'list-o2m', hidden: false, options: '{"enableCreate":true,"enableSelect":false}', special: 'o2m' },
       # event_description_sections fields
-      { collection: 'event_description_sections',             field: 'sort',                 interface: 'input',               hidden: false, options: nil,                                                                               special: nil            },
+      { collection: 'event_description_sections',             field: 'sort',                 interface: 'input',               hidden: false, options: nil, special: nil },
       { collection: 'event_description_sections',             field: 'translations',         interface: 'translations',        hidden: false, options: '{"defaultLanguage":"ro-RO","defaultOpenSplitView":true,"languageField":"name"}', special: 'translations' },
       # event_description_section_translations fields
-      { collection: 'event_description_section_translations', field: 'languages_code',       interface: 'select-dropdown-m2o', hidden: false, options: '{"template":"{{name}}"}',                                                       special: nil            },
+      { collection: 'event_description_section_translations', field: 'languages_code',       interface: 'select-dropdown-m2o', hidden: false, options: '{"template":"{{name}}"}', special: nil },
       { collection: 'event_description_section_translations', field: 'label',                interface: 'input',               hidden: false, options: nil,                                                                               special: nil            },
       { collection: 'event_description_section_translations', field: 'content',              interface: 'input-rich-text-html', hidden: false, options: nil,                                                                              special: nil            }
     ].each do |f|
       opts = f[:options] ? conn.quote(f[:options]) : 'NULL'
-      spec = f[:special]  ? conn.quote(f[:special])  : 'NULL'
+      spec = f[:special] ? conn.quote(f[:special]) : 'NULL'
       execute(<<~SQL)
         INSERT INTO directus_fields (collection, field, interface, hidden, options, special, width)
         VALUES (#{conn.quote(f[:collection])}, #{conn.quote(f[:field])}, #{conn.quote(f[:interface])}, #{f[:hidden]}, #{opts}::json, #{spec}, 'full')
@@ -54,7 +54,7 @@ class RegisterDirectusDescriptionSectionsMetadata < ActiveRecord::Migration[8.1]
     # ── directus_relations ────────────────────────────────────────────────────
     [
       # event_description_sections.event_id → events (surfaces as description_sections O2M on events)
-      { many_collection: 'event_description_sections',             many_field: 'event_id',                       one_collection: 'events',                       one_field: 'description_sections', junction_field: nil,                               one_deselect_action: 'delete'  },
+      { many_collection: 'event_description_sections',             many_field: 'event_id', one_collection: 'events', one_field: 'description_sections', junction_field: nil, one_deselect_action: 'delete' },
       # event_description_section_translations.event_description_section_id → event_description_sections (translations)
       { many_collection: 'event_description_section_translations', many_field: 'event_description_section_id',  one_collection: 'event_description_sections',   one_field: 'translations',          junction_field: 'languages_code',                  one_deselect_action: 'nullify' },
       # event_description_section_translations.languages_code → languages

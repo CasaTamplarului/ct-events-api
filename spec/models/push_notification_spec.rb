@@ -18,19 +18,19 @@ RSpec.describe PushNotification, type: :model do
 
     it 'is invalid without a ro translation' do
       pn = build(:push_notification, created_by: admin,
-                 translations: { 'en' => { 'title' => 'Hi', 'body' => 'There' } })
+                                     translations: { 'en' => { 'title' => 'Hi', 'body' => 'There' } })
       expect(pn).not_to be_valid
     end
 
     it 'is invalid when ro translation is missing title' do
       pn = build(:push_notification, created_by: admin,
-                 translations: { 'ro' => { 'body' => 'Buna' } })
+                                     translations: { 'ro' => { 'body' => 'Buna' } })
       expect(pn).not_to be_valid
     end
 
     it 'is invalid when ro translation is missing body' do
       pn = build(:push_notification, created_by: admin,
-                 translations: { 'ro' => { 'title' => 'Salut' } })
+                                     translations: { 'ro' => { 'title' => 'Salut' } })
       expect(pn).not_to be_valid
     end
   end
@@ -38,9 +38,9 @@ RSpec.describe PushNotification, type: :model do
   describe '#translation_for' do
     let(:pn) do
       build(:push_notification, created_by: admin, translations: {
-        'ro' => { 'title' => 'Salut', 'body' => 'Buna ziua' },
-        'en' => { 'title' => 'Hello', 'body' => 'Good day' }
-      })
+              'ro' => { 'title' => 'Salut', 'body' => 'Buna ziua' },
+              'en' => { 'title' => 'Hello', 'body' => 'Good day' }
+            })
     end
 
     it 'returns the matching language translation' do
@@ -64,7 +64,7 @@ RSpec.describe PushNotification, type: :model do
 
     it 'returns directus asset URL when file id present' do
       pn = build(:push_notification, created_by: admin,
-                 directus_file_id: '187aa1d8-8823-4ed6-8f2d-33629e800dcc')
+                                     directus_file_id: '187aa1d8-8823-4ed6-8f2d-33629e800dcc')
       expect(pn.image_url).to eq(
         "#{ENV.fetch('DIRECTUS_URL', 'https://adminctevents.chiciudean.family')}/assets/187aa1d8-8823-4ed6-8f2d-33629e800dcc"
       )

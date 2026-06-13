@@ -11,7 +11,7 @@ class RegisterDirectusBooleanFieldsMetadata < ActiveRecord::Migration[8.1]
 
     # ── directus_collections — hide sub-tables, expose through events form ──
     collections = [
-      { collection: 'event_boolean_fields',             hidden: true,  icon: 'toggle_on',   display_template: '{{translations.label}}' },
+      { collection: 'event_boolean_fields',             hidden: true,  icon: 'toggle_on', display_template: '{{translations.label}}' },
       { collection: 'event_boolean_field_translations', hidden: true,  icon: 'translate',    display_template: nil },
       { collection: 'attendee_boolean_field_responses', hidden: true,  icon: 'how_to_vote',  display_template: nil }
     ]
@@ -35,17 +35,17 @@ class RegisterDirectusBooleanFieldsMetadata < ActiveRecord::Migration[8.1]
       { collection: 'event_boolean_fields',           field: 'sort',            interface: 'input',              hidden: false, options: nil,                                                                                     special: nil },
       { collection: 'event_boolean_fields',           field: 'required',        interface: 'boolean',            hidden: false, options: nil,                                                                                     special: nil },
       { collection: 'event_boolean_fields',           field: 'display_as',      interface: 'select-dropdown',    hidden: false, options: '{"choices":[{"text":"Toggle","value":"toggle"},{"text":"Checkbox","value":"checkbox"}]}', special: nil },
-      { collection: 'event_boolean_fields',           field: 'translations',    interface: 'translations',       hidden: false, options: '{"defaultLanguage":"ro-RO","defaultOpenSplitView":true,"languageField":"name"}',         special: 'translations' },
+      { collection: 'event_boolean_fields',           field: 'translations',    interface: 'translations',       hidden: false, options: '{"defaultLanguage":"ro-RO","defaultOpenSplitView":true,"languageField":"name"}', special: 'translations' },
       # event_boolean_field_translations
       { collection: 'event_boolean_field_translations', field: 'label',          interface: 'input',               hidden: false, options: nil,                       special: nil },
       { collection: 'event_boolean_field_translations', field: 'true_label',     interface: 'input',               hidden: false, options: nil,                       special: nil },
       { collection: 'event_boolean_field_translations', field: 'false_label',    interface: 'input',               hidden: false, options: nil,                       special: nil },
-      { collection: 'event_boolean_field_translations', field: 'languages_code', interface: 'select-dropdown-m2o', hidden: false, options: '{"template":"{{name}}"}',  special: nil }
+      { collection: 'event_boolean_field_translations', field: 'languages_code', interface: 'select-dropdown-m2o', hidden: false, options: '{"template":"{{name}}"}', special: nil }
     ]
 
     fields.each do |f|
       opts = f[:options] ? conn.quote(f[:options]) : 'NULL'
-      spec = f[:special]  ? conn.quote(f[:special])  : 'NULL'
+      spec = f[:special] ? conn.quote(f[:special]) : 'NULL'
       execute(<<~SQL)
         INSERT INTO directus_fields (collection, field, interface, hidden, options, special, width)
         VALUES (#{conn.quote(f[:collection])}, #{conn.quote(f[:field])}, #{conn.quote(f[:interface])}, #{f[:hidden]}, #{opts}::json, #{spec}, 'full')
@@ -56,7 +56,7 @@ class RegisterDirectusBooleanFieldsMetadata < ActiveRecord::Migration[8.1]
     # ── directus_relations ───────────────────────────────────────────────────
     relations = [
       # event_boolean_fields.event_id → events  (M2O; surfaces as boolean_fields repeater on events)
-      { many_collection: 'event_boolean_fields',             many_field: 'event_id',               one_collection: 'events',               one_field: 'boolean_fields', junction_field: nil,                     one_deselect_action: 'delete'  },
+      { many_collection: 'event_boolean_fields',             many_field: 'event_id',               one_collection: 'events',               one_field: 'boolean_fields', junction_field: nil, one_deselect_action: 'delete' },
       # event_boolean_field_translations.event_boolean_field_id → event_boolean_fields  (translations)
       { many_collection: 'event_boolean_field_translations', many_field: 'event_boolean_field_id', one_collection: 'event_boolean_fields', one_field: 'translations',   junction_field: 'languages_code',         one_deselect_action: 'nullify' },
       # event_boolean_field_translations.languages_code → languages

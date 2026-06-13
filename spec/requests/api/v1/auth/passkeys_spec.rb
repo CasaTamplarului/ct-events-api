@@ -72,7 +72,7 @@ RSpec.describe 'Passkeys API' do
   describe 'POST /api/v1/auth/passkeys/register/options' do
     before { allow(WebAuthn::Credential).to receive(:options_for_create).and_return(fake_reg_options) }
 
-    it 'returns 200 with WebAuthn options and a challenge_token' do # rubocop:disable RSpec/ExampleLength
+    it 'returns 200 with WebAuthn options and a challenge_token' do
       post '/api/v1/auth/passkeys/register/options',
            params: {}.to_json, headers: auth_headers
       expect(response).to have_http_status(:ok)
@@ -128,7 +128,7 @@ RSpec.describe 'Passkeys API' do
       expect(json['error']).to eq('Invalid or expired challenge')
     end
 
-    it 'returns 401 for a challenge_token with the wrong purpose' do # rubocop:disable RSpec/ExampleLength
+    it 'returns 401 for a challenge_token with the wrong purpose' do
       wrong_token = PasskeyChallengeService.encode(
         challenge: 'reg-challenge-b64url',
         purpose: PasskeyChallengeService::PURPOSE_AUTHENTICATE
@@ -137,7 +137,7 @@ RSpec.describe 'Passkeys API' do
       expect(response).to have_http_status(:unauthorized)
     end
 
-    it 'returns 401 for a challenge_token belonging to a different user' do # rubocop:disable RSpec/ExampleLength
+    it 'returns 401 for a challenge_token belonging to a different user' do
       other_user = create(:user)
       wrong_token = PasskeyChallengeService.encode(
         challenge: 'reg-challenge-b64url',
@@ -175,7 +175,7 @@ RSpec.describe 'Passkeys API' do
   describe 'POST /api/v1/auth/passkeys/authenticate/options' do
     before { allow(WebAuthn::Credential).to receive(:options_for_get).and_return(fake_auth_options) }
 
-    it 'returns 200 with WebAuthn options and a challenge_token (no auth required)' do # rubocop:disable RSpec/ExampleLength
+    it 'returns 200 with WebAuthn options and a challenge_token (no auth required)' do
       post '/api/v1/auth/passkeys/authenticate/options',
            params: {}.to_json, headers: json_headers
       expect(response).to have_http_status(:ok)

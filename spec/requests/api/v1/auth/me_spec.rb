@@ -63,22 +63,22 @@ RSpec.describe 'Auth::Me endpoints' do
         get_me(headers: { 'Authorization' => "Bearer #{token}" })
 
         expect(json['email_preferences']).to eq({
-          'marketing_emails'        => false,
-          'payment_reminder_emails' => false,
-          'event_reminder_emails'   => false,
-          'event_update_emails'     => false
-        })
+                                                  'marketing_emails' => false,
+                                                  'payment_reminder_emails' => false,
+                                                  'event_reminder_emails' => false,
+                                                  'event_update_emails' => false
+                                                })
       end
 
       it 'includes push_preferences with all four fields defaulting to true' do
         get_me(headers: { 'Authorization' => "Bearer #{token}" })
 
         expect(json['push_preferences']).to eq({
-          'marketing_push'        => true,
-          'payment_reminder_push' => true,
-          'event_reminder_push'   => true,
-          'event_update_push'     => true
-        })
+                                                 'marketing_push' => true,
+                                                 'payment_reminder_push' => true,
+                                                 'event_reminder_push' => true,
+                                                 'event_update_push' => true
+                                               })
       end
 
       it 'includes push_subscriptions as empty array when none registered' do
@@ -93,10 +93,7 @@ RSpec.describe 'Auth::Me endpoints' do
 
         get_me(headers: { 'Authorization' => "Bearer #{token}" })
 
-        expect(json['push_subscriptions']).to match_array([
-          { 'id' => sub1.id, 'platform' => 'android', 'device_name' => 'My Phone' },
-          { 'id' => sub2.id, 'platform' => 'web',     'device_name' => nil }
-        ])
+        expect(json['push_subscriptions']).to contain_exactly({ 'id' => sub1.id, 'platform' => 'android', 'device_name' => 'My Phone' }, { 'id' => sub2.id, 'platform' => 'web', 'device_name' => nil })
         expect(json['push_subscriptions'].map(&:keys).flatten).not_to include('token')
       end
 
@@ -108,10 +105,11 @@ RSpec.describe 'Auth::Me endpoints' do
       it 'includes permissions hash in response' do
         get_me(headers: { 'Authorization' => "Bearer #{token}" })
         expect(json['permissions']).to eq({
-          'can_check_in_attendees'      => false,
-          'can_scan_food_stamp'         => false,
-          'can_send_push_notifications' => false
-        })
+                                            'can_check_in_attendees' => false,
+                                            'can_scan_food_stamp' => false,
+                                            'can_send_push_notifications' => false,
+                                            'can_manage_bracelets' => false
+                                          })
       end
 
       it 'returns updated permissions for a volunteer' do
@@ -119,10 +117,11 @@ RSpec.describe 'Auth::Me endpoints' do
         get_me(headers: { 'Authorization' => "Bearer #{token}" })
         expect(json['role']).to eq('volunteer')
         expect(json['permissions']).to eq({
-          'can_check_in_attendees'      => true,
-          'can_scan_food_stamp'         => true,
-          'can_send_push_notifications' => false
-        })
+                                            'can_check_in_attendees' => true,
+                                            'can_scan_food_stamp' => true,
+                                            'can_send_push_notifications' => false,
+                                            'can_manage_bracelets' => false
+                                          })
       end
     end
 

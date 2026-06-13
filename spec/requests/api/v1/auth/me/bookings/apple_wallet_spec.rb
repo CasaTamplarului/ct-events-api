@@ -4,12 +4,19 @@ require 'rails_helper'
 
 RSpec.describe 'GET /api/v1/auth/me/bookings/:order_reference/wallet/apple' do
   let(:private_key) { OpenSSL::PKey::RSA.generate(2048) }
+  let(:user)       { create(:user) }
+  let(:token)      { JwtService.encode(user.id) }
+  let(:headers)    { auth_headers(token) }
+  let(:event)      { create(:event, start_date: 1.week.from_now) }
+  let(:order_user) { user }
+  let(:order)      { create(:order, user: order_user) }
+  let!(:attendee)  { create(:attendee, order: order, event: event, user: user, payment_status: :paid) }
   let(:certificate_pem) do
     cert = OpenSSL::X509::Certificate.new
     cert.subject = OpenSSL::X509::Name.parse('CN=test')
     cert.issuer = OpenSSL::X509::Name.parse('CN=test')
     cert.not_before = Time.now
-    cert.not_after = Time.now + 365 * 24 * 60 * 60
+    cert.not_after = Time.now + (365 * 24 * 60 * 60)
     cert.serial = 1
     cert.public_key = private_key.public_key
     cert.sign(private_key, OpenSSL::Digest.new('SHA256'))
@@ -38,14 +45,6 @@ RSpec.describe 'GET /api/v1/auth/me/bookings/:order_reference/wallet/apple' do
     ENV['APPLE_WALLET_CERTIFICATE']    = @orig_cert
     ENV['APPLE_WALLET_PRIVATE_KEY']    = @orig_key
   end
-
-  let(:user)       { create(:user) }
-  let(:token)      { JwtService.encode(user.id) }
-  let(:headers)    { auth_headers(token) }
-  let(:event)      { create(:event, start_date: 1.week.from_now) }
-  let(:order_user) { user }
-  let(:order)      { create(:order, user: order_user) }
-  let!(:attendee)  { create(:attendee, order: order, event: event, user: user, payment_status: :paid) }
 
   context 'when the user owns the order' do
     it 'returns 200 with application/vnd.apple.pkpass content type' do
@@ -93,12 +92,18 @@ end
 
 RSpec.describe 'GET /api/v1/auth/me/bookings/:order_reference/attendees/:id/wallet/apple' do
   let(:private_key) { OpenSSL::PKey::RSA.generate(2048) }
+  let(:user)      { create(:user) }
+  let(:token)     { JwtService.encode(user.id) }
+  let(:headers)   { auth_headers(token) }
+  let(:event)     { create(:event, start_date: 1.week.from_now) }
+  let(:order)     { create(:order) }
+  let!(:attendee) { create(:attendee, order: order, event: event, user: user, payment_status: :paid) }
   let(:certificate_pem) do
     cert = OpenSSL::X509::Certificate.new
     cert.subject = OpenSSL::X509::Name.parse('CN=test')
     cert.issuer = OpenSSL::X509::Name.parse('CN=test')
     cert.not_before = Time.now
-    cert.not_after = Time.now + 365 * 24 * 60 * 60
+    cert.not_after = Time.now + (365 * 24 * 60 * 60)
     cert.serial = 1
     cert.public_key = private_key.public_key
     cert.sign(private_key, OpenSSL::Digest.new('SHA256'))
@@ -127,13 +132,6 @@ RSpec.describe 'GET /api/v1/auth/me/bookings/:order_reference/attendees/:id/wall
     ENV['APPLE_WALLET_CERTIFICATE']    = @orig_cert
     ENV['APPLE_WALLET_PRIVATE_KEY']    = @orig_key
   end
-
-  let(:user)      { create(:user) }
-  let(:token)     { JwtService.encode(user.id) }
-  let(:headers)   { auth_headers(token) }
-  let(:event)     { create(:event, start_date: 1.week.from_now) }
-  let(:order)     { create(:order) }
-  let!(:attendee) { create(:attendee, order: order, event: event, user: user, payment_status: :paid) }
 
   def path
     "/api/v1/auth/me/bookings/#{order.order_reference}/attendees/#{attendee.id}/wallet/apple"

@@ -4,6 +4,8 @@ require 'rails_helper'
 require 'zip'
 
 RSpec.describe AppleWalletService do
+  subject(:service) { described_class.new(attendee: attendee, language: 'ro-RO') }
+
   let(:private_key) { OpenSSL::PKey::RSA.generate(2048) }
   let(:certificate) do
     cert = OpenSSL::X509::Certificate.new
@@ -13,7 +15,7 @@ RSpec.describe AppleWalletService do
     cert.public_key = private_key.public_key
     cert.not_before = Time.now
     cert.not_after  = Time.now + 3600
-    cert.sign(private_key, OpenSSL::Digest::SHA256.new)
+    cert.sign(private_key, OpenSSL::Digest.new('SHA256'))
     cert
   end
 
@@ -22,8 +24,6 @@ RSpec.describe AppleWalletService do
   let!(:translation) { create(:events_translation, event: event, languages_code: 'ro-RO', name: 'Gala de Vară') }
   let(:order)        { create(:order) }
   let(:attendee)     { create(:attendee, order: order, event: event, first_name: 'Ion', last_name: 'Popescu') }
-
-  subject(:service) { described_class.new(attendee: attendee, language: 'ro-RO') }
 
   around do |example|
     orig_pass_type = ENV['APPLE_WALLET_PASS_TYPE_ID']

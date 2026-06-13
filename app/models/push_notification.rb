@@ -25,6 +25,7 @@ class PushNotification < ApplicationRecord
     def ro_translation_present
       ro = translations&.dig('ro')
       errors.add(:translations, 'must include a Romanian (ro) translation') and return unless ro
+
       errors.add(:translations, 'ro translation must have a title') unless ro['title'].present?
       errors.add(:translations, 'ro translation must have a body')  unless ro['body'].present?
     end

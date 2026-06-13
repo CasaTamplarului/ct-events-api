@@ -14,6 +14,6 @@ class CreateEventTemplateDocs < ActiveRecord::Migration[8.1]
     add_foreign_key :event_template_docs, :directus_files,
                     column: :directus_files_id,
                     name: 'event_template_docs_directus_files_id_foreign'
-    add_index :event_template_docs, [:event_id, :sort]
+    add_index :event_template_docs, %i[event_id sort]
   end
 end

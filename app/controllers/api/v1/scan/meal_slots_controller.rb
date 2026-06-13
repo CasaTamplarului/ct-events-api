@@ -13,22 +13,20 @@ module Api
           event = Event.find_by(slug: params[:event_slug])
           return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless event
 
-          if params[:date].blank?
-            return render json: { error: 'date is required' }, status: :unprocessable_content
-          end
+          return render json: { error: 'date is required' }, status: :unprocessable_content if params[:date].blank?
 
           date = begin
-                   Date.parse(params[:date])
-                 rescue ArgumentError, TypeError
-                   nil
-                 end
+            Date.parse(params[:date])
+          rescue ArgumentError, TypeError
+            nil
+          end
           return render json: { error: 'invalid date' }, status: :unprocessable_content unless date
 
           slots = TicketMealSlot
-                    .joins(:ticket)
-                    .where(tickets: { event_id: event.id })
-                    .where(occurs_on: date)
-                    .order(:sort, :id)
+                  .joins(:ticket)
+                  .where(tickets: { event_id: event.id })
+                  .where(occurs_on: date)
+                  .order(:sort, :id)
 
           seen = {}
           deduplicated = slots.each_with_object([]) do |slot, arr|

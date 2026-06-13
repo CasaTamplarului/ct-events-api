@@ -115,7 +115,7 @@ RSpec.describe 'POST /api/v1/:lang/orders' do
 
   describe 'unknown ticket id' do
     it 'returns 400' do
-      post_order([valid_item.merge(ticket_id: 999999)])
+      post_order([valid_item.merge(ticket_id: 999_999)])
 
       expect(response).to have_http_status(:bad_request)
       expect(json['error']).to be_present
@@ -165,10 +165,10 @@ RSpec.describe 'POST /api/v1/:lang/orders' do
 
     let(:item_with_upload) do
       valid_item.deep_merge(attendee: {
-        template_doc_uploads: [
-          { event_template_doc_id: template_doc.id, directus_files_id: directus_file.id }
-        ]
-      })
+                              template_doc_uploads: [
+                                { event_template_doc_id: template_doc.id, directus_files_id: directus_file.id }
+                              ]
+                            })
     end
 
     it 'creates AttendeeTemplateDocUpload records' do
@@ -193,10 +193,10 @@ RSpec.describe 'POST /api/v1/:lang/orders' do
 
       it 'returns 400' do
         item = valid_item.deep_merge(attendee: {
-          template_doc_uploads: [
-            { event_template_doc_id: other_doc.id, directus_files_id: directus_file.id }
-          ]
-        })
+                                       template_doc_uploads: [
+                                         { event_template_doc_id: other_doc.id, directus_files_id: directus_file.id }
+                                       ]
+                                     })
         post_order([item])
 
         expect(response).to have_http_status(:bad_request)
@@ -315,10 +315,10 @@ RSpec.describe 'POST /api/v1/:lang/orders' do
 
     let(:item_with_response) do
       valid_item.deep_merge(attendee: {
-        boolean_field_responses: [
-          { event_boolean_field_id: boolean_field.id, value: true }
-        ]
-      })
+                              boolean_field_responses: [
+                                { event_boolean_field_id: boolean_field.id, value: true }
+                              ]
+                            })
     end
 
     it 'creates AttendeeBooleanFieldResponse records' do
@@ -332,8 +332,8 @@ RSpec.describe 'POST /api/v1/:lang/orders' do
 
     it 'accepts false as a valid response value' do
       item = valid_item.deep_merge(attendee: {
-        boolean_field_responses: [{ event_boolean_field_id: boolean_field.id, value: false }]
-      })
+                                     boolean_field_responses: [{ event_boolean_field_id: boolean_field.id, value: false }]
+                                   })
       post_order([item])
 
       expect(response).to have_http_status(:created)
@@ -349,12 +349,12 @@ RSpec.describe 'POST /api/v1/:lang/orders' do
 
     context 'when event_boolean_field_id belongs to a different event' do
       let!(:other_event) { create(:event, status: :live) }
-      let!(:other_field)  { create(:event_boolean_field, event: other_event) }
+      let!(:other_field) { create(:event_boolean_field, event: other_event) }
 
       it 'returns 400' do
         item = valid_item.deep_merge(attendee: {
-          boolean_field_responses: [{ event_boolean_field_id: other_field.id, value: true }]
-        })
+                                       boolean_field_responses: [{ event_boolean_field_id: other_field.id, value: true }]
+                                     })
         post_order([item])
 
         expect(response).to have_http_status(:bad_request)

@@ -119,7 +119,7 @@ RSpec.describe AppleAuthService do
     end
 
     context 'with a bad signature (signed with a different key)' do
-      it 'raises InvalidTokenError' do # rubocop:disable RSpec/ExampleLength
+      it 'raises InvalidTokenError' do
         other_key = OpenSSL::PKey::RSA.generate(2048)
         token = JWT.encode(
           { sub: 'x', aud: 'com.example.app', iss: AppleAuthService::ISSUER,
@@ -169,7 +169,7 @@ RSpec.describe AppleAuthService do
         expect(WebMock).to have_requested(:get, jwks_uri).once
       end
 
-      it 'refetches after TTL expires' do # rubocop:disable RSpec/ExampleLength
+      it 'refetches after TTL expires' do
         described_class.call(encode_token)
         described_class.instance_variable_set(
           :@jwks_fetched_at,
@@ -184,7 +184,7 @@ RSpec.describe AppleAuthService do
       let(:new_rsa_key) { OpenSSL::PKey::RSA.generate(2048) }
       let(:new_jwk)     { JWT::JWK.new(new_rsa_key.public_key) }
 
-      it 'refreshes JWKS and succeeds on retry' do # rubocop:disable RSpec/ExampleLength
+      it 'refreshes JWKS and succeeds on retry' do
         stub_request(:get, jwks_uri)
           .to_return(
             { status: 200, body: { keys: [jwk.export] }.to_json,
@@ -201,7 +201,7 @@ RSpec.describe AppleAuthService do
         expect(described_class.call(token)[:uid]).to eq('apple-uid-new')
       end
 
-      it 'raises InvalidTokenError when kid still not found after refresh' do # rubocop:disable RSpec/ExampleLength
+      it 'raises InvalidTokenError when kid still not found after refresh' do
         unknown_key = OpenSSL::PKey::RSA.generate(2048)
         token = JWT.encode(
           { sub: 'x', aud: 'com.example.app', iss: AppleAuthService::ISSUER,

@@ -9,7 +9,7 @@ RSpec.describe 'GET /api/v1/:lang/event/:slug' do
   let(:event) { create(:event, status: :live, slug: 'tabara-impact-2026') }
   let!(:event_translation) do
     create(:events_translation, event: event, languages_code: language_code,
-           name: 'Tabara Impact', tag_line: 'O tabara')
+                                name: 'Tabara Impact', tag_line: 'O tabara')
   end
 
   def get_event
@@ -22,7 +22,7 @@ RSpec.describe 'GET /api/v1/:lang/event/:slug' do
     end
     let!(:speaker_translation) do
       create(:event_speakers_translation, event_speaker: speaker, languages_code: language_code,
-             description: 'Un vorbitor remarcabil.', action_label: 'Detalii')
+                                          description: 'Un vorbitor remarcabil.', action_label: 'Detalii')
     end
 
     it 'returns speakers with translated fields' do
@@ -42,7 +42,7 @@ RSpec.describe 'GET /api/v1/:lang/event/:slug' do
     end
   end
 
-  context 'template_docs' do
+  context 'when event has template_docs' do
     before do
       Language.find_or_create_by!(code: 'ro-RO') { |l| l.name = 'Romanian' }
       Language.find_or_create_by!(code: 'en-US') { |l| l.name = 'English' }
@@ -51,9 +51,9 @@ RSpec.describe 'GET /api/v1/:lang/event/:slug' do
     def create_directus_file(uuid)
       ActiveRecord::Base.connection.execute(
         ActiveRecord::Base.sanitize_sql([
-          "INSERT INTO directus_files (id, filename_download, storage) VALUES (?, 'test.pdf', 'local') ON CONFLICT DO NOTHING",
-          uuid
-        ])
+                                          "INSERT INTO directus_files (id, filename_download, storage) VALUES (?, 'test.pdf', 'local') ON CONFLICT DO NOTHING",
+                                          uuid
+                                        ])
       )
     end
 
@@ -134,11 +134,11 @@ RSpec.describe 'GET /api/v1/:lang/event/:slug' do
 
       get_event
 
-      expect(json['template_docs'].map { |d| d['label'] }).to eq(['First', 'Second'])
+      expect(json['template_docs'].pluck('label')).to eq(%w[First Second])
     end
   end
 
-  context 'boolean_fields' do
+  context 'when event has boolean_fields' do
     before do
       Language.find_or_create_by!(code: 'ro-RO') { |l| l.name = 'Romanian' }
       Language.find_or_create_by!(code: 'en-US') { |l| l.name = 'English' }
@@ -152,9 +152,9 @@ RSpec.describe 'GET /api/v1/:lang/event/:slug' do
     it 'returns boolean fields with translated label, true_label, false_label' do
       field = EventBooleanField.create!(event: event, sort: 0, required: true, display_as: 'checkbox')
       EventBooleanFieldTranslation.create!(event_boolean_field: field, languages_code: 'ro-RO',
-                                            label: 'Ești de acord?',
-                                            true_label: 'Da, sunt de acord',
-                                            false_label: 'Nu sunt de acord')
+                                           label: 'Ești de acord?',
+                                           true_label: 'Da, sunt de acord',
+                                           false_label: 'Nu sunt de acord')
 
       get_event
 
@@ -170,10 +170,10 @@ RSpec.describe 'GET /api/v1/:lang/event/:slug' do
 
     it 'falls back to ro-RO labels when the requested language has no translation' do
       create(:events_translation, event: event, languages_code: 'en-US', name: 'Tabara Impact EN',
-             tag_line: 'A camp')
+                                  tag_line: 'A camp')
       field = EventBooleanField.create!(event: event, sort: 0, required: false, display_as: 'toggle')
       EventBooleanFieldTranslation.create!(event_boolean_field: field, languages_code: 'ro-RO',
-                                            label: 'Ești de acord?', true_label: 'Da', false_label: 'Nu')
+                                           label: 'Ești de acord?', true_label: 'Da', false_label: 'Nu')
 
       get "/api/v1/en-US/event/#{event.slug}"
 
@@ -184,13 +184,13 @@ RSpec.describe 'GET /api/v1/:lang/event/:slug' do
       field1 = EventBooleanField.create!(event: event, sort: 1, required: false, display_as: 'checkbox')
       field2 = EventBooleanField.create!(event: event, sort: 0, required: false, display_as: 'toggle')
       EventBooleanFieldTranslation.create!(event_boolean_field: field1, languages_code: 'ro-RO',
-                                            label: 'Second', true_label: 'Da', false_label: 'Nu')
+                                           label: 'Second', true_label: 'Da', false_label: 'Nu')
       EventBooleanFieldTranslation.create!(event_boolean_field: field2, languages_code: 'ro-RO',
-                                            label: 'First', true_label: 'Da', false_label: 'Nu')
+                                           label: 'First', true_label: 'Da', false_label: 'Nu')
 
       get_event
 
-      expect(json['boolean_fields'].map { |f| f['label'] }).to eq(%w[First Second])
+      expect(json['boolean_fields'].pluck('label')).to eq(%w[First Second])
     end
   end
 
@@ -203,7 +203,7 @@ RSpec.describe 'GET /api/v1/:lang/event/:slug' do
     end
   end
 
-  context 'attendee_fields with age validation' do
+  context 'when event has attendee_fields with age validation' do
     let(:event_with_age) do
       create(:event, status: :live, slug: 'tabara-tineri', min_age: 16, max_age: 35)
     end
@@ -233,7 +233,7 @@ RSpec.describe 'GET /api/v1/:lang/event/:slug' do
     end
   end
 
-  context 'hidden tickets' do
+  context 'when event has hidden tickets' do
     let!(:ticket) { create(:ticket, event: event, hidden: false) }
     let!(:hidden_ticket) { create(:ticket, event: event, hidden: true) }
 
@@ -250,7 +250,7 @@ RSpec.describe 'GET /api/v1/:lang/event/:slug' do
     it 'does not show hidden tickets to unauthenticated users' do
       get_event
 
-      ticket_names = json['tickets'].map { |t| t['name'] }
+      ticket_names = json['tickets'].pluck('name')
       expect(ticket_names).to include('Standard')
       expect(ticket_names).not_to include('Hidden Ticket')
     end
@@ -259,7 +259,7 @@ RSpec.describe 'GET /api/v1/:lang/event/:slug' do
       user = create(:user, role: 'attendee')
       get_event_with_token(user)
 
-      ticket_names = json['tickets'].map { |t| t['name'] }
+      ticket_names = json['tickets'].pluck('name')
       expect(ticket_names).not_to include('Hidden Ticket')
     end
 
@@ -267,7 +267,7 @@ RSpec.describe 'GET /api/v1/:lang/event/:slug' do
       user = create(:user, role: 'leader')
       get_event_with_token(user)
 
-      ticket_names = json['tickets'].map { |t| t['name'] }
+      ticket_names = json['tickets'].pluck('name')
       expect(ticket_names).not_to include('Hidden Ticket')
     end
 
@@ -275,13 +275,13 @@ RSpec.describe 'GET /api/v1/:lang/event/:slug' do
       user = create(:user, role: 'admin')
       get_event_with_token(user)
 
-      ticket_names = json['tickets'].map { |t| t['name'] }
+      ticket_names = json['tickets'].pluck('name')
       expect(ticket_names).to include('Standard')
       expect(ticket_names).to include('Hidden Ticket')
     end
   end
 
-  context 'for_leaders ticket allowed field' do
+  context 'with for_leaders ticket allowed field' do
     let!(:leader_ticket) { create(:ticket, event: event, for_leaders: true) }
     let!(:public_ticket) { create(:ticket, event: event, for_leaders: false) }
 

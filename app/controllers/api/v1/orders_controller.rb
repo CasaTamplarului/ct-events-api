@@ -5,6 +5,7 @@ module Api
     class OrdersController < ActionController::API
       PERMITTED_ATTENDEE_FIELDS = %w[first_name last_name email_address phone_number dietary_preference allergies
                                      church_name city age].freeze
+      PRIVILEGED_ROLES = %w[leader admin volunteer].freeze
 
       before_action :set_locale
       before_action :set_current_user
@@ -66,7 +67,7 @@ module Api
             end
 
             if ticket.for_leaders
-              unless %w[leader admin volunteer].include?(@current_user&.role)
+              unless PRIVILEGED_ROLES.include?(@current_user&.role)
                 render json: { error: t('orders.errors.leader_ticket_required') }, status: :forbidden
                 break
               end

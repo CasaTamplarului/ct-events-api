@@ -68,7 +68,7 @@ RSpec.describe 'POST /api/v1/admin/push_notifications' do
       end
 
       it 'returns 404 when event not found' do
-        post_notification(event_id: 999999, translations: translations)
+        post_notification(event_id: 999_999, translations: translations)
         expect(response).to have_http_status(:not_found)
       end
     end
@@ -166,9 +166,9 @@ RSpec.describe 'POST /api/v1/admin/push_notifications' do
     it 'creates a PushNotification record' do
       allow(FcmService).to receive(:send_to_user)
 
-      expect {
+      expect do
         post_notification(event_id: event.id, translations: translations)
-      }.to change(PushNotification, :count).by(1)
+      end.to change(PushNotification, :count).by(1)
 
       pn = PushNotification.last
       expect(pn.event).to eq(event)
