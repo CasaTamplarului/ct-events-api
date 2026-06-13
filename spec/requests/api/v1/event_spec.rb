@@ -232,4 +232,52 @@ RSpec.describe 'GET /api/v1/:lang/event/:slug' do
       expect(EventAttendeeField::ALLOWED_FIELDS).to include('age')
     end
   end
+
+  context 'hidden tickets' do
+    let!(:ticket) { create(:ticket, event: event, hidden: false) }
+    let!(:hidden_ticket) { create(:ticket, event: event, hidden: true) }
+
+    before do
+      create(:tickets_translation, tickets_id: ticket.id, languages_code: language_code, name: 'Standard')
+      create(:tickets_translation, tickets_id: hidden_ticket.id, languages_code: language_code, name: 'Hidden Ticket')
+    end
+
+    def get_event_with_token(user)
+      get "/api/v1/#{language_code}/event/#{event.slug}",
+          headers: { 'Authorization' => "Bearer #{JwtService.encode(user.id)}" }
+    end
+
+    it 'does not show hidden tickets to unauthenticated users' do
+      get_event
+
+      ticket_names = json['tickets'].map { |t| t['name'] }
+      expect(ticket_names).to include('Standard')
+      expect(ticket_names).not_to include('Hidden Ticket')
+    end
+
+    it 'does not show hidden tickets to attendee-role users' do
+      user = create(:user, role: 'attendee')
+      get_event_with_token(user)
+
+      ticket_names = json['tickets'].map { |t| t['name'] }
+      expect(ticket_names).not_to include('Hidden Ticket')
+    end
+
+    it 'does not show hidden tickets to leader-role users' do
+      user = create(:user, role: 'leader')
+      get_event_with_token(user)
+
+      ticket_names = json['tickets'].map { |t| t['name'] }
+      expect(ticket_names).not_to include('Hidden Ticket')
+    end
+
+    it 'shows hidden tickets to admin-role users' do
+      user = create(:user, role: 'admin')
+      get_event_with_token(user)
+
+      ticket_names = json['tickets'].map { |t| t['name'] }
+      expect(ticket_names).to include('Standard')
+      expect(ticket_names).to include('Hidden Ticket')
+    end
+  end
 end

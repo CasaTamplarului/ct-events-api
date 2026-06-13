@@ -3,10 +3,14 @@
 module Api
   module V1
     class EventController < ActionController::API
+      include Authenticatable
+
       def show
+        try_authenticate_user
+
         event = Event
           .includes(:events_translations, :attendees, :event_attendee_fields, :event_gallery_items,
-                    tickets: [:tickets_translations, :ticket_meal_slots],
+                    tickets: [:tickets_translations, :ticket_meal_slots, :ticket_allowed_users],
                     event_speakers: :event_speakers_translations,
                     event_description_sections: :event_description_section_translations)
           .find_by!(slug: params[:slug])
@@ -16,7 +20,8 @@ module Api
         end
 
         render json:
-          EventSerializer.new(event, params: { languages_code: params[:languages_code] }).serialize,
+          EventSerializer.new(event, params: { languages_code: params[:languages_code],
+                                               current_user: current_user }).serialize,
                status: :ok
       end
     end

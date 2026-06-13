@@ -18,6 +18,16 @@ module Authenticatable
     render json: { error: I18n.t('auth.errors.unauthorized') }, status: :unauthorized
   end
 
+  def try_authenticate_user
+    token = request.headers['Authorization']&.split&.last
+    return if token.blank?
+
+    user_id = JwtService.decode(token)
+    @current_user = User.active.find_by(id: user_id)
+  rescue JWT::DecodeError
+    nil
+  end
+
   def require_permission!(permission)
     return if current_user&.can?(permission)
 

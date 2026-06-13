@@ -23,7 +23,14 @@ class EventSerializer < ApplicationSerializer
   attribute :tickets do |object|
     next nil if object.past? || object.tickets.empty?
 
-    TicketSerializer.new(object.tickets, params: { languages_code: params[:languages_code] })
+    visible = object.tickets.reject do |t|
+      t.hidden && params[:current_user]&.role != 'admin'
+    end
+
+    next nil if visible.empty?
+
+    TicketSerializer.new(visible, params: { languages_code: params[:languages_code],
+                                            current_user: params[:current_user] })
   end
 
   attribute :speakers do |object|
