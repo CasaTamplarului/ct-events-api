@@ -280,4 +280,67 @@ RSpec.describe 'GET /api/v1/:lang/event/:slug' do
       expect(ticket_names).to include('Hidden Ticket')
     end
   end
+
+  context 'for_leaders ticket allowed field' do
+    let!(:leader_ticket) { create(:ticket, event: event, for_leaders: true) }
+    let!(:public_ticket) { create(:ticket, event: event, for_leaders: false) }
+
+    before do
+      create(:tickets_translation, tickets_id: leader_ticket.id, languages_code: language_code, name: 'Leader Ticket')
+      create(:tickets_translation, tickets_id: public_ticket.id, languages_code: language_code, name: 'Public Ticket')
+    end
+
+    def get_event_with_token(user)
+      get "/api/v1/#{language_code}/event/#{event.slug}",
+          headers: { 'Authorization' => "Bearer #{JwtService.encode(user.id)}" }
+    end
+
+    def ticket_json(name)
+      json['tickets'].find { |t| t['name'] == name }
+    end
+
+    it 'does not include allowed field on public tickets' do
+      get_event
+
+      expect(ticket_json('Public Ticket')).not_to have_key('allowed')
+    end
+
+    it 'returns allowed: false for unauthenticated users on for_leaders tickets' do
+      get_event
+
+      expect(ticket_json('Leader Ticket')['allowed']).to be false
+    end
+
+    it 'returns allowed: true when no allowed_users list and user is leader' do
+      user = create(:user, role: 'leader')
+      get_event_with_token(user)
+
+      expect(ticket_json('Leader Ticket')['allowed']).to be true
+    end
+
+    it 'returns allowed: true when user is in the allowed_users list' do
+      user = create(:user, role: 'leader')
+      create(:ticket_allowed_user, ticket: leader_ticket, user: user)
+      get_event_with_token(user)
+
+      expect(ticket_json('Leader Ticket')['allowed']).to be true
+    end
+
+    it 'returns allowed: false when allowed_users list exists and user is not in it' do
+      user = create(:user, role: 'leader')
+      other_user = create(:user, role: 'leader')
+      create(:ticket_allowed_user, ticket: leader_ticket, user: other_user)
+      get_event_with_token(user)
+
+      expect(ticket_json('Leader Ticket')['allowed']).to be false
+    end
+
+    it 'returns allowed: false for unauthenticated when allowed_users list exists' do
+      other_user = create(:user, role: 'leader')
+      create(:ticket_allowed_user, ticket: leader_ticket, user: other_user)
+      get_event
+
+      expect(ticket_json('Leader Ticket')['allowed']).to be false
+    end
+  end
 end
