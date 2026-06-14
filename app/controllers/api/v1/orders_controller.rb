@@ -5,7 +5,7 @@ module Api
     class OrdersController < ActionController::API
       PERMITTED_ATTENDEE_FIELDS = %w[first_name last_name email_address phone_number dietary_preference allergies
                                      church_name city age].freeze
-      PRIVILEGED_ROLES = %w[leader admin volunteer].freeze
+      PRIVILEGED_ROLES = %w[leader admin volunteer staff].freeze
 
       before_action :set_locale
       before_action :set_current_user

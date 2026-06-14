@@ -8,7 +8,7 @@ class User < ApplicationRecord
   has_many :passkeys, dependent: :destroy
   has_many :push_subscriptions, dependent: :destroy
 
-  ROLES = %w[admin volunteer attendee leader].freeze
+  ROLES = %w[admin volunteer attendee leader staff].freeze
 
   ROLE_PERMISSIONS = {
     'admin' => { can_check_in_attendees: true, can_scan_food_stamp: true, can_send_push_notifications: true,
@@ -18,7 +18,9 @@ class User < ApplicationRecord
     'attendee' => { can_check_in_attendees: false, can_scan_food_stamp: false, can_send_push_notifications: false,
                     can_manage_bracelets: false }.freeze,
     'leader' => { can_check_in_attendees: false, can_scan_food_stamp: false, can_send_push_notifications: false,
-                  can_manage_bracelets: false }.freeze
+                  can_manage_bracelets: false }.freeze,
+    'staff' => { can_check_in_attendees: false, can_scan_food_stamp: false, can_send_push_notifications: false,
+                 can_manage_bracelets: false }.freeze
   }.freeze
 
   attribute :role, :string, default: 'attendee'
