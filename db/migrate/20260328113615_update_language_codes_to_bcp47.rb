@@ -9,7 +9,7 @@ class UpdateLanguageCodesToBcp47 < ActiveRecord::Migration[8.1]
     TRANSLATION_TABLES.each do |table|
       remove_foreign_key table, column: :languages_code
       add_foreign_key table, :languages, column: :languages_code,
-                      primary_key: :code, on_update: :cascade, on_delete: :restrict
+                                         primary_key: :code, on_update: :cascade, on_delete: :restrict
     end
 
     # Now a single UPDATE on languages cascades to all translation tables automatically
@@ -26,7 +26,7 @@ class UpdateLanguageCodesToBcp47 < ActiveRecord::Migration[8.1]
     TRANSLATION_TABLES.each do |table|
       remove_foreign_key table, column: :languages_code
       add_foreign_key table, :languages, column: :languages_code,
-                      primary_key: :code, on_delete: :restrict
+                                         primary_key: :code, on_delete: :restrict
     end
   end
 end

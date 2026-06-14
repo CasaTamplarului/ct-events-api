@@ -21,7 +21,7 @@ class ConfigureDirectusAttendeeBooleanFieldResponses < ActiveRecord::Migration[8
       { field: 'created_at',            hidden: true,  interface: nil,                    readonly: false, options: nil,                                         special: nil },
       { field: 'updated_at',            hidden: true,  interface: nil,                    readonly: false, options: nil,                                         special: nil },
       { field: 'event_boolean_field_id', hidden: false, interface: 'select-dropdown-m2o', readonly: true,  options: '{"template":"{{translations.label}}"}',     special: nil },
-      { field: 'value',                 hidden: false, interface: 'boolean',              readonly: true,  options: nil,                                         special: nil }
+      { field: 'value', hidden: false, interface: 'boolean', readonly: true, options: nil, special: nil }
     ]
 
     fields.each do |f|

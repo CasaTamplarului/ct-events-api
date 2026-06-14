@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_12_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_14_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -671,10 +671,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_200000) do
   end
 
   create_table "solid_queue_claimed_executions", force: :cascade do |t|
-    t.datetime "created_at", precision: nil, null: false
+    t.datetime "created_at", null: false
     t.bigint "job_id", null: false
     t.bigint "process_id"
     t.index ["job_id"], name: "index_solid_queue_claimed_executions_on_job_id", unique: true
+    t.index ["process_id"], name: "index_solid_queue_claimed_executions_on_process_id"
   end
 
   create_table "solid_queue_failed_executions", force: :cascade do |t|
@@ -800,6 +801,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_200000) do
     t.bigint "event_id", null: false
     t.boolean "food_included", default: false, null: false
     t.boolean "for_leaders", default: false, null: false
+    t.boolean "hidden", default: false, null: false
     t.decimal "price"
     t.integer "sort"
     t.datetime "updated_at", default: -> { "now()" }, null: false
@@ -808,6 +810,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_200000) do
     t.index ["event_id", "sort"], name: "index_tickets_on_event_id_and_sort"
     t.index ["event_id"], name: "index_tickets_on_event_id"
     t.check_constraint "valid_from IS NULL OR valid_to IS NULL OR valid_to >= valid_from", name: "check_tickets_valid_dates_order"
+  end
+
+  create_table "tickets_allowed_users", force: :cascade do |t|
+    t.bigint "ticket_id", null: false
+    t.bigint "user_id", null: false
+    t.index ["ticket_id", "user_id"], name: "index_tickets_allowed_users_on_ticket_id_and_user_id", unique: true
+    t.index ["ticket_id"], name: "index_tickets_allowed_users_on_ticket_id"
+    t.index ["user_id"], name: "index_tickets_allowed_users_on_user_id"
   end
 
   create_table "tickets_translations", force: :cascade do |t|
@@ -941,14 +951,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_200000) do
   add_foreign_key "push_notifications", "users", column: "created_by_id"
   add_foreign_key "push_subscriptions", "users"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
-  add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", name: "solid_queue_claimed_executions_job_id_fkey", on_delete: :cascade
-  add_foreign_key "solid_queue_claimed_executions", "solid_queue_processes", column: "process_id", name: "solid_queue_claimed_executions_process_id_fkey", on_delete: :restrict
+  add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
+  add_foreign_key "solid_queue_claimed_executions", "solid_queue_processes", column: "process_id", on_delete: :restrict
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_processes", "solid_queue_processes", column: "supervisor_id", on_delete: :nullify
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_recurring_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "ticket_meal_slots", "tickets"
+  add_foreign_key "tickets_allowed_users", "tickets", on_delete: :cascade
+  add_foreign_key "tickets_allowed_users", "users", on_delete: :cascade
   add_foreign_key "tickets_translations", "languages", column: "languages_code", primary_key: "code", on_update: :cascade, on_delete: :restrict
   add_foreign_key "tickets_translations", "tickets", column: "tickets_id", on_delete: :cascade
   add_foreign_key "user_identities", "users", on_delete: :cascade

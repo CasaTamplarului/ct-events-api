@@ -92,6 +92,7 @@ en:
       invalid_boolean_field: "Invalid question for this event"
       missing_required_boolean_fields: "Missing required answer(s): %{fields}"
       leader_ticket_required: "This ticket is only available to leaders"
+      not_allowed_for_ticket: "You are not on the allowed list for this ticket"
   bookings:
     errors:
       nothing_to_cancel: "No cancellable attendees found for this order"

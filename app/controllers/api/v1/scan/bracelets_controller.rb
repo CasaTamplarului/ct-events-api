@@ -23,14 +23,14 @@ module Api
                               .order(:created_at)
 
           render json: {
-            codes: bracelets.map { |b|
+            codes: bracelets.map do |b|
               {
-                code:            b.code,
-                attendee_id:     b.attendee_id,
-                attendee_name:   b.attendee ? "#{b.attendee.first_name} #{b.attendee.last_name}".strip : nil,
+                code: b.code,
+                attendee_id: b.attendee_id,
+                attendee_name: b.attendee ? "#{b.attendee.first_name} #{b.attendee.last_name}".strip : nil,
                 order_reference: b.attendee&.order&.order_reference
               }
-            }
+            end
           }
         end
 
@@ -52,7 +52,9 @@ module Api
           end
 
           codes = generate_unique_codes(event.id, quantity, code_length)
-          Bracelet.insert_all(codes.map { |c| { code: c, event_id: event.id, created_at: Time.current, updated_at: Time.current } })
+          Bracelet.insert_all(codes.map do |c|
+            { code: c, event_id: event.id, created_at: Time.current, updated_at: Time.current }
+          end)
 
           render json: { codes: codes }, status: :created
         end
@@ -61,8 +63,10 @@ module Api
           bracelet_code = params[:bracelet_code].to_s.strip
           attendee_id   = params[:attendee_id].to_i
 
-          return render json: { error: 'bracelet_code and attendee_id are required' },
-                        status: :unprocessable_content if bracelet_code.blank? || attendee_id.zero?
+          if bracelet_code.blank? || attendee_id.zero?
+            return render json: { error: 'bracelet_code and attendee_id are required' },
+                          status: :unprocessable_content
+          end
 
           attendee = Attendee.includes(:order, :event).find_by(id: attendee_id)
           return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless attendee
@@ -73,8 +77,8 @@ module Api
 
           if bracelet.save
             render json: {
-              code:            bracelet.code,
-              attendee_id:     attendee.id,
+              code: bracelet.code,
+              attendee_id: attendee.id,
               order_reference: attendee.order&.order_reference
             }
           else
@@ -89,7 +93,7 @@ module Api
 
           render json: {
             order_reference: bracelet.attendee.order&.order_reference,
-            attendee_id:     bracelet.attendee_id
+            attendee_id: bracelet.attendee_id
           }
         end
 
@@ -99,7 +103,9 @@ module Api
             prefix     = event_id.to_s
             candidates = Set.new
 
-            candidates << "#{prefix}-#{Array.new(code_length) { ALPHABET.sample }.join}" while candidates.size < quantity * 2
+            candidates << "#{prefix}-#{Array.new(code_length) do
+              ALPHABET.sample
+            end.join}" while candidates.size < quantity * 2
 
             existing     = Bracelet.where(code: candidates.to_a).pluck(:code).to_set
             unique_codes = candidates - existing

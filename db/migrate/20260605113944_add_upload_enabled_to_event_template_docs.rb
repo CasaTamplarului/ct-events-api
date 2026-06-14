@@ -4,7 +4,7 @@ class AddUploadEnabledToEventTemplateDocs < ActiveRecord::Migration[8.1]
   def up
     add_column :event_template_docs, :upload_enabled, :boolean, default: true, null: false
 
-    conn = ActiveRecord::Base.connection
+    ActiveRecord::Base.connection
     execute("DELETE FROM directus_fields WHERE collection = 'event_template_docs' AND field = 'upload_enabled'")
     execute(<<~SQL)
       INSERT INTO directus_fields (collection, field, interface, hidden, readonly, special, options, width)

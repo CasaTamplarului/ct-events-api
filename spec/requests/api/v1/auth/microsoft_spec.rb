@@ -5,10 +5,10 @@ require 'rails_helper'
 RSpec.describe 'POST /api/v1/auth/microsoft' do
   let(:ms_data) do
     {
-      uid:        'ms-uid-123',
-      email:      'ion@outlook.com',
+      uid: 'ms-uid-123',
+      email: 'ion@outlook.com',
       first_name: 'Ion',
-      last_name:  'Popescu',
+      last_name: 'Popescu',
       avatar_url: nil
     }
   end

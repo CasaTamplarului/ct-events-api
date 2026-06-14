@@ -11,10 +11,10 @@ module Api
 
         def create
           push_notification = PushNotification.new(
-            event:            resolved_event,
-            created_by:       current_user,
-            translations:     translations_param,
-            link:             params[:link].presence,
+            event: resolved_event,
+            created_by: current_user,
+            translations: translations_param,
+            link: params[:link].presence,
             directus_file_id: params[:directus_file_id].presence
           )
 

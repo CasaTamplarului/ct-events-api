@@ -20,4 +20,15 @@ class TicketSerializer < ApplicationSerializer
           .sort_by { |s| [s.occurs_on, s.sort || 0] }
           .map { |s| { meal_type: s.meal_type, occurs_on: s.occurs_on } }
   end
+
+  attribute :allowed, if: proc { |object, _| object.for_leaders } do |object|
+    user = params[:current_user]
+    next false if user.nil?
+
+    if object.ticket_allowed_users.any?
+      object.ticket_allowed_users.any? { |tau| tau.user_id == user.id }
+    else
+      true
+    end
+  end
 end

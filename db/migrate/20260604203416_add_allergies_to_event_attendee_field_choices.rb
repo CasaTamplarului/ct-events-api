@@ -2,31 +2,31 @@
 
 class AddAllergiesToEventAttendeeFieldChoices < ActiveRecord::Migration[8.1]
   NEW_OPTIONS = JSON.generate({
-    choices: [
-      { text: 'First Name',          value: 'first_name' },
-      { text: 'Last Name',           value: 'last_name' },
-      { text: 'Email Address',       value: 'email_address' },
-      { text: 'Phone Number',        value: 'phone_number' },
-      { text: 'Dietary Preference',  value: 'dietary_preference' },
-      { text: 'Allergies',           value: 'allergies', icon: 'warning' },
-      { text: 'Church Name',         value: 'church_name', icon: 'church' },
-      { text: 'City',                value: 'city', icon: 'location_city' },
-      { text: 'Age',                 value: 'age', icon: 'celebration' }
-    ]
-  }).freeze
+                                choices: [
+                                  { text: 'First Name',          value: 'first_name' },
+                                  { text: 'Last Name',           value: 'last_name' },
+                                  { text: 'Email Address',       value: 'email_address' },
+                                  { text: 'Phone Number',        value: 'phone_number' },
+                                  { text: 'Dietary Preference',  value: 'dietary_preference' },
+                                  { text: 'Allergies',           value: 'allergies', icon: 'warning' },
+                                  { text: 'Church Name',         value: 'church_name', icon: 'church' },
+                                  { text: 'City',                value: 'city', icon: 'location_city' },
+                                  { text: 'Age',                 value: 'age', icon: 'celebration' }
+                                ]
+                              }).freeze
 
   OLD_OPTIONS = JSON.generate({
-    choices: [
-      { text: 'First Name',          value: 'first_name' },
-      { text: 'Last Name',           value: 'last_name' },
-      { text: 'Email Address',       value: 'email_address' },
-      { text: 'Phone Number',        value: 'phone_number' },
-      { text: 'Dietary Preference',  value: 'dietary_preference' },
-      { text: 'Church Name',         value: 'church_name', icon: 'church' },
-      { text: 'City',                value: 'city', icon: 'location_city' },
-      { text: 'Age',                 value: 'age', icon: 'celebration' }
-    ]
-  }).freeze
+                                choices: [
+                                  { text: 'First Name',          value: 'first_name' },
+                                  { text: 'Last Name',           value: 'last_name' },
+                                  { text: 'Email Address',       value: 'email_address' },
+                                  { text: 'Phone Number',        value: 'phone_number' },
+                                  { text: 'Dietary Preference',  value: 'dietary_preference' },
+                                  { text: 'Church Name',         value: 'church_name', icon: 'church' },
+                                  { text: 'City',                value: 'city', icon: 'location_city' },
+                                  { text: 'Age',                 value: 'age', icon: 'celebration' }
+                                ]
+                              }).freeze
 
   def up
     conn = ActiveRecord::Base.connection

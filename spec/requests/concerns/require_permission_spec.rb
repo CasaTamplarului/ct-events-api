@@ -28,8 +28,8 @@ RSpec.describe 'require_permission! (Authenticatable concern)' do
   def call_endpoint(user)
     get '/spec/permission_check',
         headers: {
-          'Authorization'  => "Bearer #{JwtService.encode(user.id)}",
-          'Content-Type'   => 'application/json'
+          'Authorization' => "Bearer #{JwtService.encode(user.id)}",
+          'Content-Type' => 'application/json'
         }
   end
 

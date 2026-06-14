@@ -15,7 +15,6 @@ class AddBookingTokenToOrders < ActiveRecord::Migration[8.1]
         break
       end
     end
-
   end
 
   def down

@@ -41,9 +41,9 @@ class MoveSlugToEvents < ActiveRecord::Migration[8.1]
     add_index :events, :slug, unique: true
 
     # 5. Drop the old per-translation slug trigger and helpers
-    execute "DROP TRIGGER IF EXISTS set_events_translations_slug ON events_translations;"
-    execute "DROP FUNCTION IF EXISTS trg_events_translations_slug();"
-    execute "DROP FUNCTION IF EXISTS unique_slug_for_event_translation(text, bigint);"
+    execute 'DROP TRIGGER IF EXISTS set_events_translations_slug ON events_translations;'
+    execute 'DROP FUNCTION IF EXISTS trg_events_translations_slug();'
+    execute 'DROP FUNCTION IF EXISTS unique_slug_for_event_translation(text, bigint);'
 
     # 6. Drop slug column from events_translations (index is dropped automatically)
     remove_column :events_translations, :slug
@@ -115,9 +115,9 @@ class MoveSlugToEvents < ActiveRecord::Migration[8.1]
   end
 
   def down
-    execute "DROP TRIGGER IF EXISTS sync_event_slug ON events_translations;"
-    execute "DROP FUNCTION IF EXISTS trg_sync_event_slug();"
-    execute "DROP FUNCTION IF EXISTS unique_slug_for_event(text, bigint);"
+    execute 'DROP TRIGGER IF EXISTS sync_event_slug ON events_translations;'
+    execute 'DROP FUNCTION IF EXISTS trg_sync_event_slug();'
+    execute 'DROP FUNCTION IF EXISTS unique_slug_for_event(text, bigint);'
 
     add_column :events_translations, :slug, :string, limit: 255
     add_index :events_translations, :slug, unique: true, name: :index_events_translations_on_slug

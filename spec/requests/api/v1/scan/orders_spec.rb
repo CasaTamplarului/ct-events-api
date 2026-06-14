@@ -183,10 +183,10 @@ RSpec.describe 'Scan Orders API' do
         attendee_json = json['attendees'].find { |a| a['id'] == first_attendee.id }
         slot_json = attendee_json['meal_slots'].first
         expect(slot_json).to include(
-          'id'          => slot.id,
-          'meal_type'   => 'lunch',
-          'occurs_on'   => slot_date.to_s,
-          'sort'        => 1,
+          'id' => slot.id,
+          'meal_type' => 'lunch',
+          'occurs_on' => slot_date.to_s,
+          'sort' => 1,
           'stamp_count' => 0
         )
       end

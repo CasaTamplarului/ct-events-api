@@ -86,12 +86,12 @@ RSpec.describe FcmService do
 
       described_class.send_to_user(user: user, title: 'Hi', body: 'There')
 
-      expect(WebMock).to have_requested(:post, fcm_url).with { |req|
+      expect(WebMock).to(have_requested(:post, fcm_url).with do |req|
         body = JSON.parse(req.body)
         body['message'].key?('notification') == false &&
           body['message'].dig('webpush', 'data', 'title') == 'Hi' &&
           body['message'].dig('webpush', 'data', 'body') == 'There'
-      }
+      end)
     end
 
     it 'always includes the default icon in the webpush data' do
@@ -101,10 +101,10 @@ RSpec.describe FcmService do
 
       described_class.send_to_user(user: user, title: 'Hi', body: 'There')
 
-      expect(WebMock).to have_requested(:post, fcm_url).with { |req|
+      expect(WebMock).to(have_requested(:post, fcm_url).with do |req|
         body = JSON.parse(req.body)
         body['message'].dig('webpush', 'data', 'icon') == FcmService::DEFAULT_ICON
-      }
+      end)
     end
 
     it 'includes image in webpush data when provided' do
@@ -115,10 +115,10 @@ RSpec.describe FcmService do
       described_class.send_to_user(user: user, title: 'Hi', body: 'There',
                                    image: 'https://example.com/hero.jpg')
 
-      expect(WebMock).to have_requested(:post, fcm_url).with { |req|
+      expect(WebMock).to(have_requested(:post, fcm_url).with do |req|
         body = JSON.parse(req.body)
         body['message'].dig('webpush', 'data', 'image') == 'https://example.com/hero.jpg'
-      }
+      end)
     end
 
     it 'omits image from webpush data when not provided' do
@@ -128,10 +128,10 @@ RSpec.describe FcmService do
 
       described_class.send_to_user(user: user, title: 'Hi', body: 'There')
 
-      expect(WebMock).to have_requested(:post, fcm_url).with { |req|
+      expect(WebMock).to(have_requested(:post, fcm_url).with do |req|
         body = JSON.parse(req.body)
         body['message'].dig('webpush', 'data').key?('image') == false
-      }
+      end)
     end
 
     it 'JSON-encodes actions into webpush data when provided' do
@@ -142,11 +142,11 @@ RSpec.describe FcmService do
       actions = [{ action: 'view_event', title: 'View Event' }, { action: 'my_bookings', title: 'My Bookings' }]
       described_class.send_to_user(user: user, title: 'Hi', body: 'There', actions: actions)
 
-      expect(WebMock).to have_requested(:post, fcm_url).with { |req|
+      expect(WebMock).to(have_requested(:post, fcm_url).with do |req|
         body   = JSON.parse(req.body)
         parsed = JSON.parse(body['message'].dig('webpush', 'data', 'actions'))
         parsed.first['action'] == 'view_event' && parsed.last['action'] == 'my_bookings'
-      }
+      end)
     end
 
     it 'includes link in webpush fcm_options and data when provided' do
@@ -157,11 +157,11 @@ RSpec.describe FcmService do
       described_class.send_to_user(user: user, title: 'Hi', body: 'There',
                                    link: 'https://ctevents.chiciudean.family/events/my-event')
 
-      expect(WebMock).to have_requested(:post, fcm_url).with { |req|
+      expect(WebMock).to(have_requested(:post, fcm_url).with do |req|
         body = JSON.parse(req.body)
         body['message'].dig('webpush', 'data', 'link') == 'https://ctevents.chiciudean.family/events/my-event' &&
           body['message'].dig('webpush', 'fcm_options', 'link') == 'https://ctevents.chiciudean.family/events/my-event'
-      }
+      end)
     end
 
     it 'includes a top-level data field for Android/iOS with the same fields' do
@@ -174,14 +174,14 @@ RSpec.describe FcmService do
                                    link: '/event/slug',
                                    actions: [{ action: 'view', title: 'View' }])
 
-      expect(WebMock).to have_requested(:post, fcm_url).with { |req|
+      expect(WebMock).to(have_requested(:post, fcm_url).with do |req|
         data = JSON.parse(req.body).dig('message', 'data')
         data['title'] == 'Hi' &&
           data['body'] == 'There' &&
           data['image'] == 'https://example.com/img.jpg' &&
           data['link'] == '/event/slug' &&
           JSON.parse(data['actions']).first['action'] == 'view'
-      }
+      end)
     end
 
     it 'deletes a push subscription when FCM returns UNREGISTERED' do

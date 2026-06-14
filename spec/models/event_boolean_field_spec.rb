@@ -16,9 +16,9 @@ RSpec.describe EventBooleanField, type: :model do
       Language.find_or_create_by!(code: 'ro-RO') { |l| l.name = 'Romanian' }
       Language.find_or_create_by!(code: 'en-US') { |l| l.name = 'English' }
       EventBooleanFieldTranslation.create!(event_boolean_field: field, languages_code: 'ro-RO',
-                                            label: 'Întrebare', true_label: 'Da', false_label: 'Nu')
+                                           label: 'Întrebare', true_label: 'Da', false_label: 'Nu')
       EventBooleanFieldTranslation.create!(event_boolean_field: field, languages_code: 'en-US',
-                                            label: 'Question', true_label: 'Yes', false_label: 'No')
+                                           label: 'Question', true_label: 'Yes', false_label: 'No')
     end
 
     it 'returns the label for an exact language match' do
@@ -36,7 +36,7 @@ RSpec.describe EventBooleanField, type: :model do
     before do
       Language.find_or_create_by!(code: 'ro-RO') { |l| l.name = 'Romanian' }
       EventBooleanFieldTranslation.create!(event_boolean_field: field, languages_code: 'ro-RO',
-                                            label: 'Întrebare', true_label: 'Da, accept', false_label: 'Nu accept')
+                                           label: 'Întrebare', true_label: 'Da, accept', false_label: 'Nu accept')
     end
 
     it 'returns true_label for the language' do

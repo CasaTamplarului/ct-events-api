@@ -32,13 +32,13 @@ class ChangeAllergiesToArray < ActiveRecord::Migration[8.1]
 
     conn = ActiveRecord::Base.connection
     old_options = JSON.generate({
-      choices: [
-        { 'text' => 'No allergies', 'value' => 0 }, { 'text' => 'Gluten', 'value' => 1 },
-        { 'text' => 'Lactose', 'value' => 2 }, { 'text' => 'Nuts', 'value' => 3 },
-        { 'text' => 'Eggs', 'value' => 4 }, { 'text' => 'Soy', 'value' => 5 },
-        { 'text' => 'Fish', 'value' => 6 }, { 'text' => 'Shellfish', 'value' => 7 }
-      ]
-    })
+                                  choices: [
+                                    { 'text' => 'No allergies', 'value' => 0 }, { 'text' => 'Gluten', 'value' => 1 },
+                                    { 'text' => 'Lactose', 'value' => 2 }, { 'text' => 'Nuts', 'value' => 3 },
+                                    { 'text' => 'Eggs', 'value' => 4 }, { 'text' => 'Soy', 'value' => 5 },
+                                    { 'text' => 'Fish', 'value' => 6 }, { 'text' => 'Shellfish', 'value' => 7 }
+                                  ]
+                                })
 
     execute("DELETE FROM directus_fields WHERE collection = 'attendees' AND field = 'allergies'")
     execute(<<~SQL)

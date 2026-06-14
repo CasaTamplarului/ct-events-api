@@ -96,7 +96,8 @@ class SendgridService
           'single_attendee' => single_attendee,
           'qr_content_id' => single_attendee ? "qr_code_#{group.first.id}" : nil,
           'qr_id_content_id' => single_attendee ? "qr_id_#{group.first.id}" : nil,
-          'booking_url' => "#{ENV.fetch('FRONTEND_URL', nil)}/bookings/#{order.order_reference}?token=#{order.booking_token}",
+          'booking_url' => "#{ENV.fetch('FRONTEND_URL',
+                                        nil)}/bookings/#{order.order_reference}?token=#{order.booking_token}",
           'frontend_url' => ENV.fetch('FRONTEND_URL', nil)
         )
         mail.add_personalization(personalization)
@@ -168,7 +169,7 @@ class SendgridService
           'ticket_description' => translation&.description,
           'ticket_price' => attendee.ticket&.price,
           'valid_from' => attendee.ticket&.valid_from,
-          'valid_to'   => attendee.ticket&.valid_to,
+          'valid_to' => attendee.ticket&.valid_to,
           'food_included' => attendee.ticket&.food_included,
           'qr_content_id' => "qr_code_#{attendee.id}",
           'meals_html' => meals_html(attendee.ticket&.ticket_meal_slots || [], lang),
