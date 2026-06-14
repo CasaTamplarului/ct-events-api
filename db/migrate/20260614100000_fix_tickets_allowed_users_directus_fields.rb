@@ -15,6 +15,13 @@ class FixTicketsAllowedUsersDirectusFields < ActiveRecord::Migration[8.1]
       SET interface = 'select-dropdown-m2o', readonly = false
       WHERE collection = 'tickets_allowed_users' AND field IN ('ticket_id', 'user_id')
     SQL
+
+    # Template must traverse the relation (user_id.field), not query junction table directly
+    execute(<<~SQL)
+      UPDATE directus_fields
+      SET options = '{"template":"{{user_id.first_name}} {{user_id.last_name}} ({{user_id.email}})"}'::json
+      WHERE collection = 'tickets' AND field = 'allowed_users'
+    SQL
   end
 
   def down
