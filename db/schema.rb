@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_14_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_14_160000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -56,6 +56,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_14_150000) do
     t.integer "payment_status", default: 0, null: false
     t.string "phone_number"
     t.bigint "ticket_id"
+    t.string "ticket_name"
     t.datetime "updated_at", default: -> { "now()" }, null: false
     t.bigint "user_id"
     t.index ["checked_in_by_user_id"], name: "index_attendees_on_checked_in_by_user_id"
