@@ -35,7 +35,17 @@ class CreateAttendeesWithTicketNameView < ActiveRecord::Migration[8.1]
     SQL
   end
 
+    # Grant read access to the Manage policy so Insights can query this collection
+    execute(<<~SQL)
+      INSERT INTO directus_permissions (policy, collection, action, fields)
+      SELECT id, 'attendees_ticket_summary', 'read', '*'
+      FROM directus_policies WHERE name = 'Manage'
+      ON CONFLICT DO NOTHING
+    SQL
+  end
+
   def down
+    execute("DELETE FROM directus_permissions WHERE collection = 'attendees_ticket_summary'")
     execute("DELETE FROM directus_fields WHERE collection = 'attendees_ticket_summary'")
     execute("DELETE FROM directus_collections WHERE collection = 'attendees_ticket_summary'")
     execute("DROP VIEW IF EXISTS attendees_ticket_summary")
