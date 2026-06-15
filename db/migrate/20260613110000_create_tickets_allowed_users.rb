@@ -34,13 +34,14 @@ class CreateTicketsAllowedUsers < ActiveRecord::Migration[8.1]
               '{"template":"{{first_name}} {{last_name}} ({{email}})"}'::json, 'full')
     SQL
 
-    # Register M2M relations
+    # Register M2M relations — one_deselect_action must be 'delete' (not 'nullify')
+    # because both FK columns are NOT NULL; nullifying would fail with a constraint error
     execute("DELETE FROM directus_relations WHERE many_collection = 'tickets_allowed_users'")
     execute(<<~SQL)
-      INSERT INTO directus_relations (many_collection, many_field, one_collection, one_field, junction_field)
+      INSERT INTO directus_relations (many_collection, many_field, one_collection, one_field, junction_field, one_deselect_action)
       VALUES
-        ('tickets_allowed_users', 'ticket_id', 'tickets', 'allowed_users', 'user_id'),
-        ('tickets_allowed_users', 'user_id', 'users', null, 'ticket_id')
+        ('tickets_allowed_users', 'ticket_id', 'tickets', 'allowed_users', 'user_id', 'delete'),
+        ('tickets_allowed_users', 'user_id', 'users', null, 'ticket_id', 'delete')
     SQL
   end
 
