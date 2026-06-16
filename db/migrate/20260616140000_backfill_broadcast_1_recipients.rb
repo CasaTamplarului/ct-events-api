@@ -5,6 +5,8 @@ class BackfillBroadcast1Recipients < ActiveRecord::Migration[7.1]
   EVENT_ID     = 26
 
   def up
+    execute("DELETE FROM email_broadcast_recipients WHERE email_broadcast_id = #{BROADCAST_ID}")
+
     # Registered users who are non-cancelled attendees of the event
     execute <<~SQL
       INSERT INTO email_broadcast_recipients (email_broadcast_id, user_id, email)
