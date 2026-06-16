@@ -77,14 +77,15 @@ module Api
           )
 
           SendEmailsJob.perform_later(
-            subject:      subject,
-            body:         body,
-            subject_en:   subject_en,
-            body_en:      body_en,
-            channel:      channel,
-            user_ids:     user_ids,
-            broadcast_id: broadcast.id,
-            event_id:     params[:event_id].presence
+            subject:              subject,
+            body:                 body,
+            subject_en:           subject_en,
+            body_en:              body_en,
+            channel:              channel,
+            user_ids:             user_ids,
+            broadcast_id:         broadcast.id,
+            event_id:             params[:event_id].presence,
+            exclude_broadcast_ids: Array(params[:exclude_broadcast_ids]).presence
           )
 
           render json: { broadcast_id: broadcast.id, queued_for: user_ids.size + unregistered_attendee_count }, status: :ok
