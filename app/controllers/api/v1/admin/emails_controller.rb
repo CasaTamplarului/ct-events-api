@@ -87,7 +87,7 @@ module Api
             event_id:     params[:event_id].presence
           )
 
-          render json: { broadcast_id: broadcast.id, queued_for: user_ids.size }, status: :ok
+          render json: { broadcast_id: broadcast.id, queued_for: user_ids.size + unregistered_attendee_count }, status: :ok
         end
 
         private
@@ -100,7 +100,10 @@ module Api
             scope = User.active.where.not(email: nil)
 
             if params[:event_id].present?
-              scope = scope.joins(:attendees).where(attendees: { event_id: params[:event_id] }).distinct
+              scope = scope.joins(:attendees)
+                           .where(attendees: { event_id: params[:event_id] })
+                           .where.not(attendees: { payment_status: Attendee.payment_statuses[:attendee_cancelled] })
+                           .distinct
             end
 
             if params[:exclude_broadcast_id].present?
@@ -111,6 +114,17 @@ module Api
             end
 
             scope.pluck(:id)
+          end
+
+          def unregistered_attendee_count
+            return 0 if params[:event_id].blank?
+
+            Attendee.where(event_id: params[:event_id], user_id: nil)
+                    .where.not(payment_status: Attendee.payment_statuses[:attendee_cancelled])
+                    .where.not(email_address: [nil, ''])
+                    .select(:email_address)
+                    .distinct
+                    .count
           end
 
           def broadcast_json(broadcast)
