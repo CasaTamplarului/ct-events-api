@@ -18,6 +18,7 @@ class SendgridService
     mail = SendGrid::Mail.new
     from_email = Rails.application.credentials.dig(:sendgrid, :from_email) || 'noreply@example.com'
     mail.from        = SendGrid::Email.new(email: from_email)
+    mail.subject     = subject
     mail.template_id = BROADCAST_TEMPLATE_ID
 
     personalization = SendGrid::Personalization.new
