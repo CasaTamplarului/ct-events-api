@@ -106,9 +106,9 @@ module Api
                            .distinct
             end
 
-            if params[:exclude_broadcast_id].present?
+            if params[:exclude_broadcast_ids].present?
               already_sent = EmailBroadcastRecipient
-                               .where(email_broadcast_id: params[:exclude_broadcast_id])
+                               .where(email_broadcast_id: Array(params[:exclude_broadcast_ids]))
                                .pluck(:user_id)
               scope = scope.where.not(id: already_sent)
             end
