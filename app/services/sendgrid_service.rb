@@ -26,6 +26,8 @@ class SendgridService
       'subject'         => subject,
       'body_html'       => body_html,
       'unsubscribe_url' => unsubscribe_url.to_s,
+      'frontend_url'    => ENV.fetch('FRONTEND_URL', nil).to_s,
+      'is_romanian'     => true,
       'year'            => Time.current.year.to_s
     )
     mail.add_personalization(personalization)

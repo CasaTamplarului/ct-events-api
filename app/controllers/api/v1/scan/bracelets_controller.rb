@@ -71,11 +71,16 @@ module Api
           attendee = Attendee.includes(:order, :event).find_by(id: attendee_id)
           return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless attendee
 
-          bracelet = Bracelet.find_or_initialize_by(code: bracelet_code)
-          bracelet.event    = attendee.event
-          bracelet.attendee = attendee
+          bracelet = nil
+          ActiveRecord::Base.transaction do
+            unassign_existing_bracelets(attendee)
+            bracelet = Bracelet.find_or_initialize_by(code: bracelet_code)
+            bracelet.event    = attendee.event
+            bracelet.attendee = attendee
+            bracelet.save!
+          end
 
-          if bracelet.save
+          if bracelet.persisted?
             render json: {
               code: bracelet.code,
               attendee_id: attendee.id,
@@ -84,6 +89,8 @@ module Api
           else
             render json: { error: bracelet.errors.full_messages.first }, status: :unprocessable_content
           end
+        rescue ActiveRecord::RecordInvalid => e
+          render json: { error: e.record.errors.full_messages.first }, status: :unprocessable_content
         end
 
         def show
@@ -98,6 +105,18 @@ module Api
         end
 
         private
+
+          def unassign_existing_bracelets(attendee)
+            attendee_ids =
+              if attendee.user_id.present?
+                Attendee.where(event_id: attendee.event_id, user_id: attendee.user_id).pluck(:id)
+              else
+                [attendee.id]
+              end
+
+            Bracelet.where(event_id: attendee.event_id, attendee_id: attendee_ids)
+                    .update_all(attendee_id: nil)
+          end
 
           def generate_unique_codes(event_id, quantity, code_length)
             prefix     = event_id.to_s

@@ -5,7 +5,7 @@ class SendEmailsJob < ApplicationJob
 
   VALID_CHANNELS = EmailUnsubscribeTokenService::PREFERENCE_COLUMNS.freeze
 
-  VARIABLE_KEYS = %w[first_name last_name email event_name order_reference unsubscribe_url].freeze
+  VARIABLE_KEYS = %w[first_name last_name email event_name order_reference].freeze
 
   def perform(subject:, body:, channel:, user_ids:, broadcast_id:, event_id: nil)
     return unless VALID_CHANNELS.include?(channel)
@@ -44,9 +44,36 @@ class SendEmailsJob < ApplicationJob
     end
 
     record_recipients(broadcast_id, sent_user_ids)
+
+    send_to_unregistered_attendees(subject, body, event_name, event_id, api_base) if event_id.present?
   end
 
   private
+
+    def send_to_unregistered_attendees(subject, body, event_name, event_id, api_base)
+      Attendee.joins(:order)
+              .where(event_id: event_id, user_id: nil)
+              .where.not(payment_status: Attendee.payment_statuses[:attendee_cancelled])
+              .where.not(email_address: [nil, ''])
+              .select('attendees.*, orders.order_reference AS order_ref')
+              .find_each do |attendee|
+        vars = {
+          'first_name'       => attendee.first_name.to_s,
+          'last_name'        => attendee.last_name.to_s,
+          'email'            => attendee.email_address.to_s,
+          'event_name'       => event_name,
+          'order_reference'  => attendee.order_ref.to_s,
+          'unsubscribe_url'  => ''
+        }
+
+        SendgridService.send_broadcast(
+          to:              attendee.email_address,
+          subject:         substitute(subject, vars),
+          body_html:       substitute(body, vars),
+          unsubscribe_url: ''
+        )
+      end
+    end
 
     def record_recipients(broadcast_id, user_ids)
       return if user_ids.empty?

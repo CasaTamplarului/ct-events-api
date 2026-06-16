@@ -14,7 +14,6 @@ module Api
           { key: 'email',           description: 'Recipient email address' },
           { key: 'event_name',      description: 'Event name (ro-RO) — only when sending to event attendees' },
           { key: 'order_reference', description: 'Order reference — only when sending to event attendees' },
-          { key: 'unsubscribe_url', description: 'Channel-specific unsubscribe link (generated per recipient for bulk sends)' }
         ].freeze
 
         before_action :authenticate_user!
