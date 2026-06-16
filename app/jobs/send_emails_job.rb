@@ -47,9 +47,9 @@ class SendEmailsJob < ApplicationJob
       sent_user_ids << user.id
     end
 
-    record_recipients(broadcast_id, sent_user_ids)
+    unregistered_count = event_id.present? ? send_to_unregistered_attendees(subject, body, event_name, event_id, api_base, user_ids) : 0
 
-    send_to_unregistered_attendees(subject, body, event_name, event_id, api_base, user_ids) if event_id.present?
+    record_recipients(broadcast_id, sent_user_ids, unregistered_count)
   end
 
   private
@@ -61,6 +61,7 @@ class SendEmailsJob < ApplicationJob
     def send_to_unregistered_attendees(subject, body, event_name, event_id, api_base, registered_user_ids)
       registered_emails = User.where(id: registered_user_ids).where.not(email: nil)
                               .pluck(:email).map(&:downcase).to_set
+      count = 0
 
       Attendee.joins(:order)
               .where(event_id: event_id, user_id: nil)
@@ -85,15 +86,18 @@ class SendEmailsJob < ApplicationJob
           body_html:   substitute(body,    vars),
           is_romanian: true
         )
+        count += 1
       end
+
+      count
     end
 
-    def record_recipients(broadcast_id, user_ids)
-      return if user_ids.empty?
-
-      rows = user_ids.map { |uid| { email_broadcast_id: broadcast_id, user_id: uid } }
-      EmailBroadcastRecipient.insert_all(rows)
-      EmailBroadcast.where(id: broadcast_id).update_all(recipient_count: user_ids.size)
+    def record_recipients(broadcast_id, user_ids, unregistered_count = 0)
+      if user_ids.any?
+        rows = user_ids.map { |uid| { email_broadcast_id: broadcast_id, user_id: uid } }
+        EmailBroadcastRecipient.insert_all(rows)
+      end
+      EmailBroadcast.where(id: broadcast_id).update_all(recipient_count: user_ids.size + unregistered_count)
     end
 
     def substitute(text, variables)
