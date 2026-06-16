@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_14_180000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_16_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -672,11 +672,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_14_180000) do
   end
 
   create_table "solid_queue_claimed_executions", force: :cascade do |t|
-    t.datetime "created_at", null: false
+    t.datetime "created_at", precision: nil, null: false
     t.bigint "job_id", null: false
     t.bigint "process_id"
     t.index ["job_id"], name: "index_solid_queue_claimed_executions_on_job_id", unique: true
-    t.index ["process_id"], name: "index_solid_queue_claimed_executions_on_process_id"
   end
 
   create_table "solid_queue_failed_executions", force: :cascade do |t|
@@ -848,19 +847,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_14_180000) do
     t.datetime "created_at", default: -> { "now()" }, null: false
     t.datetime "deleted_at"
     t.string "email"
-    t.boolean "event_reminder_emails", default: false, null: false
+    t.boolean "event_reminder_emails", default: true, null: false
     t.boolean "event_reminder_push", default: true, null: false
-    t.boolean "event_update_emails", default: false, null: false
+    t.boolean "event_update_emails", default: true, null: false
     t.boolean "event_update_push", default: true, null: false
     t.string "first_name", null: false
     t.string "language"
     t.string "last_name"
-    t.boolean "marketing_emails", default: false, null: false
+    t.boolean "marketing_emails", default: true, null: false
     t.boolean "marketing_push", default: true, null: false
     t.string "password_digest"
     t.string "password_reset_token"
     t.datetime "password_reset_token_expires_at"
-    t.boolean "payment_reminder_emails", default: false, null: false
+    t.boolean "payment_reminder_emails", default: true, null: false
     t.boolean "payment_reminder_push", default: true, null: false
     t.string "phone_number"
     t.string "role", default: "attendee", null: false
@@ -953,8 +952,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_14_180000) do
   add_foreign_key "push_notifications", "users", column: "created_by_id"
   add_foreign_key "push_subscriptions", "users"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
-  add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
-  add_foreign_key "solid_queue_claimed_executions", "solid_queue_processes", column: "process_id", on_delete: :restrict
+  add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", name: "solid_queue_claimed_executions_job_id_fkey", on_delete: :cascade
+  add_foreign_key "solid_queue_claimed_executions", "solid_queue_processes", column: "process_id", name: "solid_queue_claimed_executions_process_id_fkey", on_delete: :restrict
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_processes", "solid_queue_processes", column: "supervisor_id", on_delete: :nullify
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

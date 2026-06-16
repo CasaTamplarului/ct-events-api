@@ -63,10 +63,10 @@ RSpec.describe 'Auth::Me endpoints' do
         get_me(headers: { 'Authorization' => "Bearer #{token}" })
 
         expect(json['email_preferences']).to eq({
-                                                  'marketing_emails' => false,
-                                                  'payment_reminder_emails' => false,
-                                                  'event_reminder_emails' => false,
-                                                  'event_update_emails' => false
+                                                  'marketing_emails' => true,
+                                                  'payment_reminder_emails' => true,
+                                                  'event_reminder_emails' => true,
+                                                  'event_update_emails' => true
                                                 })
       end
 
