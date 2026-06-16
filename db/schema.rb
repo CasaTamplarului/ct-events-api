@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_16_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_16_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -452,10 +452,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_16_120000) do
   end
 
   create_table "email_broadcast_recipients", id: false, force: :cascade do |t|
+    t.string "email", default: "", null: false
     t.bigint "email_broadcast_id", null: false
-    t.bigint "user_id", null: false
-    t.index ["email_broadcast_id", "user_id"], name: "idx_email_broadcast_recipients_unique", unique: true
-    t.index ["user_id"], name: "idx_email_broadcast_recipients_user_id"
+    t.bigint "user_id"
+    t.index "email_broadcast_id, lower((email)::text)", name: "idx_email_broadcast_recipients_broadcast_email", unique: true
+    t.index ["user_id"], name: "idx_email_broadcast_recipients_user_id", where: "(user_id IS NOT NULL)"
   end
 
   create_table "email_broadcasts", force: :cascade do |t|

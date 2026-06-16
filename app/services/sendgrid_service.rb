@@ -18,12 +18,10 @@ class SendgridService
     mail = SendGrid::Mail.new
     from_email = Rails.application.credentials.dig(:sendgrid, :from_email) || 'noreply@example.com'
     mail.from        = SendGrid::Email.new(email: from_email)
-    mail.subject     = subject
     mail.template_id = BROADCAST_TEMPLATE_ID
 
     personalization = SendGrid::Personalization.new
     personalization.add_to(SendGrid::Email.new(email: to))
-    personalization.subject = subject
     personalization.add_dynamic_template_data(
       'subject'         => subject,
       'body_html'       => body_html,

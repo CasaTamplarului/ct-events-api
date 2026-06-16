@@ -7,7 +7,8 @@ class SendEmailsJob < ApplicationJob
 
   VARIABLE_KEYS = %w[first_name last_name email event_name order_reference].freeze
 
-  def perform(subject:, body:, channel:, user_ids:, broadcast_id:, event_id: nil, subject_en: nil, body_en: nil)
+  def perform(subject:, body:, channel:, user_ids:, broadcast_id:, event_id: nil,
+              subject_en: nil, body_en: nil, exclude_broadcast_ids: nil)
     return unless VALID_CHANNELS.include?(channel)
 
     event = event_id ? Event.includes(:events_translations).find_by(id: event_id) : nil
@@ -15,15 +16,17 @@ class SendEmailsJob < ApplicationJob
 
     order_refs = batch_order_refs(user_ids, event_id)
     api_base   = ENV['API_BASE_URL']&.chomp('/')
+    excluded_emails = previously_sent_emails(exclude_broadcast_ids)
 
-    sent_user_ids = []
+    sent_recipients = []
 
     User.where(id: user_ids, channel => true).find_each do |user|
       next if user.email.blank?
+      next if excluded_emails.include?(user.email.downcase)
 
-      romanian    = user.language.to_s.start_with?('ro') || !user.language.present?
-      subj        = localize(subject, subject_en, romanian)
-      bod         = localize(body,    body_en,    romanian)
+      romanian = user.language.to_s.start_with?('ro') || user.language.blank?
+      subj     = localize(subject, subject_en, romanian)
+      bod      = localize(body,    body_en,    romanian)
 
       token           = EmailUnsubscribeTokenService.generate(user: user, type: channel)
       unsubscribe_url = api_base ? "#{api_base}/api/v1/unsubscribe?token=#{token}" : ''
@@ -44,27 +47,44 @@ class SendEmailsJob < ApplicationJob
         is_romanian:     romanian
       )
 
-      sent_user_ids << user.id
+      sent_recipients << { user_id: user.id, email: user.email.downcase }
     end
 
-    record_recipients(broadcast_id, sent_user_ids)
+    unregistered_recipients = event_id.present? ? send_to_unregistered_attendees(
+      subject, body, event_name, event_id, api_base,
+      sent_recipients.map { |r| r[:email] }.to_set | excluded_emails
+    ) : []
 
-    send_to_unregistered_attendees(subject, body, event_name, event_id, api_base) if event_id.present?
+    record_recipients(broadcast_id, sent_recipients, unregistered_recipients)
   end
 
   private
+
+    def previously_sent_emails(broadcast_ids)
+      return Set.new if broadcast_ids.blank?
+
+      EmailBroadcastRecipient.where(email_broadcast_id: Array(broadcast_ids))
+                             .pluck(:email)
+                             .map(&:downcase)
+                             .to_set
+    end
 
     def localize(ro_version, en_version, romanian)
       romanian || en_version.blank? ? ro_version : en_version
     end
 
-    def send_to_unregistered_attendees(subject, body, event_name, event_id, api_base)
+    def send_to_unregistered_attendees(subject, body, event_name, event_id, api_base, skip_emails)
+      recipients = []
+
       Attendee.joins(:order)
               .where(event_id: event_id, user_id: nil)
               .where.not(payment_status: Attendee.payment_statuses[:attendee_cancelled])
               .where.not(email_address: [nil, ''])
-              .select('attendees.*, orders.order_reference AS order_ref')
-              .find_each do |attendee|
+              .select('DISTINCT ON (LOWER(attendees.email_address)) attendees.*, orders.order_reference AS order_ref')
+              .order(Arel.sql('LOWER(attendees.email_address), attendees.id'))
+              .each do |attendee|
+        next if skip_emails.include?(attendee.email_address.downcase)
+
         vars = {
           'first_name'      => attendee.first_name.to_s,
           'last_name'       => attendee.last_name.to_s,
@@ -79,15 +99,20 @@ class SendEmailsJob < ApplicationJob
           body_html:   substitute(body,    vars),
           is_romanian: true
         )
+
+        recipients << { user_id: nil, email: attendee.email_address.downcase }
       end
+
+      recipients
     end
 
-    def record_recipients(broadcast_id, user_ids)
-      return if user_ids.empty?
+    def record_recipients(broadcast_id, registered, unregistered)
+      all = registered + unregistered
+      return if all.empty?
 
-      rows = user_ids.map { |uid| { email_broadcast_id: broadcast_id, user_id: uid } }
-      EmailBroadcastRecipient.insert_all(rows)
-      EmailBroadcast.where(id: broadcast_id).update_all(recipient_count: user_ids.size)
+      rows = all.map { |r| r.merge(email_broadcast_id: broadcast_id) }
+      EmailBroadcastRecipient.insert_all(rows, unique_by: :idx_email_broadcast_recipients_broadcast_email)
+      EmailBroadcast.where(id: broadcast_id).update_all(recipient_count: all.size)
     end
 
     def substitute(text, variables)
