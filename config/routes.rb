@@ -50,6 +50,7 @@ Rails.application.routes.draw do
 
       namespace :admin do
         resources :push_notifications, only: :create
+        resources :emails,             only: :create
       end
 
       resources :uploads, only: :create
