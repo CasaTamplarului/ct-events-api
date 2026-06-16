@@ -49,7 +49,7 @@ class SendEmailsJob < ApplicationJob
 
     record_recipients(broadcast_id, sent_user_ids)
 
-    send_to_unregistered_attendees(subject, body, event_name, event_id, api_base) if event_id.present?
+    send_to_unregistered_attendees(subject, body, event_name, event_id, api_base, user_ids) if event_id.present?
   end
 
   private
@@ -58,13 +58,19 @@ class SendEmailsJob < ApplicationJob
       romanian || en_version.blank? ? ro_version : en_version
     end
 
-    def send_to_unregistered_attendees(subject, body, event_name, event_id, api_base)
+    def send_to_unregistered_attendees(subject, body, event_name, event_id, api_base, registered_user_ids)
+      registered_emails = User.where(id: registered_user_ids).where.not(email: nil)
+                              .pluck(:email).map(&:downcase).to_set
+
       Attendee.joins(:order)
               .where(event_id: event_id, user_id: nil)
               .where.not(payment_status: Attendee.payment_statuses[:attendee_cancelled])
               .where.not(email_address: [nil, ''])
-              .select('attendees.*, orders.order_reference AS order_ref')
-              .find_each do |attendee|
+              .select('DISTINCT ON (LOWER(attendees.email_address)) attendees.*, orders.order_reference AS order_ref')
+              .order(Arel.sql('LOWER(attendees.email_address), attendees.id'))
+              .each do |attendee|
+        next if registered_emails.include?(attendee.email_address.downcase)
+
         vars = {
           'first_name'      => attendee.first_name.to_s,
           'last_name'       => attendee.last_name.to_s,
