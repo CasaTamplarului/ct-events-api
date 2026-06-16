@@ -12,7 +12,7 @@ class SendgridService
     ENV['DISABLE_EMAILS'].to_s.downcase != 'true'
   end
 
-  def self.send_broadcast(to:, subject:, body_html:, unsubscribe_url: nil)
+  def self.send_broadcast(to:, subject:, body_html:, unsubscribe_url: nil, is_romanian: true)
     return unless emails_enabled?
 
     mail = SendGrid::Mail.new
@@ -22,12 +22,13 @@ class SendgridService
 
     personalization = SendGrid::Personalization.new
     personalization.add_to(SendGrid::Email.new(email: to))
+    personalization.subject = subject
     personalization.add_dynamic_template_data(
       'subject'         => subject,
       'body_html'       => body_html,
       'unsubscribe_url' => unsubscribe_url.to_s,
       'frontend_url'    => ENV.fetch('FRONTEND_URL', nil).to_s,
-      'is_romanian'     => true,
+      'is_romanian'     => is_romanian,
       'year'            => Time.current.year.to_s
     )
     mail.add_personalization(personalization)

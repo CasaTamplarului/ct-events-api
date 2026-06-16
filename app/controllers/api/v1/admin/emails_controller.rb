@@ -32,10 +32,12 @@ module Api
         end
 
         def create
-          subject = params[:subject].presence
-          body    = params[:body].presence
-          channel = params[:channel].presence
-          to      = params[:to].presence
+          subject    = params[:subject].presence
+          body       = params[:body].presence
+          subject_en = params[:subject_en].presence
+          body_en    = params[:body_en].presence
+          channel    = params[:channel].presence
+          to         = params[:to].presence
 
           return render json: { error: 'subject is required' }, status: :bad_request if subject.blank?
           return render json: { error: 'body is required' },    status: :bad_request if body.blank?
@@ -43,11 +45,15 @@ module Api
           if to.present?
             preview_vars = (params[:preview_variables] || {}).to_unsafe_h.stringify_keys
                                                              .slice(*SendEmailsJob::VARIABLE_KEYS)
+            romanian     = params[:preview_language].to_s != 'en'
+            subj         = romanian || subject_en.blank? ? subject : subject_en
+            bod          = romanian || body_en.blank?    ? body    : body_en
+
             SendgridService.send_broadcast(
-              to:              to,
-              subject:         substitute(subject, preview_vars),
-              body_html:       substitute(body,    preview_vars),
-              unsubscribe_url: preview_vars['unsubscribe_url']
+              to:          to,
+              subject:     substitute(subj, preview_vars),
+              body_html:   substitute(bod,  preview_vars),
+              is_romanian: romanian
             )
             return render json: { sent_to: 1 }, status: :ok
           end
@@ -62,6 +68,8 @@ module Api
           broadcast = EmailBroadcast.create!(
             subject:         subject,
             body:            body,
+            subject_en:      subject_en,
+            body_en:         body_en,
             channel:         channel,
             event_id:        params[:event_id].presence,
             sent_by_user_id: current_user.id,
@@ -71,6 +79,8 @@ module Api
           SendEmailsJob.perform_later(
             subject:      subject,
             body:         body,
+            subject_en:   subject_en,
+            body_en:      body_en,
             channel:      channel,
             user_ids:     user_ids,
             broadcast_id: broadcast.id,
