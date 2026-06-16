@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_16_110000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_16_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -460,12 +460,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_16_110000) do
 
   create_table "email_broadcasts", force: :cascade do |t|
     t.text "body", null: false
+    t.text "body_en"
     t.string "channel", null: false
     t.datetime "created_at", null: false
     t.bigint "event_id"
     t.integer "recipient_count", default: 0, null: false
     t.bigint "sent_by_user_id", null: false
     t.text "subject", null: false
+    t.text "subject_en"
     t.datetime "updated_at", null: false
     t.index ["event_id"], name: "index_email_broadcasts_on_event_id"
     t.index ["sent_by_user_id"], name: "index_email_broadcasts_on_sent_by_user_id"
