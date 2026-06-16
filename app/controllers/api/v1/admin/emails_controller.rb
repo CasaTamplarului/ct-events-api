@@ -13,11 +13,20 @@ module Api
           { key: 'last_name',       description: 'Recipient last name' },
           { key: 'email',           description: 'Recipient email address' },
           { key: 'event_name',      description: 'Event name (ro-RO) — only when sending to event attendees' },
-          { key: 'order_reference', description: 'Order reference — only when sending to event attendees' }
+          { key: 'order_reference', description: 'Order reference — only when sending to event attendees' },
+          { key: 'unsubscribe_url', description: 'Channel-specific unsubscribe link (generated per recipient for bulk sends)' }
         ].freeze
 
         before_action :authenticate_user!
         before_action { require_permission!(:can_send_emails) }
+
+        def index
+          broadcasts = EmailBroadcast.includes(:event)
+                                     .order(created_at: :desc)
+                                     .limit(50)
+
+          render json: broadcasts.map { |b| broadcast_json(b) }
+        end
 
         def variables
           render json: { variables: VARIABLES }
@@ -35,11 +44,12 @@ module Api
           if to.present?
             preview_vars = (params[:preview_variables] || {}).to_unsafe_h.stringify_keys
                                                              .slice(*SendEmailsJob::VARIABLE_KEYS)
-            personalized_subject = substitute(subject, preview_vars)
-            personalized_body    = substitute(body,    preview_vars)
-
-            AdminMailer.with(to: to, subject: personalized_subject, body: personalized_body)
-                       .send_email.deliver_later
+            SendgridService.send_broadcast(
+              to:              to,
+              subject:         substitute(subject, preview_vars),
+              body_html:       substitute(body,    preview_vars),
+              unsubscribe_url: preview_vars['unsubscribe_url']
+            )
             return render json: { sent_to: 1 }, status: :ok
           end
 
@@ -49,15 +59,26 @@ module Api
           end
 
           user_ids = resolve_user_ids
-          SendEmailsJob.perform_later(
-            subject:  subject,
-            body:     body,
-            channel:  channel,
-            user_ids: user_ids,
-            event_id: params[:event_id].presence
+
+          broadcast = EmailBroadcast.create!(
+            subject:         subject,
+            body:            body,
+            channel:         channel,
+            event_id:        params[:event_id].presence,
+            sent_by_user_id: current_user.id,
+            recipient_count: 0
           )
 
-          render json: { queued_for: user_ids.size }, status: :ok
+          SendEmailsJob.perform_later(
+            subject:      subject,
+            body:         body,
+            channel:      channel,
+            user_ids:     user_ids,
+            broadcast_id: broadcast.id,
+            event_id:     params[:event_id].presence
+          )
+
+          render json: { broadcast_id: broadcast.id, queued_for: user_ids.size }, status: :ok
         end
 
         private
@@ -73,7 +94,30 @@ module Api
               scope = scope.joins(:attendees).where(attendees: { event_id: params[:event_id] }).distinct
             end
 
+            if params[:exclude_broadcast_id].present?
+              already_sent = EmailBroadcastRecipient
+                               .where(email_broadcast_id: params[:exclude_broadcast_id])
+                               .pluck(:user_id)
+              scope = scope.where.not(id: already_sent)
+            end
+
             scope.pluck(:id)
+          end
+
+          def broadcast_json(broadcast)
+            event_name = broadcast.event&.events_translations
+                                  &.find { |t| t.languages_code == 'ro-RO' }
+                                  &.name
+
+            {
+              id:              broadcast.id,
+              subject:         broadcast.subject,
+              channel:         broadcast.channel,
+              event_id:        broadcast.event_id,
+              event_name:      event_name,
+              recipient_count: broadcast.recipient_count,
+              sent_at:         broadcast.created_at
+            }
           end
       end
     end

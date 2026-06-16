@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_16_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_16_110000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -451,6 +451,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_16_100000) do
     t.boolean "was_active_before_deprecation", default: false, null: false
   end
 
+  create_table "email_broadcast_recipients", id: false, force: :cascade do |t|
+    t.bigint "email_broadcast_id", null: false
+    t.bigint "user_id", null: false
+    t.index ["email_broadcast_id", "user_id"], name: "idx_email_broadcast_recipients_unique", unique: true
+    t.index ["user_id"], name: "idx_email_broadcast_recipients_user_id"
+  end
+
+  create_table "email_broadcasts", force: :cascade do |t|
+    t.text "body", null: false
+    t.string "channel", null: false
+    t.datetime "created_at", null: false
+    t.bigint "event_id"
+    t.integer "recipient_count", default: 0, null: false
+    t.bigint "sent_by_user_id", null: false
+    t.text "subject", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_email_broadcasts_on_event_id"
+    t.index ["sent_by_user_id"], name: "index_email_broadcasts_on_sent_by_user_id"
+  end
+
   create_table "event_attendee_fields", force: :cascade do |t|
     t.datetime "created_at", default: -> { "now()" }, null: false
     t.bigint "event_id", null: false
@@ -672,10 +692,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_16_100000) do
   end
 
   create_table "solid_queue_claimed_executions", force: :cascade do |t|
-    t.datetime "created_at", precision: nil, null: false
+    t.datetime "created_at", null: false
     t.bigint "job_id", null: false
     t.bigint "process_id"
     t.index ["job_id"], name: "index_solid_queue_claimed_executions_on_job_id", unique: true
+    t.index ["process_id"], name: "index_solid_queue_claimed_executions_on_process_id"
   end
 
   create_table "solid_queue_failed_executions", force: :cascade do |t|
@@ -952,8 +973,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_16_100000) do
   add_foreign_key "push_notifications", "users", column: "created_by_id"
   add_foreign_key "push_subscriptions", "users"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
-  add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", name: "solid_queue_claimed_executions_job_id_fkey", on_delete: :cascade
-  add_foreign_key "solid_queue_claimed_executions", "solid_queue_processes", column: "process_id", name: "solid_queue_claimed_executions_process_id_fkey", on_delete: :restrict
+  add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
+  add_foreign_key "solid_queue_claimed_executions", "solid_queue_processes", column: "process_id", on_delete: :restrict
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_processes", "solid_queue_processes", column: "supervisor_id", on_delete: :nullify
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

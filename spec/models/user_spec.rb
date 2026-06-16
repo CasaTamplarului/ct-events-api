@@ -54,12 +54,12 @@ RSpec.describe User do
   end
 
   describe 'email preferences' do
-    it 'defaults all preference columns to false' do
+    it 'defaults all preference columns to true' do
       user = create(:user)
-      expect(user.marketing_emails).to be false
-      expect(user.payment_reminder_emails).to be false
-      expect(user.event_reminder_emails).to be false
-      expect(user.event_update_emails).to be false
+      expect(user.marketing_emails).to be true
+      expect(user.payment_reminder_emails).to be true
+      expect(user.event_reminder_emails).to be true
+      expect(user.event_update_emails).to be true
     end
   end
 
