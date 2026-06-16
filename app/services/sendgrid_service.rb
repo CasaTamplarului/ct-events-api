@@ -6,9 +6,35 @@ require 'chunky_png'
 class SendgridService
   RESET_PASSWORD_TEMPLATE_ID       = 'd-952a77f57d9f410597cfa1cf84260cef'
   BOOKING_CONFIRMATION_TEMPLATE_ID = 'd-0276cfb6a8b54df996962912bb01cd71'
+  BROADCAST_TEMPLATE_ID            = 'd-284ac2de884947928aeadc5c47a7998e'
 
   def self.emails_enabled?
     ENV['DISABLE_EMAILS'].to_s.downcase != 'true'
+  end
+
+  def self.send_broadcast(to:, subject:, body_html:, unsubscribe_url: nil)
+    return unless emails_enabled?
+
+    mail = SendGrid::Mail.new
+    from_email = Rails.application.credentials.dig(:sendgrid, :from_email) || 'noreply@example.com'
+    mail.from        = SendGrid::Email.new(email: from_email)
+    mail.template_id = BROADCAST_TEMPLATE_ID
+
+    personalization = SendGrid::Personalization.new
+    personalization.add_to(SendGrid::Email.new(email: to))
+    personalization.add_dynamic_template_data(
+      'subject'         => subject,
+      'body_html'       => body_html,
+      'unsubscribe_url' => unsubscribe_url.to_s,
+      'year'            => Time.current.year.to_s
+    )
+    mail.add_personalization(personalization)
+
+    client = SendGrid::API.new(api_key: Rails.application.credentials.dig(:sendgrid, :api_key))
+    response = client.client.mail._('send').post(request_body: mail.to_json)
+    unless response.status_code.to_i.between?(200, 299)
+      Rails.logger.error("SendGrid broadcast error: #{response.status_code} #{response.body}")
+    end
   end
 
   def self.send_password_reset(user:, reset_url:)

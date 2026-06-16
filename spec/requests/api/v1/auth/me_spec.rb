@@ -63,10 +63,10 @@ RSpec.describe 'Auth::Me endpoints' do
         get_me(headers: { 'Authorization' => "Bearer #{token}" })
 
         expect(json['email_preferences']).to eq({
-                                                  'marketing_emails' => false,
-                                                  'payment_reminder_emails' => false,
-                                                  'event_reminder_emails' => false,
-                                                  'event_update_emails' => false
+                                                  'marketing_emails' => true,
+                                                  'payment_reminder_emails' => true,
+                                                  'event_reminder_emails' => true,
+                                                  'event_update_emails' => true
                                                 })
       end
 
@@ -108,7 +108,8 @@ RSpec.describe 'Auth::Me endpoints' do
                                             'can_check_in_attendees' => false,
                                             'can_scan_food_stamp' => false,
                                             'can_send_push_notifications' => false,
-                                            'can_manage_bracelets' => false
+                                            'can_manage_bracelets' => false,
+                                            'can_send_emails' => false
                                           })
       end
 
@@ -120,7 +121,8 @@ RSpec.describe 'Auth::Me endpoints' do
                                             'can_check_in_attendees' => true,
                                             'can_scan_food_stamp' => true,
                                             'can_send_push_notifications' => false,
-                                            'can_manage_bracelets' => false
+                                            'can_manage_bracelets' => false,
+                                            'can_send_emails' => false
                                           })
       end
     end
