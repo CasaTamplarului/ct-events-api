@@ -107,14 +107,7 @@ module Api
         private
 
           def unassign_existing_bracelets(attendee)
-            attendee_ids =
-              if attendee.user_id.present?
-                Attendee.where(event_id: attendee.event_id, user_id: attendee.user_id).pluck(:id)
-              else
-                [attendee.id]
-              end
-
-            Bracelet.where(event_id: attendee.event_id, attendee_id: attendee_ids)
+            Bracelet.where(event_id: attendee.event_id, attendee_id: attendee.id)
                     .update_all(attendee_id: nil)
           end
 
