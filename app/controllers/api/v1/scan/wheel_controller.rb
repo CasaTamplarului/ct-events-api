@@ -36,6 +36,43 @@ module Api
           }
         end
 
+        def spin
+          event = Event.find_by(id: params[:event_id])
+          return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless event
+
+          attendees = event.attendees
+                           .includes(:ticket)
+                           .where.not(payment_status: %i[refunded attendee_cancelled])
+                           .where(wheel_winner: false)
+
+          if params[:checked_in].present?
+            checked_in = ActiveModel::Type::Boolean.new.cast(params[:checked_in])
+            attendees = attendees.where(checked_in: checked_in)
+          end
+
+          winner = attendees.order('RANDOM()').first
+          unless winner
+            return render json: { error: 'No eligible participants remaining' },
+                          status: :unprocessable_content
+          end
+
+          winner.update_column(:wheel_winner, true) # rubocop:disable Rails/SkipsModelValidations
+
+          payload = {
+            action:   'winner',
+            attendee: {
+              id:          winner.id,
+              first_name:  winner.first_name,
+              last_name:   winner.last_name,
+              ticket_name: winner.ticket&.name
+            }
+          }
+
+          ActionCable.server.broadcast("wheel_event_#{event.id}", payload)
+
+          render json: payload
+        end
+
         def update_winner
           attendee = Attendee.find_by(id: params[:attendee_id])
           return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless attendee
