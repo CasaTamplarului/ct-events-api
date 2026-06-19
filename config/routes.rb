@@ -62,6 +62,10 @@ Rails.application.routes.draw do
         get  'search',      to: 'search#index'
         get  'meal_slots',  to: 'meal_slots#index'
         post 'meal_stamps', to: 'meal_stamps#create'
+        scope '/wheel' do
+          get  '/',                          to: 'wheel#index'
+          patch ':attendee_id/winner',       to: 'wheel#update_winner', as: 'scan_wheel_winner'
+        end
         scope '/orders/:order_reference' do
           get   '/', to: 'orders#show',   as: 'scan_order'
           patch '/', to: 'orders#update', as: 'scan_order_update'
