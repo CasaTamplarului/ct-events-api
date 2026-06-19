@@ -19,11 +19,11 @@ class Event < ApplicationRecord
   # Scopes
 
   scope :public_only, -> { where(is_private: false) }
-  scope :upcoming, -> { public_only.where(start_date: Time.zone.now..).where(status: 'live') }
-  scope :past, -> { public_only.where(start_date: ...Time.zone.now).where(status: 'live') }
+  scope :upcoming, -> { public_only.where(end_date: Time.zone.now..).where(status: 'live') }
+  scope :past, -> { public_only.where(end_date: ...Time.zone.now).where(status: 'live') }
   scope :hero, lambda {
     public_only.where(hero: true, status: 'live')
-               .where('start_date > ?', Time.zone.now)
+               .where('end_date > ?', Time.zone.now)
                .order(start_date: :asc)
                .limit(1)
   }
@@ -31,8 +31,8 @@ class Event < ApplicationRecord
   scope :by_filter, lambda { |filter|
     base = public_only.where(status: 'live')
     case filter.to_s
-    when 'upcoming' then base.where(start_date: Time.zone.now..)
-    when 'past'     then base.where(start_date: ...Time.zone.now)
+    when 'upcoming' then base.where(end_date: Time.zone.now..)
+    when 'past'     then base.where(end_date: ...Time.zone.now)
     else                 base
     end
   }
@@ -83,7 +83,7 @@ class Event < ApplicationRecord
   end
 
   def past?
-    start_date < Time.zone.now
+    end_date < Time.zone.now
   end
 
   def fully_booked?

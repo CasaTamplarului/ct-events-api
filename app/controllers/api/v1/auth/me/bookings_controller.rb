@@ -13,7 +13,7 @@ module Api
 
           def upcoming
             orders = orders_for_user_scoped_to(
-              where_clause: 'events.start_date > ?',
+              where_clause: 'events.end_date > ?',
               sort: 'orders.created_at DESC'
             )
             render json: serialise_orders(orders)
