@@ -73,15 +73,23 @@ module Api
           render json: payload
         end
 
-        def update_winner
-          attendee = Attendee.find_by(id: params[:attendee_id])
-          return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless attendee
-
-          winner = params.key?(:winner) ? ActiveModel::Type::Boolean.new.cast(params[:winner]) : true
-          attendee.update_column(:wheel_winner, winner) # rubocop:disable Rails/SkipsModelValidations
-
-          render json: { id: attendee.id, wheel_winner: attendee.wheel_winner }
+        def mark_winner
+          set_winner(true)
         end
+
+        def unmark_winner
+          set_winner(false)
+        end
+
+        private
+
+          def set_winner(value)
+            attendee = Attendee.find_by(id: params[:attendee_id])
+            return render json: { error: I18n.t('errors.not_found') }, status: :not_found unless attendee
+
+            attendee.update_column(:wheel_winner, value) # rubocop:disable Rails/SkipsModelValidations
+            render json: { id: attendee.id, wheel_winner: value }
+          end
       end
     end
   end
