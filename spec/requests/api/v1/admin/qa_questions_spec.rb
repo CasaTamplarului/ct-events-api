@@ -57,5 +57,17 @@ RSpec.describe 'Admin Q&A Questions' do
 
       expect(QaVote.where(qa_question_id: question.id)).to be_empty
     end
+
+    it 'returns 403 for non-admin' do
+      non_admin = create(:user, role: 'attendee')
+      non_admin_headers = { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{JwtService.encode(non_admin.id)}" }
+      delete "/api/v1/admin/qa_sessions/#{session.code}/questions/#{question.id}", headers: non_admin_headers
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it 'returns 404 for unknown question id' do
+      delete "/api/v1/admin/qa_sessions/#{session.code}/questions/0", headers: headers
+      expect(response).to have_http_status(:not_found)
+    end
   end
 end

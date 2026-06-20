@@ -18,7 +18,9 @@ module Api
         end
 
         def destroy
-          question = @qa_session.qa_questions.find(params[:id])
+          question = @qa_session.qa_questions.find_by(id: params[:id])
+          return render json: { error: 'Question not found' }, status: :not_found unless question
+
           question.destroy!
           head :no_content
         end
