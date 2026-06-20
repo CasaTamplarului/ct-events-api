@@ -7,6 +7,7 @@ class User < ApplicationRecord
   has_many :user_identities, dependent: :destroy
   has_many :passkeys, dependent: :destroy
   has_many :push_subscriptions, dependent: :destroy
+  has_many :created_qa_sessions, class_name: 'QaSession', foreign_key: :created_by_user_id, dependent: :restrict_with_error
 
   ROLES = %w[admin volunteer attendee leader staff].freeze
 
