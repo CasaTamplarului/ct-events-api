@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_16_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_21_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -59,6 +59,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_16_140000) do
     t.string "ticket_name"
     t.datetime "updated_at", default: -> { "now()" }, null: false
     t.bigint "user_id"
+    t.boolean "wheel_winner", default: false, null: false
     t.index ["checked_in_by_user_id"], name: "index_attendees_on_checked_in_by_user_id"
     t.index ["event_id"], name: "index_attendees_on_event_id"
     t.index ["order_id"], name: "index_attendees_on_order_id"
@@ -681,6 +682,52 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_16_140000) do
     t.index ["user_id"], name: "index_push_subscriptions_on_user_id"
   end
 
+  create_table "qa_questions", force: :cascade do |t|
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.string "display_name"
+    t.bigint "qa_session_id", null: false
+    t.string "submitter_token"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id"
+    t.index ["qa_session_id"], name: "index_qa_questions_on_qa_session_id"
+  end
+
+  create_table "qa_session_translations", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "languages_code", null: false
+    t.string "name", null: false
+    t.bigint "qa_session_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["qa_session_id", "languages_code"], name: "idx_qa_session_translations_unique", unique: true
+    t.index ["qa_session_id"], name: "index_qa_session_translations_on_qa_session_id"
+  end
+
+  create_table "qa_sessions", force: :cascade do |t|
+    t.string "code", limit: 8, null: false
+    t.datetime "created_at", null: false
+    t.bigint "created_by_user_id", null: false
+    t.bigint "event_id", null: false
+    t.boolean "questions_public", default: true, null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.boolean "voting_enabled", default: true, null: false
+    t.index ["code"], name: "index_qa_sessions_on_code", unique: true
+    t.index ["event_id"], name: "index_qa_sessions_on_event_id"
+  end
+
+  create_table "qa_votes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "qa_question_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id"
+    t.integer "value", null: false
+    t.string "voter_token"
+    t.index ["qa_question_id", "user_id"], name: "idx_qa_votes_user_unique", unique: true, where: "(user_id IS NOT NULL)"
+    t.index ["qa_question_id", "voter_token"], name: "idx_qa_votes_token_unique", unique: true, where: "(voter_token IS NOT NULL)"
+    t.index ["qa_question_id"], name: "index_qa_votes_on_qa_question_id"
+  end
+
   create_table "solid_queue_blocked_executions", force: :cascade do |t|
     t.string "concurrency_key", null: false
     t.datetime "created_at", null: false
@@ -975,6 +1022,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_16_140000) do
   add_foreign_key "push_notifications", "events"
   add_foreign_key "push_notifications", "users", column: "created_by_id"
   add_foreign_key "push_subscriptions", "users"
+  add_foreign_key "qa_questions", "qa_sessions", on_delete: :cascade
+  add_foreign_key "qa_questions", "users", on_delete: :nullify
+  add_foreign_key "qa_session_translations", "languages", column: "languages_code", primary_key: "code"
+  add_foreign_key "qa_session_translations", "qa_sessions", on_delete: :cascade
+  add_foreign_key "qa_sessions", "events", on_delete: :cascade
+  add_foreign_key "qa_sessions", "users", column: "created_by_user_id"
+  add_foreign_key "qa_votes", "qa_questions", on_delete: :cascade
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_processes", column: "process_id", on_delete: :restrict
