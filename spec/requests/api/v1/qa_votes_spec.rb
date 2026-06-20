@@ -91,4 +91,24 @@ RSpec.describe 'Public Q&A Votes' do
       expect(QaVote.last.user_id).to eq(user.id)
     end
   end
+
+  describe '404 cases' do
+    it 'returns 404 for unknown event slug' do
+      post "/api/v1/events/no-such-event/qa/#{session.code}/questions/#{question.id}/vote",
+           params: { value: 1 }.to_json, headers: headers
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 404 for unknown session code' do
+      post "/api/v1/events/my-event/qa/BADCODE/questions/#{question.id}/vote",
+           params: { value: 1 }.to_json, headers: headers
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 404 for unknown question id' do
+      post "/api/v1/events/my-event/qa/#{session.code}/questions/0/vote",
+           params: { value: 1 }.to_json, headers: headers
+      expect(response).to have_http_status(:not_found)
+    end
+  end
 end

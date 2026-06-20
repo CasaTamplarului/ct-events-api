@@ -20,7 +20,7 @@ module Api
 
         identity = current_qa_identity
         if identity[:user_id].nil? && identity[:voter_token].blank?
-          return render json: { error: 'X-QA-Token header required' }, status: :unprocessable_content
+          return render json: { error: 'Authentication required: provide a JWT or X-QA-Token header' }, status: :unprocessable_content
         end
 
         value = params[:value].to_i
