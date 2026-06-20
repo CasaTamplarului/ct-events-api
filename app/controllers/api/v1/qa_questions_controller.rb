@@ -28,7 +28,6 @@ module Api
         )
 
         if question.save
-          question.qa_votes.reload
           render json: question_json(question, identity: identity), status: :created
         else
           render json: { error: question.errors.full_messages.first }, status: :unprocessable_content
@@ -55,7 +54,7 @@ module Api
           return render json: { error: 'Not found' }, status: :not_found unless event
 
           @qa_session = event.qa_sessions.find_by(code: params[:code])
-          render json: { error: 'Not found' }, status: :not_found unless @qa_session
+          return render json: { error: 'Not found' }, status: :not_found unless @qa_session
         end
     end
   end

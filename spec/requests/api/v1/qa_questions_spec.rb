@@ -51,6 +51,12 @@ RSpec.describe 'Public Q&A Questions' do
       expect(response).to have_http_status(:unprocessable_content)
     end
 
+    it 'returns 404 for unknown session code' do
+      post "/api/v1/events/my-event/qa/BADCODE/questions",
+           params: params.to_json, headers: headers
+      expect(response).to have_http_status(:not_found)
+    end
+
     it 'associates question with authenticated user when JWT provided' do
       user  = create(:user)
       token = JwtService.encode(user.id)
@@ -78,6 +84,11 @@ RSpec.describe 'Public Q&A Questions' do
     it 'returns 403 when trying to delete another user question' do
       delete "/api/v1/events/my-event/qa/#{session.code}/questions/#{other_q.id}", headers: headers
       expect(response).to have_http_status(:forbidden)
+    end
+
+    it 'returns 404 for unknown question id' do
+      delete "/api/v1/events/my-event/qa/#{session.code}/questions/0", headers: headers
+      expect(response).to have_http_status(:not_found)
     end
   end
 end
