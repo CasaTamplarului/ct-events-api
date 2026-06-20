@@ -9,30 +9,30 @@ RSpec.describe 'Admin Q&A Questions' do
   let(:headers) { { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{JwtService.encode(admin.id)}" } }
 
   describe 'GET /api/v1/admin/qa_sessions/:code/questions' do
-    let!(:q1) { create(:qa_question, qa_session: session, body: 'Question A') }
-    let!(:q2) { create(:qa_question, qa_session: session, body: 'Question B') }
+    let!(:question_a) { create(:qa_question, qa_session: session, body: 'Question A') }
+    let!(:question_b) { create(:qa_question, qa_session: session, body: 'Question B') }
 
     before do
-      create(:qa_vote, qa_question: q1, value: 1, voter_token: SecureRandom.uuid)
-      create(:qa_vote, qa_question: q1, value: 1, voter_token: SecureRandom.uuid)
-      create(:qa_vote, qa_question: q2, value: -1, voter_token: SecureRandom.uuid)
+      create(:qa_vote, qa_question: question_a, value: 1, voter_token: SecureRandom.uuid)
+      create(:qa_vote, qa_question: question_a, value: 1, voter_token: SecureRandom.uuid)
+      create(:qa_vote, qa_question: question_b, value: -1, voter_token: SecureRandom.uuid)
     end
 
     it 'returns questions sorted by score descending' do
       get "/api/v1/admin/qa_sessions/#{session.code}/questions", headers: headers
 
       expect(response).to have_http_status(:ok)
-      bodies = json.map { |q| q['body'] }
+      bodies = json.pluck('body')
       expect(bodies).to eq(['Question A', 'Question B'])
     end
 
     it 'returns correct scores' do
       get "/api/v1/admin/qa_sessions/#{session.code}/questions", headers: headers
 
-      q1_json = json.find { |q| q['body'] == 'Question A' }
-      q2_json = json.find { |q| q['body'] == 'Question B' }
-      expect(q1_json['score']).to eq(2)
-      expect(q2_json['score']).to eq(-1)
+      q_a_json = json.find { |q| q['body'] == 'Question A' }
+      q_b_json = json.find { |q| q['body'] == 'Question B' }
+      expect(q_a_json['score']).to eq(2)
+      expect(q_b_json['score']).to eq(-1)
     end
 
     it 'returns 401 without auth' do

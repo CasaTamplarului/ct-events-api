@@ -11,9 +11,7 @@ module Api
       before_action :load_session
 
       def create
-        if @qa_session.closed?
-          return render json: { error: 'Session is closed' }, status: :unprocessable_content
-        end
+        return render json: { error: 'Session is closed' }, status: :unprocessable_content if @qa_session.closed?
 
         identity = current_qa_identity
         if identity[:user_id].nil? && identity[:voter_token].blank?
@@ -39,9 +37,7 @@ module Api
         question = @qa_session.qa_questions.find_by(id: params[:id])
         return render json: { error: 'Question not found' }, status: :not_found unless question
 
-        unless question.submitted_by?(identity)
-          return render json: { error: 'Forbidden' }, status: :forbidden
-        end
+        return render json: { error: 'Forbidden' }, status: :forbidden unless question.submitted_by?(identity)
 
         question.destroy!
         head :no_content
@@ -54,7 +50,7 @@ module Api
           return render json: { error: 'Not found' }, status: :not_found unless event
 
           @qa_session = event.qa_sessions.find_by(code: params[:code])
-          return render json: { error: 'Not found' }, status: :not_found unless @qa_session
+          render json: { error: 'Not found' }, status: :not_found unless @qa_session
         end
     end
   end

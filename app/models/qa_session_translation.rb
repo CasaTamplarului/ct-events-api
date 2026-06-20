@@ -2,7 +2,7 @@
 
 class QaSessionTranslation < ApplicationRecord
   belongs_to :qa_session
-  belongs_to :language, foreign_key: :languages_code, primary_key: :code
+  belongs_to :language, foreign_key: :languages_code, primary_key: :code, inverse_of: false
 
   validates :name, presence: true
   validates :languages_code, presence: true, uniqueness: { scope: :qa_session_id }

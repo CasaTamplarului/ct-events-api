@@ -24,23 +24,37 @@ RSpec.describe 'Admin Q&A Sessions' do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it 'returns sessions with translations and question_count' do
-      create(:qa_question, qa_session: session)
-      get "/api/v1/admin/events/#{event.slug}/qa_sessions", headers: headers
+    context 'with a question' do
+      before { create(:qa_question, qa_session: session) }
 
-      expect(response).to have_http_status(:ok)
-      body = json
-      expect(body).to be_an(Array)
-      expect(body.length).to eq(1)
+      it 'returns 200 with an array containing one session' do
+        get "/api/v1/admin/events/#{event.slug}/qa_sessions", headers: headers
+        expect(response).to have_http_status(:ok)
+        expect(json).to be_an(Array)
+        expect(json.length).to eq(1)
+      end
 
-      s = body.first
-      expect(s['code']).to eq(session.code)
-      expect(s['status']).to eq('open')
-      expect(s['voting_enabled']).to be true
-      expect(s['questions_public']).to be true
-      expect(s['question_count']).to eq(1)
-      expect(s['translations'].first['languages_code']).to eq('ro-RO')
-      expect(s['translations'].first['name']).to eq('Sesiunea 1')
+      it 'returns the session fields and question_count' do
+        get "/api/v1/admin/events/#{event.slug}/qa_sessions", headers: headers
+        s = json.first
+        expect(s['code']).to eq(session.code)
+        expect(s['status']).to eq('open')
+        expect(s['question_count']).to eq(1)
+      end
+
+      it 'returns the session boolean flags' do
+        get "/api/v1/admin/events/#{event.slug}/qa_sessions", headers: headers
+        s = json.first
+        expect(s['voting_enabled']).to be true
+        expect(s['questions_public']).to be true
+      end
+
+      it 'returns translation data' do
+        get "/api/v1/admin/events/#{event.slug}/qa_sessions", headers: headers
+        translation_json = json.first['translations'].first
+        expect(translation_json['languages_code']).to eq('ro-RO')
+        expect(translation_json['name']).to eq('Sesiunea 1')
+      end
     end
 
     it 'returns 404 for unknown event' do
@@ -58,15 +72,27 @@ RSpec.describe 'Admin Q&A Sessions' do
       }
     end
 
-    it 'creates a session with an auto-generated code' do
+    it 'returns 201 with an auto-generated code' do
       post "/api/v1/admin/events/#{event.slug}/qa_sessions",
            params: params.to_json, headers: headers
 
       expect(response).to have_http_status(:created)
       expect(json['code']).to match(/\A[A-Z0-9]{8}\z/)
+    end
+
+    it 'returns the correct status and flags' do
+      post "/api/v1/admin/events/#{event.slug}/qa_sessions",
+           params: params.to_json, headers: headers
+
       expect(json['status']).to eq('open')
       expect(json['voting_enabled']).to be true
       expect(json['questions_public']).to be false
+    end
+
+    it 'returns the translation' do
+      post "/api/v1/admin/events/#{event.slug}/qa_sessions",
+           params: params.to_json, headers: headers
+
       expect(json['translations'].first['name']).to eq('Sesiunea 1')
     end
 
@@ -108,13 +134,13 @@ RSpec.describe 'Admin Q&A Sessions' do
 
     it 'returns 401 without auth' do
       patch "/api/v1/admin/qa_sessions/#{session.code}", params: { status: 'closed' }.to_json,
-            headers: { 'Content-Type' => 'application/json' }
+                                                         headers: { 'Content-Type' => 'application/json' }
       expect(response).to have_http_status(:unauthorized)
     end
 
     it 'returns 403 for non-admin' do
       patch "/api/v1/admin/qa_sessions/#{session.code}", params: { status: 'closed' }.to_json,
-            headers: non_admin_headers
+                                                         headers: non_admin_headers
       expect(response).to have_http_status(:forbidden)
     end
   end

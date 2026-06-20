@@ -12,16 +12,20 @@ RSpec.describe 'Public Q&A Questions' do
   describe 'POST /api/v1/events/:event_slug/qa/:code/questions' do
     let(:params) { { body: 'What time?', display_name: 'Timo' } }
 
-    def post_question(p = params)
+    def post_question(payload = params)
       post "/api/v1/events/my-event/qa/#{session.code}/questions",
-           params: p.to_json, headers: headers
+           params: payload.to_json, headers: headers
     end
 
-    it 'creates a question and returns 201' do
+    it 'returns 201 with the question body and display_name' do
       post_question
       expect(response).to have_http_status(:created)
       expect(json['body']).to eq('What time?')
       expect(json['display_name']).to eq('Timo')
+    end
+
+    it 'returns zero score and correct vote/delete flags on create' do
+      post_question
       expect(json['score']).to eq(0)
       expect(json['my_vote']).to be_nil
       expect(json['can_delete']).to be true
@@ -52,7 +56,7 @@ RSpec.describe 'Public Q&A Questions' do
     end
 
     it 'returns 404 for unknown session code' do
-      post "/api/v1/events/my-event/qa/BADCODE/questions",
+      post '/api/v1/events/my-event/qa/BADCODE/questions',
            params: params.to_json, headers: headers
       expect(response).to have_http_status(:not_found)
     end

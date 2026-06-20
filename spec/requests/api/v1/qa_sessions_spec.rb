@@ -15,11 +15,15 @@ RSpec.describe 'GET /api/v1/events/:event_slug/qa/:code' do
     get "/api/v1/events/my-event/qa/#{code}?lang=#{lang}", headers: headers
   end
 
-  it 'returns session info with translated name' do
+  it 'returns 200 with the session code and name' do
     get_session
     expect(response).to have_http_status(:ok)
     expect(json['code']).to eq(session.code)
     expect(json['name']).to eq('Sesiunea 1')
+  end
+
+  it 'returns session status and flags' do
+    get_session
     expect(json['status']).to eq('open')
     expect(json['voting_enabled']).to be true
     expect(json['questions_public']).to be true
@@ -37,35 +41,35 @@ RSpec.describe 'GET /api/v1/events/:event_slug/qa/:code' do
   end
 
   context 'with questions' do
-    let!(:q1) { create(:qa_question, qa_session: session, body: 'Alpha?', submitter_token: qa_token) }
-    let!(:q2) { create(:qa_question, qa_session: session, body: 'Beta?', submitter_token: 'other-token') }
+    let!(:question_alpha) { create(:qa_question, qa_session: session, body: 'Alpha?', submitter_token: qa_token) }
+    let!(:question_beta)  { create(:qa_question, qa_session: session, body: 'Beta?', submitter_token: 'other-token') }
 
     before do
-      create(:qa_vote, qa_question: q1, value: 1, voter_token: qa_token)
-      create(:qa_vote, qa_question: q2, value: 1, voter_token: SecureRandom.uuid)
-      create(:qa_vote, qa_question: q2, value: 1, voter_token: SecureRandom.uuid)
+      create(:qa_vote, qa_question: question_alpha, value: 1, voter_token: qa_token)
+      create(:qa_vote, qa_question: question_beta, value: 1, voter_token: SecureRandom.uuid)
+      create(:qa_vote, qa_question: question_beta, value: 1, voter_token: SecureRandom.uuid)
     end
 
     it 'returns questions sorted by score descending' do
       get_session
-      bodies = json['questions'].map { |q| q['body'] }
+      bodies = json['questions'].pluck('body')
       expect(bodies).to eq(['Beta?', 'Alpha?'])
     end
 
     it 'returns my_vote for the requester' do
       get_session
-      q1_json = json['questions'].find { |q| q['body'] == 'Alpha?' }
-      q2_json = json['questions'].find { |q| q['body'] == 'Beta?' }
-      expect(q1_json['my_vote']).to eq(1)
-      expect(q2_json['my_vote']).to be_nil
+      alpha_json = json['questions'].find { |q| q['body'] == 'Alpha?' }
+      beta_json  = json['questions'].find { |q| q['body'] == 'Beta?' }
+      expect(alpha_json['my_vote']).to eq(1)
+      expect(beta_json['my_vote']).to be_nil
     end
 
     it 'returns can_delete true only for own questions' do
       get_session
-      q1_json = json['questions'].find { |q| q['body'] == 'Alpha?' }
-      q2_json = json['questions'].find { |q| q['body'] == 'Beta?' }
-      expect(q1_json['can_delete']).to be true
-      expect(q2_json['can_delete']).to be false
+      alpha_json = json['questions'].find { |q| q['body'] == 'Alpha?' }
+      beta_json  = json['questions'].find { |q| q['body'] == 'Beta?' }
+      expect(alpha_json['can_delete']).to be true
+      expect(beta_json['can_delete']).to be false
     end
 
     it 'returns correct my_vote and can_delete for authenticated user' do
@@ -90,13 +94,13 @@ RSpec.describe 'GET /api/v1/events/:event_slug/qa/:code' do
 
     it 'returns only the requester own questions' do
       get_session
-      bodies = json['questions'].map { |q| q['body'] }
+      bodies = json['questions'].pluck('body')
       expect(bodies).to eq(['Mine?'])
       expect(bodies).not_to include('Others?')
     end
   end
 
-  context 'name fallback' do
+  context 'when the requested lang has no translation' do
     it 'falls back to first available translation when lang not found' do
       get_session(lang: 'fr-FR')
       expect(json['name']).to eq('Sesiunea 1')
