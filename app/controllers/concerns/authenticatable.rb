@@ -33,4 +33,10 @@ module Authenticatable
 
     render json: { error: I18n.t('auth.errors.forbidden') }, status: :forbidden
   end
+
+  def require_admin!
+    return if current_user&.role == 'admin'
+
+    render json: { error: I18n.t('auth.errors.forbidden') }, status: :forbidden
+  end
 end
