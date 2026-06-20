@@ -52,8 +52,8 @@ RSpec.describe 'GET /api/v1/:lang/events/listing' do
     end
 
     it 'filter=past returns only past events sorted DESC (most recent first)' do
-      _recent = create_live_event(start_date: 2.days.ago,  name: 'Recent')
-      _older  = create_live_event(start_date: 20.days.ago, name: 'Older')
+      _recent = create_live_event(start_date: 5.days.ago,  name: 'Recent')
+      _older  = create_live_event(start_date: 25.days.ago, name: 'Older')
 
       get_listing(filter: 'past')
 
