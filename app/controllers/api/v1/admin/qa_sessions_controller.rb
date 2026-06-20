@@ -36,26 +36,30 @@ module Api
         end
 
         def update
-          session = QaSession.find_by!(code: params[:code])
+          session = QaSession.find_by(code: params[:code])
+          return render json: { error: 'QA session not found' }, status: :not_found unless session
+
           attrs = params.permit(:voting_enabled, :questions_public, :status)
 
-          if params[:translations].present?
-            params[:translations].each do |lang, translation_attrs|
-              t = session.qa_session_translations.find_or_initialize_by(languages_code: lang)
-              t.name = translation_attrs[:name]
-              t.save!
+          ActiveRecord::Base.transaction do
+            if params[:translations].present?
+              params[:translations].each do |lang, translation_attrs|
+                t = session.qa_session_translations.find_or_initialize_by(languages_code: lang)
+                t.name = translation_attrs[:name]
+                t.save!
+              end
             end
+            session.update!(attrs)
           end
-
-          if session.update(attrs)
-            render json: session_json(session.reload)
-          else
-            render json: { error: session.errors.full_messages.first }, status: :unprocessable_content
-          end
+          render json: session_json(session.reload)
+        rescue ActiveRecord::RecordInvalid => e
+          render json: { error: e.message }, status: :unprocessable_content
         end
 
         def destroy
-          session = QaSession.find_by!(code: params[:code])
+          session = QaSession.find_by(code: params[:code])
+          return render json: { error: 'QA session not found' }, status: :not_found unless session
+
           session.destroy!
           head :no_content
         end

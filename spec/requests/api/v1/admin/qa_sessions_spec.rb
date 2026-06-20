@@ -105,6 +105,18 @@ RSpec.describe 'Admin Q&A Sessions' do
       expect(response).to have_http_status(:ok)
       expect(json['voting_enabled']).to be false
     end
+
+    it 'returns 401 without auth' do
+      patch "/api/v1/admin/qa_sessions/#{session.code}", params: { status: 'closed' }.to_json,
+            headers: { 'Content-Type' => 'application/json' }
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it 'returns 403 for non-admin' do
+      patch "/api/v1/admin/qa_sessions/#{session.code}", params: { status: 'closed' }.to_json,
+            headers: non_admin_headers
+      expect(response).to have_http_status(:forbidden)
+    end
   end
 
   describe 'DELETE /api/v1/admin/qa_sessions/:code' do
