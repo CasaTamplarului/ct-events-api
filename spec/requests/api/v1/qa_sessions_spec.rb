@@ -31,6 +31,11 @@ RSpec.describe 'GET /api/v1/events/:event_slug/qa/:code' do
     expect(response).to have_http_status(:not_found)
   end
 
+  it 'returns 404 for unknown event' do
+    get '/api/v1/events/no-such-event/qa/ANYCODE', headers: headers
+    expect(response).to have_http_status(:not_found)
+  end
+
   context 'with questions' do
     let!(:q1) { create(:qa_question, qa_session: session, body: 'Alpha?', submitter_token: qa_token) }
     let!(:q2) { create(:qa_question, qa_session: session, body: 'Beta?', submitter_token: 'other-token') }
@@ -61,6 +66,20 @@ RSpec.describe 'GET /api/v1/events/:event_slug/qa/:code' do
       q2_json = json['questions'].find { |q| q['body'] == 'Beta?' }
       expect(q1_json['can_delete']).to be true
       expect(q2_json['can_delete']).to be false
+    end
+
+    it 'returns correct my_vote and can_delete for authenticated user' do
+      user = create(:user)
+      token = JwtService.encode(user.id)
+      auth_question = create(:qa_question, qa_session: session, body: 'User question?', user_id: user.id, submitter_token: nil)
+      create(:qa_vote, qa_question: auth_question, value: -1, user_id: user.id, voter_token: nil)
+
+      get "/api/v1/events/my-event/qa/#{session.code}?lang=ro-RO",
+          headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{token}" }
+
+      q_json = json['questions'].find { |q| q['body'] == 'User question?' }
+      expect(q_json['my_vote']).to eq(-1)
+      expect(q_json['can_delete']).to be true
     end
   end
 
