@@ -6,6 +6,7 @@ module Api
       class QaQuestionsController < ActionController::API
         include Authenticatable
         include QaQuestionRenderable
+        include QaBroadcastable
 
         before_action :authenticate_user!
         before_action :require_admin!
@@ -22,6 +23,7 @@ module Api
           return render json: { error: 'Question not found' }, status: :not_found unless question
 
           question.destroy!
+          broadcast_question_deleted(@qa_session.code, question.id)
           head :no_content
         end
 
