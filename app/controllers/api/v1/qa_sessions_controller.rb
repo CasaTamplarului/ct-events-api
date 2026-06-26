@@ -21,7 +21,7 @@ module Api
         identity = current_qa_identity
         lang = params[:lang].presence || 'ro-RO'
         questions = visible_questions(qa_session, identity)
-        sorted = questions.sort_by { |q| [-q.qa_votes.sum(&:value), q.created_at] }
+        sorted = questions.sort_by { |q| [-q.qa_votes.sum(&:value), -q.created_at.to_i] }
 
         render json: {
           code: qa_session.code,

@@ -14,7 +14,7 @@ module Api
 
         def index
           questions = @qa_session.qa_questions.includes(:qa_votes).to_a
-          sorted = questions.sort_by { |q| [-q.qa_votes.sum(&:value), q.created_at] }
+          sorted = questions.sort_by { |q| [-q.qa_votes.sum(&:value), -q.created_at.to_i] }
           render json: sorted.map { |q| question_json(q, identity: nil, admin: true) }
         end
 
