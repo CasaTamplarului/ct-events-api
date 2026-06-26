@@ -12,13 +12,12 @@ module ApplicationCable
 
       def find_verified_user
         token = request.params[:token]
-        reject_unauthorized_connection if token.blank?
+        return nil if token.blank?
 
         user_id = JwtService.decode(token)
-        user    = User.active.find_by(id: user_id)
-        user || reject_unauthorized_connection
+        User.active.find_by(id: user_id)
       rescue JWT::DecodeError
-        reject_unauthorized_connection
+        nil
       end
   end
 end

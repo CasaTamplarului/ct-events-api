@@ -6,6 +6,7 @@ module Api
       class QaQuestionsController < ActionController::API
         include Authenticatable
         include QaQuestionRenderable
+        include QaBroadcastable
 
         before_action :authenticate_user!
         before_action :require_admin!
@@ -13,7 +14,7 @@ module Api
 
         def index
           questions = @qa_session.qa_questions.includes(:qa_votes).to_a
-          sorted = questions.sort_by { |q| [-q.qa_votes.sum(&:value), q.created_at] }
+          sorted = questions.sort_by { |q| [-q.qa_votes.sum(&:value), -q.created_at.to_i] }
           render json: sorted.map { |q| question_json(q, identity: nil, admin: true) }
         end
 
@@ -22,6 +23,7 @@ module Api
           return render json: { error: 'Question not found' }, status: :not_found unless question
 
           question.destroy!
+          broadcast_question_deleted(@qa_session.code, question.id)
           head :no_content
         end
 

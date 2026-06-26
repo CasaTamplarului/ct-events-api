@@ -5,6 +5,7 @@ module Api
     class QaVotesController < ActionController::API
       include Authenticatable
       include QaIdentifiable
+      include QaBroadcastable
 
       before_action :try_authenticate_user
       before_action :load_session_and_question
@@ -45,6 +46,7 @@ module Api
           else
             vote = @question.qa_votes.create!(value: value, user_id: identity[:user_id],
                                               voter_token: identity[:voter_token])
+            broadcast_score_updated(@question.reload)
             render json: { my_vote: vote.value }, status: :created
           end
         end
@@ -52,9 +54,11 @@ module Api
         def handle_existing_vote(existing, value)
           if existing.value == value
             existing.destroy!
+            broadcast_score_updated(@question.reload)
             render json: { my_vote: nil }, status: :ok
           else
             existing.update!(value: value)
+            broadcast_score_updated(@question.reload)
             render json: { my_vote: value }, status: :ok
           end
         end

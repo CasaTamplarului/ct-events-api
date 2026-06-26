@@ -6,6 +6,7 @@ module Api
       include Authenticatable
       include QaIdentifiable
       include QaQuestionRenderable
+      include QaBroadcastable
 
       before_action :try_authenticate_user
       before_action :load_session
@@ -26,6 +27,7 @@ module Api
         )
 
         if question.save
+          broadcast_question_added(question)
           render json: question_json(question, identity: identity), status: :created
         else
           render json: { error: question.errors.full_messages.first }, status: :unprocessable_content
@@ -40,6 +42,7 @@ module Api
         return render json: { error: 'Forbidden' }, status: :forbidden unless question.submitted_by?(identity)
 
         question.destroy!
+        broadcast_question_deleted(@qa_session.code, question.id)
         head :no_content
       end
 
