@@ -2,7 +2,7 @@
 
 class WheelChannel < ApplicationCable::Channel
   def subscribed
-    reject unless current_user.can?(:can_check_in_attendees)
+    reject unless current_user&.can?(:can_check_in_attendees)
 
     event_id = params[:event_id].to_i
     reject unless event_id.positive?

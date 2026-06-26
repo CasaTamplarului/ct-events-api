@@ -30,8 +30,10 @@ module QaBroadcastable
 
     def broadcast_score_updated(question)
       score = question.qa_votes.sum(:value)
+      channel = "qa_questions_#{question.qa_session.code}"
+      Rails.logger.info "[QaBroadcast] Broadcasting score_updated to #{channel}: question=#{question.id} score=#{score}"
       ActionCable.server.broadcast(
-        "qa_questions_#{question.qa_session.code}",
+        channel,
         { type: 'score_updated', question_id: question.id, score: score }
       )
     end
