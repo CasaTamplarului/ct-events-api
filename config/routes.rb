@@ -14,6 +14,9 @@ Rails.application.routes.draw do
         resource :google,    only: :create
         resource :microsoft, only: :create
         resource :apple,     only: :create
+        # Sign in with Apple web flow for the mobile apps: Apple form_posts
+        # here, and the token is bounced into the app via its deep link.
+        post 'apple/callback', to: 'apples#callback'
         resource :me, only: %i[show update destroy], controller: 'me' do
           patch :password, on: :member
           resource :email_preferences, only: :update, controller: 'me/email_preferences'

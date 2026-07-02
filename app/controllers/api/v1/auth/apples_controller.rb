@@ -36,6 +36,20 @@ module Api
           render json: { jwt: jwt, user: user_json(user) }, status: :ok
         end
 
+        # Return URL for the mobile apps' Sign in with Apple web flow
+        # (Android Custom Tab / any non-native context). Apple form_posts
+        # id_token here (aud = the web Services ID, same as the webapp);
+        # the app finishes sign-in by POSTing it to #create as usual.
+        def callback
+          if params[:id_token].present?
+            redirect_to "casatamplarului://apple-signin?id_token=#{CGI.escape(params[:id_token])}",
+                        allow_other_host: true
+          else
+            redirect_to "casatamplarului://apple-signin?error=#{CGI.escape(params[:error].presence || 'missing_token')}",
+                        allow_other_host: true
+          end
+        end
+
         private
 
           def find_or_create_user(apple_data)
