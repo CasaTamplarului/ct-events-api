@@ -31,6 +31,25 @@ module Api
           render json: { jwt: jwt, user: user_json(user) }, status: :ok
         end
 
+        # Return URL for the mobile apps' Facebook web OAuth flow: exchanges
+        # the code server-side and bounces the access token into the app via
+        # its deep link; the app finishes sign-in by POSTing it to #create.
+        CALLBACK_URL = 'https://api-events.casatamplarului.ro/api/v1/auth/facebook/callback'
+
+        def callback
+          if params[:code].present?
+            token = FacebookAuthService.exchange_code(params[:code], CALLBACK_URL)
+            redirect_to "casatamplarului://facebook-signin?access_token=#{CGI.escape(token)}",
+                        allow_other_host: true
+          else
+            redirect_to "casatamplarului://facebook-signin?error=#{CGI.escape(params[:error].presence || 'missing_code')}",
+                        allow_other_host: true
+          end
+        rescue FacebookAuthService::InvalidTokenError => e
+          redirect_to "casatamplarului://facebook-signin?error=#{CGI.escape(e.message)}",
+                      allow_other_host: true
+        end
+
         private
 
           def find_or_create_user(facebook_data)
