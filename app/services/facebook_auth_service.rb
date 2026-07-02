@@ -17,6 +17,26 @@ class FacebookAuthService
     fetch_user_data(access_token)
   end
 
+  # Server-side half of the mobile apps' web OAuth flow: exchanges the
+  # dialog's code for a user access token (needs the app secret).
+  def self.exchange_code(code, redirect_uri)
+    app_id     = Rails.application.credentials.dig(:auth, :facebook_app_id)
+    app_secret = Rails.application.credentials.dig(:auth, :facebook_app_secret)
+    raise InvalidTokenError, 'Facebook credentials not configured' if app_id.blank? || app_secret.blank?
+
+    url = URI("#{GRAPH_BASE}/v19.0/oauth/access_token")
+    url.query = URI.encode_www_form(
+      client_id: app_id,
+      client_secret: app_secret,
+      redirect_uri: redirect_uri,
+      code: code
+    )
+    token = get_json!(url)['access_token']
+    raise InvalidTokenError, 'Code exchange returned no token' if token.blank?
+
+    token
+  end
+
   class << self
     private
 

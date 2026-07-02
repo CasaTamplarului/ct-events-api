@@ -11,6 +11,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       namespace :auth do
         resource :facebook,  only: :create
+        get 'facebook/callback', to: 'facebooks#callback'
         resource :google,    only: :create
         resource :microsoft, only: :create
         resource :apple,     only: :create
