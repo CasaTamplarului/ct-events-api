@@ -22,6 +22,17 @@ class FcmService
     end
   end
 
+  # Anonymous mobile devices (no user) — marketing broadcasts only.
+  def self.send_to_anonymous(title:, body:, image: nil, link: nil, actions: [])
+    return unless push_enabled?
+
+    token = access_token
+    PushSubscription.where(user_id: nil).find_each do |subscription|
+      deliver(subscription: subscription, title: title, body: body,
+              image: image, link: link, actions: actions, access_token: token)
+    end
+  end
+
   class << self
     private
 
@@ -51,7 +62,7 @@ class FcmService
         req = Net::HTTP::Post.new(uri)
         req['Authorization'] = "Bearer #{access_token}"
         req['Content-Type']  = 'application/json'
-        req.body = build_payload(reg_token, title, body, image, link, actions).to_json
+        req.body = build_payload(reg_token, title, body, image, link, actions, subscription.platform).to_json
 
         res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
         return if res.code.to_i.between?(200, 299)
@@ -63,16 +74,35 @@ class FcmService
         end
       end
 
-      def build_payload(token, title, body, image, link, actions)
+      def build_payload(token, title, body, image, link, actions, platform = 'web')
         shared_data = { 'title' => title, 'body' => body, 'icon' => DEFAULT_ICON }
         shared_data['image']   = image           if image.present?
         shared_data['link']    = link            if link.present?
         shared_data['actions'] = actions.to_json if actions.present?
 
-        webpush = { headers: { 'Urgency' => 'high' }, data: shared_data }
-        webpush[:fcm_options] = { link: link } if link.present?
+        message = { token: token, data: shared_data }
 
-        { message: { token: token, data: shared_data, webpush: webpush } }
+        case platform
+        when 'android'
+          # System-tray notification when the app is backgrounded; the app's
+          # messaging service renders foreground ones from the data payload.
+          notification = { title: title, body: body }
+          notification[:image] = image if image.present?
+          message[:android] = { priority: 'HIGH',
+                                notification: notification.merge(channel_id: 'default') }
+        when 'ios'
+          # APNs alert — data-only messages are not shown on iOS.
+          message[:apns] = {
+            payload: { aps: { alert: { title: title, body: body }, sound: 'default' } }
+          }
+          message[:apns][:fcm_options] = { image: image } if image.present?
+        else
+          webpush = { headers: { 'Urgency' => 'high' }, data: shared_data }
+          webpush[:fcm_options] = { link: link } if link.present?
+          message[:webpush] = webpush
+        end
+
+        { message: message }
       end
 
       def fcm_token(token)

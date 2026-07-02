@@ -24,6 +24,18 @@ class SendPushNotificationsJob < ApplicationJob
       )
     end
 
+    # Anonymous mobile devices receive marketing broadcasts only.
+    if preference == :marketing_push
+      t = push_notification.translation_for('ro')
+      FcmService.send_to_anonymous(
+        title: t['title'],
+        body: t['body'],
+        image: push_notification.image_url,
+        link: link,
+        actions: t['actions'] || []
+      )
+    end
+
     push_notification.update!(sent_to: users.size)
   end
 end

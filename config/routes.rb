@@ -96,6 +96,11 @@ Rails.application.routes.draw do
         end
       end
 
+      # Mobile device push registration — auth optional (anonymous devices
+      # only receive marketing broadcasts).
+      post   'push_subscriptions', to: 'push_subscriptions#create'
+      delete 'push_subscriptions', to: 'push_subscriptions#destroy'
+
       get '/unsubscribe', to: 'unsubscribe#show'
       get '/orders/booking/:token', to: 'booking_token#show', as: 'booking_by_token'
 
