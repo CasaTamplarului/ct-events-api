@@ -98,6 +98,7 @@ Rails.application.routes.draw do
 
       # Mobile device push registration — auth optional (anonymous devices
       # only receive marketing broadcasts).
+      get    'push_subscriptions', to: 'push_subscriptions#show'
       post   'push_subscriptions', to: 'push_subscriptions#create'
       delete 'push_subscriptions', to: 'push_subscriptions#destroy'
 
