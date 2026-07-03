@@ -24,6 +24,13 @@ module Api
         end
       end
 
+      # The apps reconcile their local toggle against this on every page
+      # visit — the server row is the source of truth.
+      def show
+        sub = PushSubscription.find_by(token: params[:token])
+        render json: { registered: sub.present? }
+      end
+
       def destroy
         sub = PushSubscription.find_by(token: params[:token])
         sub&.destroy
