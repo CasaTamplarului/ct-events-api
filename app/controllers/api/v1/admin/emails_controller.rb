@@ -43,8 +43,9 @@ module Api
           return render json: { error: 'body is required' },    status: :bad_request if body.blank?
 
           if to.present?
-            preview_vars = (params[:preview_variables] || {}).to_unsafe_h.stringify_keys
-                                                             .slice(*SendEmailsJob::VARIABLE_KEYS)
+            raw_vars     = params[:preview_variables]
+            preview_vars = (raw_vars.respond_to?(:to_unsafe_h) ? raw_vars.to_unsafe_h : {})
+                           .stringify_keys.slice(*SendEmailsJob::VARIABLE_KEYS)
             romanian     = params[:preview_language].to_s != 'en'
             subj         = romanian || subject_en.blank? ? subject : subject_en
             bod          = romanian || body_en.blank?    ? body    : body_en
