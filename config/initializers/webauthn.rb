@@ -9,7 +9,8 @@ WebAuthn.configure do |config|
   # Android debug keystore used for development builds.
   android_origins = ENV.fetch(
     'WEBAUTHN_ANDROID_ORIGINS',
-    'android:apk-key-hash:GuoWiZMydUPUGYUrATRZpd2k7kYUtWW7Cc7_ZrLyKcM'
+    'android:apk-key-hash:GuoWiZMydUPUGYUrATRZpd2k7kYUtWW7Cc7_ZrLyKcM,' \
+    'android:apk-key-hash:n0mzCOQDofhQxpbVynBZ1ii2tWABqezeja-QMfHAbEM'
   ).split(',').map(&:strip).reject(&:empty?)
 
   config.allowed_origins = [origin] + android_origins
