@@ -17,7 +17,9 @@ class PushNotification < ApplicationRecord
   def image_url
     return nil if directus_file_id.blank?
 
-    "#{DIRECTUS_URL}/assets/#{directus_file_id}"
+    # Downscaled transform: originals can be huge (10MB+), while iOS caps
+    # notification attachments at 10MB and gives the service extension ~30s.
+    "#{DIRECTUS_URL}/assets/#{directus_file_id}?width=1200&quality=80&format=jpg"
   end
 
   private
