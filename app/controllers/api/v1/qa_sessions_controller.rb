@@ -7,6 +7,14 @@ module Api
       include QaIdentifiable
       include QaQuestionRenderable
 
+      # Codes are globally unique — lets clients join by code alone.
+      def resolve
+        qa_session = QaSession.includes(:event).find_by(code: params[:code].to_s.strip)
+        return render json: { error: 'Not found' }, status: :not_found unless qa_session
+
+        render json: { event_slug: qa_session.event.slug, code: qa_session.code }
+      end
+
       def show
         try_authenticate_user
 
