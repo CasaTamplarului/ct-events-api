@@ -93,7 +93,14 @@ class FcmService
         when 'ios'
           # APNs alert — data-only messages are not shown on iOS.
           message[:apns] = {
-            payload: { aps: { alert: { title: title, body: body }, sound: 'default' } }
+            payload: {
+              aps: {
+                alert: { title: title, body: body },
+                sound: 'default',
+                # Lets the notification service extension attach the image.
+                'mutable-content': 1
+              }
+            }
           }
           message[:apns][:fcm_options] = { image: image } if image.present?
         else
