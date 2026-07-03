@@ -110,6 +110,8 @@ Rails.application.routes.draw do
         get 'apple',  to: 'wallet#apple',  as: 'public_apple_wallet'
       end
 
+      get 'qa/:code', to: 'qa_sessions#resolve', as: 'public_qa_resolve'
+
       scope '/events/:event_slug/qa/:code' do
         get    '/',                           to: 'qa_sessions#show',    as: 'public_qa_session'
         post   'questions',                   to: 'qa_questions#create', as: 'public_qa_questions'
