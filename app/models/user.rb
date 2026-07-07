@@ -7,21 +7,22 @@ class User < ApplicationRecord
   has_many :user_identities, dependent: :destroy
   has_many :passkeys, dependent: :destroy
   has_many :push_subscriptions, dependent: :destroy
-  has_many :created_qa_sessions, class_name: 'QaSession', foreign_key: :created_by_user_id, dependent: :restrict_with_error
+  has_many :created_qa_sessions, class_name: 'QaSession', foreign_key: :created_by_user_id,
+                                 dependent: :restrict_with_error
 
   ROLES = %w[admin volunteer attendee leader staff].freeze
 
   ROLE_PERMISSIONS = {
     'admin' => { can_check_in_attendees: true, can_scan_food_stamp: true, can_send_push_notifications: true,
-                 can_manage_bracelets: true, can_send_emails: true }.freeze,
+                 can_manage_bracelets: true, can_send_emails: true, can_send_whatsapp: true }.freeze,
     'volunteer' => { can_check_in_attendees: true, can_scan_food_stamp: true, can_send_push_notifications: false,
-                     can_manage_bracelets: false, can_send_emails: false }.freeze,
+                     can_manage_bracelets: false, can_send_emails: false, can_send_whatsapp: false }.freeze,
     'attendee' => { can_check_in_attendees: false, can_scan_food_stamp: false, can_send_push_notifications: false,
-                    can_manage_bracelets: false, can_send_emails: false }.freeze,
+                    can_manage_bracelets: false, can_send_emails: false, can_send_whatsapp: false }.freeze,
     'leader' => { can_check_in_attendees: false, can_scan_food_stamp: false, can_send_push_notifications: false,
-                  can_manage_bracelets: false, can_send_emails: false }.freeze,
+                  can_manage_bracelets: false, can_send_emails: false, can_send_whatsapp: false }.freeze,
     'staff' => { can_check_in_attendees: false, can_scan_food_stamp: false, can_send_push_notifications: false,
-                 can_manage_bracelets: false, can_send_emails: false }.freeze
+                 can_manage_bracelets: false, can_send_emails: false, can_send_whatsapp: false }.freeze
   }.freeze
 
   attribute :role, :string, default: 'attendee'

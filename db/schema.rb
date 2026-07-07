@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_02_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_07_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -938,6 +938,34 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_02_000001) do
     t.index ["deleted_at"], name: "index_users_on_deleted_at"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["password_reset_token"], name: "index_users_on_password_reset_token", unique: true
+  end
+
+  create_table "whatsapp_broadcast_recipients", id: false, force: :cascade do |t|
+    t.string "phone_number", null: false
+    t.bigint "user_id"
+    t.bigint "whatsapp_broadcast_id", null: false
+    t.index "whatsapp_broadcast_id, lower((phone_number)::text)", name: "idx_whatsapp_broadcast_recipients_broadcast_phone", unique: true
+    t.index ["user_id"], name: "idx_whatsapp_broadcast_recipients_user_id", where: "(user_id IS NOT NULL)"
+  end
+
+  create_table "whatsapp_broadcasts", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "event_id"
+    t.integer "recipient_count", default: 0, null: false
+    t.bigint "sent_by_user_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "whatsapp_template_id", null: false
+    t.index ["event_id"], name: "index_whatsapp_broadcasts_on_event_id"
+    t.index ["sent_by_user_id"], name: "index_whatsapp_broadcasts_on_sent_by_user_id"
+    t.index ["whatsapp_template_id"], name: "index_whatsapp_broadcasts_on_whatsapp_template_id"
+  end
+
+  create_table "whatsapp_templates", force: :cascade do |t|
+    t.string "content_sid", null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.jsonb "variables", default: [], null: false
   end
 
   add_foreign_key "attendee_boolean_field_responses", "attendees", on_delete: :cascade
