@@ -10,7 +10,7 @@ module Api
         before_action { require_permission!(:can_send_whatsapp) }
 
         def index
-          broadcasts = WhatsappBroadcast.includes(:whatsapp_template, :event)
+          broadcasts = WhatsappBroadcast.includes(:whatsapp_template, event: :events_translations)
                                         .order(created_at: :desc)
                                         .limit(50)
           render json: broadcasts.map { |b| broadcast_json(b) }
