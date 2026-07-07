@@ -109,7 +109,8 @@ RSpec.describe 'Auth::Me endpoints' do
                                             'can_scan_food_stamp' => false,
                                             'can_send_push_notifications' => false,
                                             'can_manage_bracelets' => false,
-                                            'can_send_emails' => false
+                                            'can_send_emails' => false,
+                                            'can_send_whatsapp' => false
                                           })
       end
 
@@ -122,7 +123,8 @@ RSpec.describe 'Auth::Me endpoints' do
                                             'can_scan_food_stamp' => true,
                                             'can_send_push_notifications' => false,
                                             'can_manage_bracelets' => false,
-                                            'can_send_emails' => false
+                                            'can_send_emails' => false,
+                                            'can_send_whatsapp' => false
                                           })
       end
     end

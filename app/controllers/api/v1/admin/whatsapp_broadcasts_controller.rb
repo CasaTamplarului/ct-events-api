@@ -20,7 +20,9 @@ module Api
           template = WhatsappTemplate.find_by(id: params[:template_id])
           return render json: { error: 'Template not found' }, status: :not_found unless template
 
-          if params[:to].present?
+          if params.key?(:to)
+            return render json: { error: 'to is required for test send' }, status: :bad_request if params[:to].blank?
+
             variables = (params[:variables].respond_to?(:to_unsafe_h) ? params[:variables].to_unsafe_h : {})
                         .stringify_keys
             content_variables = resolve_content_variables(template.variables, variables)
