@@ -19,6 +19,24 @@ RSpec.describe TwilioService do
     allow(Rails.application.credentials).to receive(:dig).with(:twilio, :whatsapp_from).and_return('whatsapp:+14155238886')
   end
 
+  describe '.normalise_phone' do
+    it 'returns E.164 for a number already prefixed with +' do
+      expect(described_class.normalise_phone('+40700123456')).to eq('+40700123456')
+    end
+
+    it 'adds the + prefix when the number has a country code but no +' do
+      expect(described_class.normalise_phone('40700123456')).to eq('+40700123456')
+    end
+
+    it 'returns nil for a structurally invalid number' do
+      expect(described_class.normalise_phone('not-a-phone')).to be_nil
+    end
+
+    it 'returns nil for a blank string' do
+      expect(described_class.normalise_phone('')).to be_nil
+    end
+  end
+
   describe '.send_whatsapp' do
     subject(:call) do
       described_class.send_whatsapp(
@@ -36,6 +54,26 @@ RSpec.describe TwilioService do
         content_sid: 'HXabc123',
         content_variables: '{"1":"Ion","2":"Fara Regrete"}'
       )
+    end
+
+    it 'normalises a number stored without + before sending' do
+      described_class.send_whatsapp(
+        to: '40700123456',
+        content_sid: 'HXabc123',
+        content_variables: { '1' => 'Ion' }
+      )
+      expect(twilio_messages).to have_received(:create).with(
+        hash_including(to: 'whatsapp:+40700123456')
+      )
+    end
+
+    context 'when the phone number is invalid' do
+      it 'logs a warning and skips the Twilio call' do
+        allow(Rails.logger).to receive(:warn)
+        described_class.send_whatsapp(to: 'bad', content_sid: 'HXabc123', content_variables: {})
+        expect(twilio_messages).not_to have_received(:create)
+        expect(Rails.logger).to have_received(:warn).with(/invalid phone/)
+      end
     end
 
     context 'when DISABLE_EMAILS is true' do
