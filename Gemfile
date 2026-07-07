@@ -28,6 +28,7 @@ gem 'webauthn', '~> 3.0'
 
 # Email
 gem 'sendgrid-ruby'
+gem 'twilio-ruby', '~> 7.0'
 gem 'rqrcode'
 gem 'rubyzip', '~> 2.3'
 
