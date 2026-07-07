@@ -10,7 +10,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       namespace :auth do
-        resource :facebook,  only: :create
+        resource :facebook, only: :create
         get 'facebook/callback', to: 'facebooks#callback'
         resource :google,    only: :create
         resource :microsoft, only: :create
@@ -59,12 +59,14 @@ Rails.application.routes.draw do
         resources :emails, only: %i[index create] do
           collection { get :variables }
         end
+        resources :whatsapp_templates,  only: %i[index create]
+        resources :whatsapp_broadcasts, only: %i[index create]
         scope '/events/:event_slug' do
           get  'qa_sessions', to: 'qa_sessions#index', as: 'admin_event_qa_sessions'
           post 'qa_sessions', to: 'qa_sessions#create'
         end
         scope '/qa_sessions/:code' do
-          patch  '/',             to: 'qa_sessions#update',  as: 'admin_qa_session'
+          patch  '/',             to: 'qa_sessions#update', as: 'admin_qa_session'
           delete '/',             to: 'qa_sessions#destroy'
           get    'questions',     to: 'qa_questions#index',   as: 'admin_qa_session_questions'
           delete 'questions/:id', to: 'qa_questions#destroy', as: 'admin_qa_session_question'
@@ -116,7 +118,7 @@ Rails.application.routes.draw do
         get    '/',                           to: 'qa_sessions#show',    as: 'public_qa_session'
         post   'questions',                   to: 'qa_questions#create', as: 'public_qa_questions'
         delete 'questions/:id',               to: 'qa_questions#destroy', as: 'public_qa_question'
-        post   'questions/:question_id/vote', to: 'qa_votes#create',     as: 'public_qa_vote'
+        post   'questions/:question_id/vote', to: 'qa_votes#create', as: 'public_qa_vote'
       end
 
       scope '/:languages_code', constraints: { languages_code: /[a-zA-Z]{2}-[a-zA-Z]{2}/ } do
