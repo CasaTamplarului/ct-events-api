@@ -6,4 +6,5 @@ class EmailBroadcast < ApplicationRecord
 
   has_many :email_broadcast_recipients, dependent: :delete_all
   has_many :recipient_users, through: :email_broadcast_recipients, source: :user
+  has_many_attached :attachments
 end
