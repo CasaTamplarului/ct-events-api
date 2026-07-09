@@ -166,7 +166,7 @@ module Api
 
             direct_files.each do |file|
               broadcast.attachments.attach(file)
-              blob = broadcast.attachments.blobs.reload.last
+              blob = broadcast.attachments.blobs.reload.order(:id).last
               urls << { 'name' => file.original_filename, 'url' => blob.url(expires_in: 30.days) }
             end
 
