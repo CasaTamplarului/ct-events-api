@@ -15,6 +15,7 @@ class Attendee < ApplicationRecord
   enum :dietary_preference, { no_preference: 0, vegetarian: 1, vegan: 2 }
 
   ALLERGY_OPTIONS = %w[gluten lactose nuts eggs soy fish shellfish].freeze
+  CANCELLATION_REASONS = %w[cant_attend health financial plans_changed other].freeze
   validate :allergies_are_valid
 
   before_save :set_participant_key
