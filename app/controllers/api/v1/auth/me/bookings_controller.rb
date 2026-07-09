@@ -83,7 +83,7 @@ module Api
             )
             # rubocop:enable Rails/SkipsModelValidations
 
-            SendCancellationAlertJob.perform_later(first_cancelled_id) if first_cancelled_id
+            SendCancellationAlertJob.perform_later(attendee_id: first_cancelled_id) if first_cancelled_id
 
             render json: serialise_order(order, attendees_for_response(order))
           end
@@ -143,7 +143,7 @@ module Api
               cancellation_reason_text: reason_text
             )
 
-            SendCancellationAlertJob.perform_later(attendee.id)
+            SendCancellationAlertJob.perform_later(attendee_id: attendee.id)
 
             render json: serialise_order(order, attendees_for_response(order))
           end
