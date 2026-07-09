@@ -442,12 +442,13 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
         expect(attendee2.reload.cancellation_reason_text).to eq('Recuperare dupa operatie')
       end
 
-      it 'returns 422 for an invalid reason' do
+      it 'returns 422 for an invalid reason' do # rubocop:disable RSpec/MultipleExpectations
         delete "/api/v1/auth/me/bookings/#{order.order_reference}",
                params: { reason: 'not_a_reason' }.to_json,
                headers: auth_headers
         expect(response).to have_http_status(:unprocessable_content)
         expect(json['error']).to eq('Invalid cancellation reason')
+        expect(SendCancellationAlertJob).not_to have_received(:perform_later)
       end
 
       it 'stores nil for both columns when no reason is provided' do
@@ -541,12 +542,13 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
         expect(attendee.reload.cancellation_reason_text).to eq('Alt eveniment')
       end
 
-      it 'returns 422 for an invalid reason' do
+      it 'returns 422 for an invalid reason' do # rubocop:disable RSpec/MultipleExpectations
         delete "/api/v1/auth/me/bookings/#{order.order_reference}/attendees/#{attendee.id}",
                params: { reason: 'bogus' }.to_json,
                headers: auth_headers
         expect(response).to have_http_status(:unprocessable_content)
         expect(json['error']).to eq('Invalid cancellation reason')
+        expect(SendCancellationAlertJob).not_to have_received(:perform_later)
       end
 
       it 'stores nil for both columns when no reason is provided' do
