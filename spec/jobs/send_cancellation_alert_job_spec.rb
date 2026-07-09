@@ -17,6 +17,7 @@ RSpec.describe SendCancellationAlertJob, type: :job do
                       cancellation_reason: 'health')
   end
   let!(:admin) { create(:user, role: 'admin', email: 'admin@example.com') }
+  let!(:admin2) { create(:user, role: 'admin', email: 'admin2@example.com') }
 
   before { allow(FcmService).to receive(:send_to_user) }
 
@@ -27,20 +28,21 @@ RSpec.describe SendCancellationAlertJob, type: :job do
   it 'calls FcmService.send_to_user for each admin user' do
     perform
     expect(FcmService).to have_received(:send_to_user).with(hash_including(user: admin))
+    expect(FcmService).to have_received(:send_to_user).with(hash_including(user: admin2))
   end
 
   it 'includes the event name in the push title' do
     perform
     expect(FcmService).to have_received(:send_to_user).with(
       hash_including(title: 'Anulare bilet — Fara Regrete')
-    )
+    ).twice
   end
 
   it 'includes the attendee name and Romanian reason label in the body' do
     perform
     expect(FcmService).to have_received(:send_to_user).with(
       hash_including(body: 'Ion Pop și-a anulat locul. Motiv: Motive de sănătate')
-    )
+    ).twice
   end
 
   it 'uses "Nespecificat" when cancellation_reason is nil' do
@@ -48,14 +50,14 @@ RSpec.describe SendCancellationAlertJob, type: :job do
     perform
     expect(FcmService).to have_received(:send_to_user).with(
       hash_including(body: include('Nespecificat'))
-    )
+    ).twice
   end
 
   it 'sends with preference: nil so admin push preferences are not checked' do
     perform
     expect(FcmService).to have_received(:send_to_user).with(
       hash_including(preference: nil)
-    )
+    ).twice
   end
 
   it 'does not call FcmService for non-admin users' do
