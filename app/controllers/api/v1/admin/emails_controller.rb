@@ -31,6 +31,18 @@ module Api
           render json: broadcasts.map { |b| broadcast_json(b) }
         end
 
+        # Full content of one broadcast — powers "reuse content".
+        def show
+          broadcast = EmailBroadcast.includes(:event).find_by(id: params[:id])
+          return render json: { error: 'Not found' }, status: :not_found unless broadcast
+
+          render json: broadcast_json(broadcast).merge(
+            body: broadcast.body,
+            subject_en: broadcast.subject_en,
+            body_en: broadcast.body_en
+          )
+        end
+
         def variables
           render json: { variables: VARIABLES }
         end

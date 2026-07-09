@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_09_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_09_200000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -68,6 +68,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_09_100000) do
   create_table "attendees", force: :cascade do |t|
     t.integer "age"
     t.jsonb "allergies", default: [], null: false
+    t.string "cancellation_reason"
+    t.text "cancellation_reason_text"
     t.boolean "checked_in", default: false, null: false
     t.datetime "checked_in_at"
     t.bigint "checked_in_by_user_id"
