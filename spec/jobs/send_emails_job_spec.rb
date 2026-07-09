@@ -28,6 +28,27 @@ RSpec.describe SendEmailsJob do
       end
     end
 
+    context 'when body contains URI-encoded template variables in href attributes' do
+      it 'substitutes the variable even when braces are percent-encoded' do
+        allow(SendgridService).to receive(:send_broadcast)
+        event = create(:event)
+        order = create(:order, order_reference: 'CT-2026-ABCDEF', user: user)
+        create(:attendee, event: event, user: user, order: order, payment_status: :paid)
+
+        body_with_encoded_var = '<a href="https://events.example.com/bookings/%7B%7Border_reference%7D%7D">View booking</a>'
+        broadcast2 = create(:email_broadcast, subject: 'Test', body: body_with_encoded_var, channel: 'marketing_emails')
+
+        described_class.new.perform(
+          subject: 'Test', body: body_with_encoded_var, channel: 'marketing_emails',
+          user_ids: [user.id], broadcast_id: broadcast2.id, event_id: event.id
+        )
+
+        expect(SendgridService).to have_received(:send_broadcast).with(
+          hash_including(body_html: include("bookings/#{order.order_reference}"))
+        )
+      end
+    end
+
     context 'with an attachment on the broadcast' do
       before do
         broadcast.attachments.attach(

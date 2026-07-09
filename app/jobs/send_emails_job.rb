@@ -135,7 +135,10 @@ class SendEmailsJob < ApplicationJob
     end
 
     def substitute(text, variables)
-      variables.reduce(text) { |t, (k, v)| t.gsub("{{#{k}}}", v) }
+      # Decode URI-encoded {{ / }} so variables in href attributes (e.g. %7B%7Border_reference%7D%7D)
+      # are still replaced when the editor percent-encodes braces before sending.
+      normalized = text.gsub(/%7B%7B([^%\s]+?)%7D%7D/i) { "{{#{Regexp.last_match(1)}}}" }
+      variables.reduce(normalized) { |t, (k, v)| t.gsub("{{#{k}}}", v) }
     end
 
     def batch_order_refs(user_ids, event_id)
