@@ -56,16 +56,19 @@ RSpec.describe SendEmailsJob do
 
       it 'downloads each blob only once regardless of recipient count' do
         user2 = create(:user, email: 'maria@example.com', language: 'ro-RO', marketing_emails: true)
-        blob  = broadcast.attachments.blobs.first
-        allow(blob).to receive(:download).and_call_original
+
+        download_calls = 0
+        allow_any_instance_of(ActiveStorage::Blob).to receive(:download).and_wrap_original do |original, *args| # rubocop:disable RSpec/AnyInstance
+          download_calls += 1
+          original.call(*args)
+        end
 
         described_class.new.perform(
           subject: 'Test', body: 'Hello', channel: 'marketing_emails',
           user_ids: [user.id, user2.id], broadcast_id: broadcast.id
         )
 
-        # download called once even though two recipients
-        expect(blob).to have_received(:download).once
+        expect(download_calls).to eq(1)
       end
     end
   end
