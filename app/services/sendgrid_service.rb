@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'cgi'
 require 'rqrcode'
 require 'chunky_png'
 
@@ -12,8 +13,11 @@ class SendgridService
     ENV['DISABLE_EMAILS'].to_s.downcase != 'true'
   end
 
-  def self.send_broadcast(to:, subject:, body_html:, unsubscribe_url: nil, is_romanian: true)
+  def self.send_broadcast(to:, subject:, body_html:, unsubscribe_url: nil, is_romanian: true,
+                          attachments: [], attachment_urls: [])
     return unless emails_enabled?
+
+    final_body = attachment_urls.any? ? body_html + download_links_html(attachment_urls) : body_html
 
     mail = SendGrid::Mail.new
     from_email = Rails.application.credentials.dig(:sendgrid, :from_email) || 'noreply@example.com'
@@ -23,14 +27,23 @@ class SendgridService
     personalization = SendGrid::Personalization.new
     personalization.add_to(SendGrid::Email.new(email: to))
     personalization.add_dynamic_template_data(
-      'subject'         => subject,
-      'body_html'       => body_html,
+      'subject' => subject,
+      'body_html' => final_body,
       'unsubscribe_url' => unsubscribe_url.to_s,
-      'frontend_url'    => ENV.fetch('FRONTEND_URL', nil).to_s,
-      'is_romanian'     => is_romanian,
-      'year'            => Time.current.year.to_s
+      'frontend_url' => ENV.fetch('FRONTEND_URL', nil).to_s,
+      'is_romanian' => is_romanian,
+      'year' => Time.current.year.to_s
     )
     mail.add_personalization(personalization)
+
+    attachments.each do |att|
+      sg_att              = SendGrid::Attachment.new
+      sg_att.content      = att[:content]
+      sg_att.type         = att[:type]
+      sg_att.filename     = att[:filename]
+      sg_att.disposition  = 'attachment'
+      mail.add_attachment(sg_att)
+    end
 
     client = SendGrid::API.new(api_key: Rails.application.credentials.dig(:sendgrid, :api_key))
     response = client.client.mail._('send').post(request_body: mail.to_json)
@@ -261,6 +274,20 @@ class SendgridService
           "<p style=\"#{MEAL_P_STYLE}\">#{text}</p>"
         end
              .join
+      end
+
+      def download_links_html(attachment_urls)
+        items = attachment_urls.map do |a|
+          url  = CGI.escapeHTML(a['url'].to_s)
+          name = CGI.escapeHTML(a['name'].to_s)
+          "<li><a href=\"#{url}\">#{name}</a></li>"
+        end.join
+        <<~HTML
+          <div style="margin-top:24px;padding-top:16px;border-top:1px solid #eee">
+            <p style="margin:0 0 8px;font-size:14px;color:#555">Dacă nu poți vedea atașamentele, le poți descărca aici:</p>
+            <ul style="margin:0;padding-left:20px">#{items}</ul>
+          </div>
+        HTML
       end
   end
 end

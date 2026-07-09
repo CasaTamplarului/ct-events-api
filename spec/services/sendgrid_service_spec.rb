@@ -301,4 +301,71 @@ RSpec.describe SendgridService do
       end
     end
   end
+
+  describe '.send_broadcast' do
+    before do
+      stub_request(:post, 'https://api.sendgrid.com/v3/mail/send')
+        .to_return(status: 202, body: '', headers: {})
+      allow(Rails.application.credentials).to receive(:dig).and_call_original
+      allow(Rails.application.credentials).to receive(:dig)
+        .with(:sendgrid, :api_key).and_return('SG.testkey')
+      allow(Rails.application.credentials).to receive(:dig)
+        .with(:sendgrid, :from_email).and_return('noreply@test.com')
+    end
+
+    it 'posts to the SendGrid mail/send endpoint' do
+      described_class.send_broadcast(to: 'ion@example.com', subject: 'Test', body_html: '<p>Hi</p>')
+      expect(WebMock).to have_requested(:post, 'https://api.sendgrid.com/v3/mail/send')
+    end
+
+    context 'when attachments are provided' do
+      let(:encoded_content) { Base64.strict_encode64('PDF content') }
+      let(:attachments) do
+        [{ content: encoded_content, type: 'application/pdf', filename: 'programme.pdf' }]
+      end
+
+      it 'includes the attachment in the request body' do
+        described_class.send_broadcast(
+          to: 'ion@example.com', subject: 'Test', body_html: '<p>Hi</p>',
+          attachments: attachments
+        )
+        body = JSON.parse(WebMock::RequestRegistry.instance.requested_signatures.hash.keys.last.body)
+        att  = body['attachments']&.first
+        expect(att).to include(
+          'content' => encoded_content,
+          'type' => 'application/pdf',
+          'filename' => 'programme.pdf',
+          'disposition' => 'attachment'
+        )
+      end
+    end
+
+    context 'when attachment_urls are provided' do
+      let(:attachment_urls) { [{ 'name' => 'programme.pdf', 'url' => 'https://directus.example.com/assets/abc' }] }
+
+      it 'appends a download links block to body_html' do
+        described_class.send_broadcast(
+          to: 'ion@example.com', subject: 'Test', body_html: '<p>Hi</p>',
+          attachment_urls: attachment_urls
+        )
+        body = JSON.parse(WebMock::RequestRegistry.instance.requested_signatures.hash.keys.last.body)
+        body_html = body.dig('personalizations', 0, 'dynamic_template_data', 'body_html')
+        expect(body_html).to include('<p>Hi</p>')
+        expect(body_html).to include('https://directus.example.com/assets/abc')
+        expect(body_html).to include('programme.pdf')
+      end
+    end
+
+    context 'when attachment_urls is empty' do
+      it 'does not append a download links block' do
+        described_class.send_broadcast(
+          to: 'ion@example.com', subject: 'Test', body_html: '<p>Hi</p>',
+          attachment_urls: []
+        )
+        body      = JSON.parse(WebMock::RequestRegistry.instance.requested_signatures.hash.keys.last.body)
+        body_html = body.dig('personalizations', 0, 'dynamic_template_data', 'body_html')
+        expect(body_html).to eq('<p>Hi</p>')
+      end
+    end
+  end
 end

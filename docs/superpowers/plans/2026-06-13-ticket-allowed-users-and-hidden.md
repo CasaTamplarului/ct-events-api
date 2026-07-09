@@ -72,7 +72,7 @@ Expected: `AddHiddenToTickets: migrated`
 - [ ] **Step 3: Run migration on production DB (port 5433)**
 
 ```bash
-DATABASE_PORT=5433 DATABASE_PASSWORD=cTeventsPostgres2024! bin/rails db:migrate
+DATABASE_PORT=5433 DATABASE_PASSWORD=<production-db-password> bin/rails db:migrate
 ```
 
 Expected: `AddHiddenToTickets: migrated`
@@ -170,7 +170,7 @@ Expected: `CreateTicketsAllowedUsers: migrated`
 - [ ] **Step 3: Run migration on production DB**
 
 ```bash
-DATABASE_PORT=5433 DATABASE_PASSWORD=cTeventsPostgres2024! bin/rails db:migrate
+DATABASE_PORT=5433 DATABASE_PASSWORD=<production-db-password> bin/rails db:migrate
 ```
 
 Expected: `CreateTicketsAllowedUsers: migrated`

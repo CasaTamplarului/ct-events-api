@@ -11,7 +11,16 @@ class SendEmailsJob < ApplicationJob
               subject_en: nil, body_en: nil, exclude_broadcast_ids: nil)
     return unless VALID_CHANNELS.include?(channel)
 
-    event = event_id ? Event.includes(:events_translations).find_by(id: event_id) : nil
+    broadcast     = EmailBroadcast.find(broadcast_id)
+    encoded_blobs = broadcast.attachments.blobs.filter_map do |b|
+      { content: Base64.strict_encode64(b.download), type: b.content_type, filename: b.filename.to_s }
+    rescue StandardError => e
+      Rails.logger.error("Failed to download attachment blob #{b.id}: #{e.message}")
+      nil
+    end
+    attach_urls = broadcast.attachment_urls
+
+    event      = event_id ? Event.includes(:events_translations).find_by(id: event_id) : nil
     event_name = event&.events_translations&.find { |t| t.languages_code == 'ro-RO' }&.name.to_s
 
     order_refs = batch_order_refs(user_ids, event_id)
@@ -32,28 +41,35 @@ class SendEmailsJob < ApplicationJob
       unsubscribe_url = api_base ? "#{api_base}/api/v1/unsubscribe?token=#{token}" : ''
 
       vars = {
-        'first_name'      => user.first_name.to_s,
-        'last_name'       => user.last_name.to_s,
-        'email'           => user.email.to_s,
-        'event_name'      => event_name,
+        'first_name' => user.first_name.to_s,
+        'last_name' => user.last_name.to_s,
+        'email' => user.email.to_s,
+        'event_name' => event_name,
         'order_reference' => order_refs[user.id].to_s
       }
 
       SendgridService.send_broadcast(
-        to:              user.email,
-        subject:         substitute(subj, vars),
-        body_html:       substitute(bod,  vars),
+        to: user.email,
+        subject: substitute(subj, vars),
+        body_html: substitute(bod, vars),
         unsubscribe_url: unsubscribe_url,
-        is_romanian:     romanian
+        is_romanian: romanian,
+        attachments: encoded_blobs,
+        attachment_urls: attach_urls
       )
 
       sent_recipients << { user_id: user.id, email: user.email.downcase }
     end
 
-    unregistered_recipients = event_id.present? ? send_to_unregistered_attendees(
-      subject, body, event_name, event_id, api_base,
-      sent_recipients.map { |r| r[:email] }.to_set | excluded_emails
-    ) : []
+    unregistered_recipients = if event_id.present?
+                                send_to_unregistered_attendees(
+                                  subject, body, event_name, event_id, api_base,
+                                  sent_recipients.map { |r| r[:email] }.to_set | excluded_emails,
+                                  encoded_blobs, attach_urls
+                                )
+                              else
+                                []
+                              end
 
     record_recipients(broadcast_id, sent_recipients, unregistered_recipients)
   end
@@ -73,7 +89,8 @@ class SendEmailsJob < ApplicationJob
       romanian || en_version.blank? ? ro_version : en_version
     end
 
-    def send_to_unregistered_attendees(subject, body, event_name, event_id, api_base, skip_emails)
+    def send_to_unregistered_attendees(subject, body, event_name, event_id, _api_base, skip_emails,
+                                       encoded_blobs = [], attach_urls = [])
       recipients = []
 
       Attendee.joins(:order)
@@ -86,18 +103,20 @@ class SendEmailsJob < ApplicationJob
         next if skip_emails.include?(attendee.email_address.downcase)
 
         vars = {
-          'first_name'      => attendee.first_name.to_s,
-          'last_name'       => attendee.last_name.to_s,
-          'email'           => attendee.email_address.to_s,
-          'event_name'      => event_name,
+          'first_name' => attendee.first_name.to_s,
+          'last_name' => attendee.last_name.to_s,
+          'email' => attendee.email_address.to_s,
+          'event_name' => event_name,
           'order_reference' => attendee.order_ref.to_s
         }
 
         SendgridService.send_broadcast(
-          to:          attendee.email_address,
-          subject:     substitute(subject, vars),
-          body_html:   substitute(body,    vars),
-          is_romanian: true
+          to: attendee.email_address,
+          subject: substitute(subject, vars),
+          body_html: substitute(body, vars),
+          is_romanian: true,
+          attachments: encoded_blobs,
+          attachment_urls: attach_urls
         )
 
         recipients << { user_id: nil, email: attendee.email_address.downcase }
