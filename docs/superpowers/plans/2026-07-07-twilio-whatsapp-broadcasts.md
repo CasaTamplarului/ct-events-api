@@ -382,7 +382,7 @@ bin/rails db:migrate
 Also run on the production database (port 5433):
 
 ```bash
-DATABASE_PORT=5433 DATABASE_PASSWORD=cTeventsPostgres2024! bin/rails db:migrate
+DATABASE_PORT=5433 DATABASE_PASSWORD=<production-db-password> bin/rails db:migrate
 ```
 
 Expected: Migration status shows `up` for `20260707100000`.

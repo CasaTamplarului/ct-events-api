@@ -135,10 +135,15 @@ module Api
             end
             urls = []
 
+            # Combined direct+Directus total size is not currently summed; per-file cap applies to each separately.
             directus_ids.each do |uuid|
               res = fetch_directus_file(uuid)
               unless res.is_a?(Net::HTTPSuccess)
                 render json: { error: "Directus file #{uuid} not found" }, status: :unprocessable_content
+                return nil
+              end
+              if res.body.bytesize > MAX_FILE_SIZE
+                render json: { error: "Directus file #{uuid} exceeds the 10 MB per-file limit" }, status: :unprocessable_content
                 return nil
               end
               ct       = res['Content-Type'].to_s.split(';').first.strip
@@ -151,10 +156,15 @@ module Api
           end
 
           def fetch_all_directus(directus_ids)
+            # Combined direct+Directus total size is not currently summed; per-file cap applies to each separately.
             directus_ids.map do |uuid|
               res = fetch_directus_file(uuid)
               unless res.is_a?(Net::HTTPSuccess)
                 render json: { error: "Directus file #{uuid} not found" }, status: :unprocessable_content
+                return nil
+              end
+              if res.body.bytesize > MAX_FILE_SIZE
+                render json: { error: "Directus file #{uuid} exceeds the 10 MB per-file limit" }, status: :unprocessable_content
                 return nil
               end
               { uuid: uuid, response: res }
@@ -167,7 +177,7 @@ module Api
             direct_files.each do |file|
               broadcast.attachments.attach(file)
               blob = broadcast.attachments.blobs.reload.order(:id).last
-              urls << { 'name' => file.original_filename, 'url' => blob.url(expires_in: 30.days) }
+              urls << { 'name' => file.original_filename, 'url' => blob.url(expires_in: 7.days) }
             end
 
             fetched_directus.each do |item|
