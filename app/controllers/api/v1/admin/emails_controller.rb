@@ -217,7 +217,8 @@ module Api
           end
 
           def substitute(text, variables)
-            variables.reduce(text) { |t, (k, v)| t.gsub("{{#{k}}}", v.to_s) }
+            normalized = text.gsub(/%7B%7B([^%\s]+?)%7D%7D/i) { "{{#{Regexp.last_match(1)}}}" }
+            variables.reduce(normalized) { |t, (k, v)| t.gsub("{{#{k}}}", v.to_s) }
           end
 
           def resolve_user_ids
