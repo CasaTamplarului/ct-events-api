@@ -66,9 +66,24 @@ module Api
                             status: :unprocessable_content
             end
 
+            reason      = params[:reason].presence
+            reason_text = params[:reason_text].presence
+
+            if reason && Attendee::CANCELLATION_REASONS.exclude?(reason)
+              return render json: { error: 'Invalid cancellation reason' }, status: :unprocessable_content
+            end
+
+            first_cancelled_id = cancellable.pick(:id)
+
             # rubocop:disable Rails/SkipsModelValidations
-            cancellable.update_all(payment_status: Attendee.payment_statuses['attendee_cancelled'])
+            cancellable.update_all(
+              payment_status: Attendee.payment_statuses['attendee_cancelled'],
+              cancellation_reason: reason,
+              cancellation_reason_text: reason_text
+            )
             # rubocop:enable Rails/SkipsModelValidations
+
+            SendCancellationAlertJob.perform_later(first_cancelled_id) if first_cancelled_id
 
             render json: serialise_order(order, attendees_for_response(order))
           end
@@ -115,7 +130,20 @@ module Api
                             status: :unprocessable_content
             end
 
-            attendee.update!(payment_status: :attendee_cancelled)
+            reason      = params[:reason].presence
+            reason_text = params[:reason_text].presence
+
+            if reason && Attendee::CANCELLATION_REASONS.exclude?(reason)
+              return render json: { error: 'Invalid cancellation reason' }, status: :unprocessable_content
+            end
+
+            attendee.update!(
+              payment_status: :attendee_cancelled,
+              cancellation_reason: reason,
+              cancellation_reason_text: reason_text
+            )
+
+            SendCancellationAlertJob.perform_later(attendee.id)
 
             render json: serialise_order(order, attendees_for_response(order))
           end

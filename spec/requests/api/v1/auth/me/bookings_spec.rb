@@ -425,6 +425,38 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
       delete "/api/v1/auth/me/bookings/#{order.order_reference}", headers: auth_headers
       expect(paid_attendee.reload.payment_status).to eq('paid')
     end
+
+    describe 'cancellation reason' do
+      before { allow(SendCancellationAlertJob).to receive(:perform_later) }
+
+      it 'stores reason and reason_text on the cancelled attendee' do
+        delete "/api/v1/auth/me/bookings/#{order.order_reference}",
+               params: { reason: 'health', reason_text: 'Recuperare dupa operatie' }.to_json,
+               headers: auth_headers
+        expect(response).to have_http_status(:ok)
+        expect(attendee.reload.cancellation_reason).to eq('health')
+        expect(attendee.reload.cancellation_reason_text).to eq('Recuperare dupa operatie')
+      end
+
+      it 'returns 422 for an invalid reason' do
+        delete "/api/v1/auth/me/bookings/#{order.order_reference}",
+               params: { reason: 'not_a_reason' }.to_json,
+               headers: auth_headers
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(json['error']).to eq('Invalid cancellation reason')
+      end
+
+      it 'stores nil for both columns when no reason is provided' do
+        delete "/api/v1/auth/me/bookings/#{order.order_reference}", headers: auth_headers
+        expect(attendee.reload.cancellation_reason).to be_nil
+        expect(attendee.reload.cancellation_reason_text).to be_nil
+      end
+
+      it 'enqueues SendCancellationAlertJob with the attendee id' do
+        delete "/api/v1/auth/me/bookings/#{order.order_reference}", headers: auth_headers
+        expect(SendCancellationAlertJob).to have_received(:perform_later).with(attendee.id)
+      end
+    end
   end
 
   describe 'DELETE /api/v1/auth/me/bookings/:order_reference/attendees/:id' do
@@ -482,6 +514,40 @@ RSpec.describe 'GET /api/v1/auth/me/bookings' do
       delete "/api/v1/auth/me/bookings/#{order.order_reference}/attendees/#{attendee.id}",
              headers: auth_headers
       expect(other_attendee.reload.payment_status).to eq('payment_pending')
+    end
+
+    describe 'cancellation reason' do
+      before { allow(SendCancellationAlertJob).to receive(:perform_later) }
+
+      it 'stores reason and reason_text on the cancelled attendee' do
+        delete "/api/v1/auth/me/bookings/#{order.order_reference}/attendees/#{attendee.id}",
+               params: { reason: 'plans_changed', reason_text: 'Alt eveniment' }.to_json,
+               headers: auth_headers
+        expect(response).to have_http_status(:ok)
+        expect(attendee.reload.cancellation_reason).to eq('plans_changed')
+        expect(attendee.reload.cancellation_reason_text).to eq('Alt eveniment')
+      end
+
+      it 'returns 422 for an invalid reason' do
+        delete "/api/v1/auth/me/bookings/#{order.order_reference}/attendees/#{attendee.id}",
+               params: { reason: 'bogus' }.to_json,
+               headers: auth_headers
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(json['error']).to eq('Invalid cancellation reason')
+      end
+
+      it 'stores nil for both columns when no reason is provided' do
+        delete "/api/v1/auth/me/bookings/#{order.order_reference}/attendees/#{attendee.id}",
+               headers: auth_headers
+        expect(attendee.reload.cancellation_reason).to be_nil
+        expect(attendee.reload.cancellation_reason_text).to be_nil
+      end
+
+      it 'enqueues SendCancellationAlertJob with the attendee id' do
+        delete "/api/v1/auth/me/bookings/#{order.order_reference}/attendees/#{attendee.id}",
+               headers: auth_headers
+        expect(SendCancellationAlertJob).to have_received(:perform_later).with(attendee.id)
+      end
     end
   end
 end
