@@ -1087,9 +1087,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_14_110000) do
   add_foreign_key "event_gallery", "events", on_delete: :cascade
   add_foreign_key "event_speakers_translations", "event_speakers", name: "fk_rails_event_speakers_translations_speaker", on_delete: :cascade
   add_foreign_key "event_speakers_translations", "languages", column: "languages_code", primary_key: "code", name: "fk_rails_event_speakers_translations_language", on_update: :cascade, on_delete: :restrict
-  add_foreign_key "event_team_score_entries", "event_teams"
+  add_foreign_key "event_team_score_entries", "event_teams", on_delete: :cascade
   add_foreign_key "event_team_score_entries", "users", column: "added_by_user_id"
-  add_foreign_key "event_teams", "events"
+  add_foreign_key "event_teams", "events", on_delete: :cascade
   add_foreign_key "event_template_doc_translations", "event_template_docs", on_delete: :cascade
   add_foreign_key "event_template_doc_translations", "languages", column: "languages_code", primary_key: "code"
   add_foreign_key "event_template_docs", "directus_files", column: "directus_files_id", name: "event_template_docs_directus_files_id_foreign"
