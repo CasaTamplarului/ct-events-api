@@ -72,6 +72,16 @@ RSpec.describe 'Admin Event Teams' do
            headers: headers(admin)
       expect(response).to have_http_status(:not_found)
     end
+
+    it 'creates a team and broadcasts team_created' do
+      expect {
+        post "/api/v1/admin/events/#{event.slug}/teams",
+             params: { name: 'Echipa Roșie', icon: '🔥', colour: '#FF5733' }.to_json,
+             headers: headers(admin)
+      }.to have_broadcasted_to("event_teams_#{event.slug}")
+        .with(a_hash_including('type' => 'team_created'))
+      expect(response).to have_http_status(:created)
+    end
   end
 
   describe 'GET /api/v1/admin/events/:event_slug/teams' do
@@ -116,6 +126,16 @@ RSpec.describe 'Admin Event Teams' do
             headers: headers(admin)
       expect(response).to have_http_status(:not_found)
     end
+
+    it 'updates the team and broadcasts team_updated' do
+      expect {
+        patch "/api/v1/admin/events/#{event.slug}/teams/#{team.id}",
+              params: { colour: '#E63946' }.to_json,
+              headers: headers(admin)
+      }.to have_broadcasted_to("event_teams_#{event.slug}")
+        .with(a_hash_including('type' => 'team_updated'))
+      expect(response).to have_http_status(:ok)
+    end
   end
 
   describe 'DELETE /api/v1/admin/events/:event_slug/teams/:id' do
@@ -133,6 +153,15 @@ RSpec.describe 'Admin Event Teams' do
       delete "/api/v1/admin/events/#{event.slug}/teams/#{team.id}",
              headers: headers(admin)
       expect(EventTeamScoreEntry.where(event_team_id: team.id)).to be_empty
+    end
+
+    it 'deletes the team and broadcasts team_deleted' do
+      expect {
+        delete "/api/v1/admin/events/#{event.slug}/teams/#{team.id}",
+               headers: headers(admin)
+      }.to have_broadcasted_to("event_teams_#{event.slug}")
+        .with(a_hash_including('type' => 'team_deleted', 'team_id' => team.id))
+      expect(response).to have_http_status(:no_content)
     end
   end
 end

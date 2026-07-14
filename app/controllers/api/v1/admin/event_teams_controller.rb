@@ -5,6 +5,7 @@ module Api
     module Admin
       class EventTeamsController < ActionController::API
         include Authenticatable
+        include EventTeamBroadcastable
 
         before_action :authenticate_user!
         before_action { require_permission!(:can_manage_teams) }
@@ -20,6 +21,7 @@ module Api
           team = @event.event_teams.new(team_params)
           if team.save
             render json: team_json(team), status: :created
+            broadcast_team_created(team)
           else
             render json: { error: team.errors.full_messages.first }, status: :unprocessable_content
           end
@@ -28,6 +30,7 @@ module Api
         def update
           if @team.update(team_params)
             render json: team_json(@team)
+            broadcast_team_updated(@team)
           else
             render json: { error: @team.errors.full_messages.first }, status: :unprocessable_content
           end
@@ -36,6 +39,7 @@ module Api
         def destroy
           @team.destroy!
           head :no_content
+          broadcast_team_deleted(@team)
         end
 
         private
