@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_09_210000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_14_110000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -593,6 +593,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_09_210000) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "event_team_score_entries", force: :cascade do |t|
+    t.bigint "added_by_user_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "delta", null: false
+    t.bigint "event_team_id", null: false
+    t.index ["added_by_user_id"], name: "index_event_team_score_entries_on_added_by_user_id"
+    t.index ["event_team_id"], name: "index_event_team_score_entries_on_event_team_id"
+  end
+
+  create_table "event_teams", force: :cascade do |t|
+    t.string "colour"
+    t.datetime "created_at", null: false
+    t.bigint "event_id", null: false
+    t.string "icon"
+    t.string "name"
+    t.integer "score", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_event_teams_on_event_id"
+  end
+
   create_table "event_template_doc_translations", force: :cascade do |t|
     t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.bigint "event_template_doc_id", null: false
@@ -1067,6 +1087,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_09_210000) do
   add_foreign_key "event_gallery", "events", on_delete: :cascade
   add_foreign_key "event_speakers_translations", "event_speakers", name: "fk_rails_event_speakers_translations_speaker", on_delete: :cascade
   add_foreign_key "event_speakers_translations", "languages", column: "languages_code", primary_key: "code", name: "fk_rails_event_speakers_translations_language", on_update: :cascade, on_delete: :restrict
+  add_foreign_key "event_team_score_entries", "event_teams"
+  add_foreign_key "event_team_score_entries", "users", column: "added_by_user_id"
+  add_foreign_key "event_teams", "events"
   add_foreign_key "event_template_doc_translations", "event_template_docs", on_delete: :cascade
   add_foreign_key "event_template_doc_translations", "languages", column: "languages_code", primary_key: "code"
   add_foreign_key "event_template_docs", "directus_files", column: "directus_files_id", name: "event_template_docs_directus_files_id_foreign"
