@@ -72,7 +72,10 @@ Rails.application.routes.draw do
           delete 'questions/:id', to: 'qa_questions#destroy', as: 'admin_qa_session_question'
         end
         scope '/events/:event_slug' do
-          resources :event_teams, path: 'teams', only: %i[index create update destroy]
+          resources :event_teams, path: 'teams', only: %i[index create update destroy] do
+            resources :score_entries, only: %i[index create],
+                                      controller: 'event_team_score_entries'
+          end
         end
       end
 
