@@ -65,6 +65,16 @@ RSpec.describe 'Admin Event Team Score Entries' do
       expect(response).to have_http_status(:not_found)
     end
 
+    it 'creates a score entry and broadcasts score_updated' do
+      expect {
+        post "/api/v1/admin/events/#{event.slug}/teams/#{team.id}/score_entries",
+             params: { delta: 5 }.to_json,
+             headers: headers
+      }.to have_broadcasted_to("event_teams_#{event.slug}")
+        .with(a_hash_including('type' => 'score_updated'))
+      expect(response).to have_http_status(:created)
+    end
+
     it 'rejects attendees with 403' do
       attendee = create(:user, role: 'attendee')
       post "/api/v1/admin/events/#{event.slug}/teams/#{team.id}/score_entries",

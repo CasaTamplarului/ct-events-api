@@ -5,6 +5,7 @@ module Api
     module Admin
       class EventTeamScoreEntriesController < ActionController::API
         include Authenticatable
+        include EventTeamBroadcastable
 
         before_action :authenticate_user!
         before_action { require_permission!(:can_manage_teams) }
@@ -32,6 +33,7 @@ module Api
           end
 
           render json: entry_json(entry, score_after: @team.reload.score), status: :created
+          broadcast_score_updated(@team, entry)
         rescue ActiveRecord::RecordInvalid => e
           render json: { error: e.message }, status: :unprocessable_content
         end

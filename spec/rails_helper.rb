@@ -23,6 +23,7 @@ RSpec.configure do |config|
   config.filter_rails_from_backtrace!
   config.include FactoryBot::Syntax::Methods
   config.include RequestSpecHelper, type: :request
+  config.include ActionCable::TestHelper
   config.after do
     I18n.locale = I18n.default_locale
     Faker::UniqueGenerator.clear
