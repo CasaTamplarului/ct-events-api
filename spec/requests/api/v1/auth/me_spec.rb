@@ -110,7 +110,8 @@ RSpec.describe 'Auth::Me endpoints' do
                                             'can_send_push_notifications' => false,
                                             'can_manage_bracelets' => false,
                                             'can_send_emails' => false,
-                                            'can_send_whatsapp' => false
+                                            'can_send_whatsapp' => false,
+                                            'can_manage_teams' => false
                                           })
       end
 
@@ -124,7 +125,8 @@ RSpec.describe 'Auth::Me endpoints' do
                                             'can_send_push_notifications' => false,
                                             'can_manage_bracelets' => false,
                                             'can_send_emails' => false,
-                                            'can_send_whatsapp' => false
+                                            'can_send_whatsapp' => false,
+                                            'can_manage_teams' => true
                                           })
       end
     end

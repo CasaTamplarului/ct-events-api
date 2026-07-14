@@ -56,7 +56,7 @@ Rails.application.routes.draw do
 
       namespace :admin do
         resources :push_notifications, only: :create
-        resources :emails, only: %i[index create] do
+        resources :emails, only: %i[index create show] do
           collection { get :variables }
         end
         resources :whatsapp_templates,  only: %i[index create]
@@ -70,6 +70,12 @@ Rails.application.routes.draw do
           delete '/',             to: 'qa_sessions#destroy'
           get    'questions',     to: 'qa_questions#index',   as: 'admin_qa_session_questions'
           delete 'questions/:id', to: 'qa_questions#destroy', as: 'admin_qa_session_question'
+        end
+        scope '/events/:event_slug' do
+          resources :event_teams, path: 'teams', only: %i[index create update destroy] do
+            resources :score_entries, only: %i[index create],
+                                      controller: 'event_team_score_entries'
+          end
         end
       end
 

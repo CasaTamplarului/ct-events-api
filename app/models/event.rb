@@ -13,6 +13,7 @@ class Event < ApplicationRecord
   has_many :event_boolean_fields,       -> { order(:sort) }, dependent: :destroy, inverse_of: :event
   has_many :event_description_sections, -> { order(:sort) }, dependent: :destroy, inverse_of: :event
   has_many :qa_sessions, dependent: :destroy
+  has_many :event_teams, dependent: :destroy
 
   # Enums
   enum :status, { draft: 0, live: 1, cancelled: 2, deleted: 3 }
