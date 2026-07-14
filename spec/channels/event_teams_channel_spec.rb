@@ -14,6 +14,7 @@ RSpec.describe EventTeamsChannel, type: :channel do
     it 'subscribes and streams from the event channel' do
       subscribe event_slug: event.slug
       expect(subscription).to be_confirmed
+      expect(subscription.streams).to include("event_teams_#{event.slug}")
     end
   end
 
