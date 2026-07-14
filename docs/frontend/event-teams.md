@@ -122,6 +122,101 @@ Full score history for a team, ordered oldest first. Use this to render a runnin
 
 ---
 
+## Real-Time Updates (Action Cable)
+
+All team mutations are broadcast over WebSocket so every connected admin/volunteer sees changes instantly.
+
+### Connecting
+
+```js
+const cable = createConsumer(`wss://your-api/cable?token=${jwt}`)
+```
+
+Subscribe to an event's team channel:
+
+```js
+const subscription = cable.subscriptions.create(
+  { channel: 'EventTeamsChannel', event_slug: 'concert-summer-2026' },
+  { received(data) { handleMessage(data) } }
+)
+```
+
+The connection rejects if the JWT is missing/invalid or the user lacks `can_manage_teams`.
+
+### Message types
+
+All messages arrive as parsed objects with a `type` string field.
+
+**`team_created`** — a new team was added
+
+```json
+{
+  "type": "team_created",
+  "team": { "id": 3, "name": "Echipa Verde", "icon": "🌿", "colour": "#16A34A", "score": 0 }
+}
+```
+
+**`team_updated`** — name, icon, or colour changed
+
+```json
+{
+  "type": "team_updated",
+  "team": { "id": 3, "name": "Echipa Verde", "icon": "🌿", "colour": "#15803D", "score": 0 }
+}
+```
+
+**`team_deleted`** — team and all its score entries removed
+
+```json
+{
+  "type": "team_deleted",
+  "team_id": 3
+}
+```
+
+**`score_updated`** — a score delta was applied; `team.score` is the new total
+
+```json
+{
+  "type": "score_updated",
+  "team": { "id": 1, "name": "Echipa Roșie", "icon": "🔥", "colour": "#FF5733", "score": 11 },
+  "entry": {
+    "id": 7,
+    "delta": -4,
+    "added_by": { "first_name": "Ion", "last_name": "Pop" },
+    "created_at": "2026-07-14T10:30:00.000Z"
+  }
+}
+```
+
+Note: `score_after` is absent from the broadcast entry — use `team.score` instead.
+
+### Suggested handler
+
+```js
+function handleMessage(data) {
+  switch (data.type) {
+    case 'team_created':
+      addTeam(data.team)
+      break
+    case 'team_updated':
+      updateTeam(data.team)
+      break
+    case 'team_deleted':
+      removeTeam(data.team_id)
+      break
+    case 'score_updated':
+      updateTeam(data.team)   // replaces the whole team object — score is already updated
+      appendScoreEntry(data.team.id, data.entry)
+      break
+  }
+}
+```
+
+Fetch the initial team list via REST on mount; the WebSocket keeps it live after that.
+
+---
+
 ## Error Reference
 
 | Status | When |
