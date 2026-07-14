@@ -71,6 +71,9 @@ Rails.application.routes.draw do
           get    'questions',     to: 'qa_questions#index',   as: 'admin_qa_session_questions'
           delete 'questions/:id', to: 'qa_questions#destroy', as: 'admin_qa_session_question'
         end
+        scope '/events/:event_slug' do
+          resources :event_teams, path: 'teams', only: %i[index create update destroy]
+        end
       end
 
       resources :uploads, only: :create
