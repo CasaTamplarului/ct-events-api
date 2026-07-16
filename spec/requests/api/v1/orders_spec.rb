@@ -135,6 +135,64 @@ RSpec.describe 'POST /api/v1/:lang/orders' do
     end
   end
 
+  describe 'registration cutoff' do
+    def post_order_as(user, items)
+      post "/api/v1/#{language_code}/orders",
+           params: { items: items }.to_json,
+           headers: {
+             'Content-Type' => 'application/json',
+             'Authorization' => "Bearer #{JwtService.encode(user.id)}"
+           }
+    end
+
+    context 'when registration_closes_at is in the past' do
+      let(:event) { create(:event, status: :live, slug: 'tabara-impact-2026', registration_closes_at: 1.hour.ago) }
+
+      it 'returns 422 for an unauthenticated user' do
+        post_order([valid_item])
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(json['error']).to be_present
+      end
+
+      it 'returns 422 for an attendee' do
+        post_order_as(create(:user, role: 'attendee'), [valid_item])
+
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'allows an admin to register past the cutoff' do
+        post_order_as(create(:user, role: 'admin'), [valid_item])
+
+        expect(response).to have_http_status(:created)
+      end
+
+      it 'allows a volunteer to register past the cutoff' do
+        post_order_as(create(:user, role: 'volunteer'), [valid_item])
+
+        expect(response).to have_http_status(:created)
+      end
+    end
+
+    context 'when registration_closes_at is in the future' do
+      let(:event) { create(:event, status: :live, slug: 'tabara-impact-2026', registration_closes_at: 1.hour.from_now) }
+
+      it 'allows anyone to register' do
+        post_order([valid_item])
+
+        expect(response).to have_http_status(:created)
+      end
+    end
+
+    context 'when registration_closes_at is nil' do
+      it 'allows anyone to register' do
+        post_order([valid_item])
+
+        expect(response).to have_http_status(:created)
+      end
+    end
+  end
+
   describe 'duplicate registration' do
     before { create(:attendee, event: event, email_address: 'ion@example.com') }
 

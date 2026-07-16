@@ -50,6 +50,13 @@ module Api
               break
             end
 
+            if event.registration_closes_at.present? &&
+               Time.current >= event.registration_closes_at &&
+               !PRIVILEGED_ROLES.include?(@current_user&.role)
+              render json: { error: t('orders.errors.registration_closed') }, status: :unprocessable_content
+              break
+            end
+
             ticket = if item[:ticket_id].present?
                        event.tickets.includes(:ticket_allowed_users).find_by(id: item[:ticket_id])
                      else
