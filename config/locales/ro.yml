@@ -62,6 +62,7 @@ ro:
       missing_required_boolean_fields: "Răspunsuri obligatorii lipsă: %{fields}"
       leader_ticket_required: "Acest bilet este disponibil doar pentru lideri"
       not_allowed_for_ticket: "Nu ești pe lista de permisiuni pentru acest bilet"
+      registration_closed: "Înregistrările pentru acest eveniment s-au închis"
   bookings:
     errors:
       nothing_to_cancel: "Nu există participanți care pot fi anulați pentru această comandă"

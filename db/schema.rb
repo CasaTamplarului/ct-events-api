@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_14_110000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_16_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -653,6 +653,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_14_110000) do
     t.integer "max_number_of_people"
     t.integer "min_age"
     t.boolean "override_max_people", default: false
+    t.datetime "registration_closes_at"
     t.string "slug", limit: 255
     t.datetime "start_date", precision: nil, default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.integer "status", default: 0
