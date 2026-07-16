@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class ThumbnailEventSerializer < ApplicationSerializer
-  attributes :start_date, :end_date
+  attributes :start_date, :end_date, :registration_closes_at
 
   attribute :name do |object|
     object.translations(params[:languages_code]).name
