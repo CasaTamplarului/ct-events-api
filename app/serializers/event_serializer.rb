@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class EventSerializer < ApplicationSerializer
-  attributes :start_date, :end_date, :address, :location_name, :embed_url
+  attributes :start_date, :end_date, :registration_closes_at, :address, :location_name, :embed_url
 
   attribute :name do |object|
     object.translations(params[:languages_code]).name
