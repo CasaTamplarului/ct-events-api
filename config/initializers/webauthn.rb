@@ -10,7 +10,8 @@ WebAuthn.configure do |config|
   android_origins = ENV.fetch(
     'WEBAUTHN_ANDROID_ORIGINS',
     'android:apk-key-hash:GuoWiZMydUPUGYUrATRZpd2k7kYUtWW7Cc7_ZrLyKcM,' \
-    'android:apk-key-hash:n0mzCOQDofhQxpbVynBZ1ii2tWABqezeja-QMfHAbEM'
+    'android:apk-key-hash:n0mzCOQDofhQxpbVynBZ1ii2tWABqezeja-QMfHAbEM,' \
+    'android:apk-key-hash:tn3btUAwCg976Zzmi1hxMnCvtDaDBvTwjCHs4Bg_rCw'
   ).split(',').map(&:strip).reject(&:empty?)
 
   config.allowed_origins = [origin] + android_origins

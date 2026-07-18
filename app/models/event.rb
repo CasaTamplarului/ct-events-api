@@ -95,6 +95,6 @@ class Event < ApplicationRecord
   end
 
   def starts_from
-    tickets.minimum(:price)
+    tickets.where(for_leaders: false).minimum(:price)
   end
 end

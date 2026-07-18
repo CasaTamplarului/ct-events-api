@@ -174,4 +174,23 @@ RSpec.describe Event do
       expect(result.first).to eq(event_far)
     end
   end
+
+  describe '#starts_from' do
+    it 'returns the minimum price of non-leader tickets' do
+      create(:ticket, event: event, price: 100)
+      create(:ticket, event: event, price: 50)
+      expect(event.starts_from).to eq(50)
+    end
+
+    it 'excludes for_leaders tickets from the minimum' do
+      create(:ticket, event: event, price: 100)
+      create(:ticket, event: event, price: 0, for_leaders: true)
+      expect(event.starts_from).to eq(100)
+    end
+
+    it 'returns nil when only for_leaders tickets exist' do
+      create(:ticket, event: event, price: 0, for_leaders: true)
+      expect(event.starts_from).to be_nil
+    end
+  end
 end
