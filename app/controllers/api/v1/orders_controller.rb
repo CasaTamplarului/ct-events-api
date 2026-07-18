@@ -118,10 +118,12 @@ module Api
             resolved.each do |item|
               email = item[:attendee_attrs][:email_address]
               linked_user = email.present? ? User.active.find_by('LOWER(email) = LOWER(?)', email) : nil
+              free = item[:ticket].price.nil? || item[:ticket].price.zero?
               attendee = order.attendees.create!(
                 event: item[:event],
                 ticket: item[:ticket],
                 user: linked_user,
+                payment_status: free ? :paid : :payment_pending,
                 **item[:attendee_attrs]
               )
 

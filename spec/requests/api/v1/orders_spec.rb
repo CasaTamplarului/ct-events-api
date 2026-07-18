@@ -84,6 +84,30 @@ RSpec.describe 'POST /api/v1/:lang/orders' do
 
       expect(Attendee.last.age).to be_nil
     end
+
+    it 'marks attendee as paid immediately for a free ticket (price zero)' do
+      free_ticket = create(:ticket, event: event, price: 0)
+      create(:tickets_translation, tickets_id: free_ticket.id, languages_code: language_code, name: 'Free')
+      item = valid_item.merge(ticket_id: free_ticket.id)
+      post_order([item])
+
+      expect(Attendee.last.payment_status).to eq('paid')
+    end
+
+    it 'marks attendee as paid immediately for a free ticket (nil price)' do
+      free_ticket = create(:ticket, event: event, price: nil)
+      create(:tickets_translation, tickets_id: free_ticket.id, languages_code: language_code, name: 'Free Nil')
+      item = valid_item.merge(ticket_id: free_ticket.id)
+      post_order([item])
+
+      expect(Attendee.last.payment_status).to eq('paid')
+    end
+
+    it 'marks attendee as payment_pending for a paid ticket' do
+      post_order([valid_item])
+
+      expect(Attendee.last.payment_status).to eq('payment_pending')
+    end
   end
 
   describe 'missing items' do
