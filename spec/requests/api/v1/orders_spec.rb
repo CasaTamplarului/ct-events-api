@@ -172,6 +172,21 @@ RSpec.describe 'POST /api/v1/:lang/orders' do
 
         expect(response).to have_http_status(:created)
       end
+
+      context 'when ticket is for_leaders' do
+        let(:leader) { create(:user, role: 'leader') }
+        let(:leader_ticket) { create(:ticket, event: event, for_leaders: true) }
+        let(:leader_item) do
+          valid_item.merge(ticket_id: leader_ticket.id,
+                           attendee: valid_item[:attendee].merge(email_address: 'leader@example.com'))
+        end
+
+        it 'allows a leader to register past the cutoff on a for_leaders ticket' do
+          post_order_as(leader, [leader_item])
+
+          expect(response).to have_http_status(:created)
+        end
+      end
     end
 
     context 'when registration_closes_at is in the future' do
