@@ -24,6 +24,7 @@ class TicketSerializer < ApplicationSerializer
   attribute :allowed, if: proc { |object, _| object.for_leaders } do |object|
     user = params[:current_user]
     next false if user.nil?
+    next true if user.role == 'admin'
 
     if object.ticket_allowed_users.any?
       object.ticket_allowed_users.any? { |tau| tau.user_id == user.id }

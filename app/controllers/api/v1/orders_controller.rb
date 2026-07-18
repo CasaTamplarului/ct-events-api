@@ -81,7 +81,8 @@ module Api
               end
 
               if ticket.ticket_allowed_users.any? &&
-                 ticket.ticket_allowed_users.none? { |tau| tau.user_id == @current_user.id }
+                 ticket.ticket_allowed_users.none? { |tau| tau.user_id == @current_user.id } &&
+                 @current_user.role != 'admin'
                 render json: { error: t('orders.errors.not_allowed_for_ticket') }, status: :forbidden
                 break
               end
