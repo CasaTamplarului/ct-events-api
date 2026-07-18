@@ -90,6 +90,7 @@ class Event < ApplicationRecord
 
   def fully_booked?
     return false if max_number_of_people.nil?
+    return false if override_max_people?
 
     attendees.where.not(payment_status: %i[attendee_cancelled refunded]).count >= max_number_of_people
   end

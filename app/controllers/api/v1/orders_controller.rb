@@ -105,6 +105,7 @@ module Api
 
           resolved.group_by { |i| i[:event] }.each do |event, items_for_event|
             next unless event.max_number_of_people
+            next if event.override_max_people?
 
             active_count = event.attendees.where.not(payment_status: %i[attendee_cancelled refunded]).count
             if active_count + items_for_event.size > event.max_number_of_people
