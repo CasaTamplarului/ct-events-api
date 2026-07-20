@@ -15,6 +15,8 @@ module Api
 
           attendees = event.attendees
                            .includes(:ticket)
+                           .joins(:ticket)
+                           .where(tickets: { for_leaders: false })
                            .where.not(payment_status: %i[refunded attendee_cancelled])
 
           if params[:checked_in].present?
@@ -42,6 +44,8 @@ module Api
 
           attendees = event.attendees
                            .includes(:ticket)
+                           .joins(:ticket)
+                           .where(tickets: { for_leaders: false })
                            .where.not(payment_status: %i[refunded attendee_cancelled])
                            .where(wheel_winner: false)
 
