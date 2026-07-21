@@ -16,8 +16,7 @@ class HeroEventSerializer < ApplicationSerializer
   end
 
   attribute :description_sections do |object|
-    sections = object.event_description_sections.includes(:event_description_section_translations)
-    sections.map do |s|
+    object.event_description_sections.map do |s|
       { label: s.label_for(params[:languages_code]),
         content: s.content_for(params[:languages_code]) }
     end
