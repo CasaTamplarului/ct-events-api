@@ -6,7 +6,8 @@ module Api
       class UpcomingController < ActionController::API
         def index
           events = Event.upcoming
-                        .includes(event_description_sections: :event_description_section_translations)
+                        .includes(:events_translations, :tickets, :event_gallery_items,
+                                  event_description_sections: :event_description_section_translations)
                         .order(start_date: :asc).limit(10)
 
           render json:

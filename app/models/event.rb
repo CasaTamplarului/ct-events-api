@@ -81,7 +81,11 @@ class Event < ApplicationRecord
   }
 
   def translations(language_code)
-    events_translations.find_by(languages_code: language_code)
+    if events_translations.loaded?
+      events_translations.detect { |t| t.languages_code == language_code }
+    else
+      events_translations.find_by(languages_code: language_code)
+    end
   end
 
   def past?
@@ -96,6 +100,10 @@ class Event < ApplicationRecord
   end
 
   def starts_from
-    tickets.where(for_leaders: false).minimum(:price)
+    if tickets.loaded?
+      tickets.reject(&:for_leaders).filter_map(&:price).min
+    else
+      tickets.where(for_leaders: false).minimum(:price)
+    end
   end
 end
